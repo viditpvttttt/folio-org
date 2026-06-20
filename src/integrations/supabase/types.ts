@@ -14,47 +14,40 @@ export type Database = {
   }
   public: {
     Tables: {
-      pages: {
+      messages: {
         Row: {
-          color: string
-          content: Json
           created_at: string
-          icon: string
           id: string
-          pos_x: number
-          pos_y: number
-          pos_z: number
-          title: string
-          updated_at: string
+          parts: Json
+          role: string
+          thread_id: string
           user_id: string
         }
         Insert: {
-          color?: string
-          content?: Json
           created_at?: string
-          icon?: string
           id?: string
-          pos_x?: number
-          pos_y?: number
-          pos_z?: number
-          title?: string
-          updated_at?: string
+          parts?: Json
+          role: string
+          thread_id: string
           user_id: string
         }
         Update: {
-          color?: string
-          content?: Json
           created_at?: string
-          icon?: string
           id?: string
-          pos_x?: number
-          pos_y?: number
-          pos_z?: number
-          title?: string
-          updated_at?: string
+          parts?: Json
+          role?: string
+          thread_id?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "threads"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -80,36 +73,24 @@ export type Database = {
         }
         Relationships: []
       }
-      tasks: {
+      threads: {
         Row: {
           created_at: string
-          description: string | null
-          due_date: string | null
           id: string
-          position: number
-          status: Database["public"]["Enums"]["task_status"]
           title: string
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
-          description?: string | null
-          due_date?: string | null
           id?: string
-          position?: number
-          status?: Database["public"]["Enums"]["task_status"]
-          title: string
+          title?: string
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
-          description?: string | null
-          due_date?: string | null
           id?: string
-          position?: number
-          status?: Database["public"]["Enums"]["task_status"]
           title?: string
           updated_at?: string
           user_id?: string

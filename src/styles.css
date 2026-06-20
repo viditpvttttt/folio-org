@@ -124,3 +124,43 @@
   50% { transform: translateY(-6px); }
 }
 .float-soft { animation: float-soft 6s ease-in-out infinite; }
+
+/* RGB aurora — Gemini / Lovable-style ambient glow */
+@property --rgb-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes rgb-spin {
+  to { --rgb-angle: 360deg; }
+}
+.rgb-aurora {
+  position: relative;
+  background: conic-gradient(
+    from var(--rgb-angle),
+    #ff4d8d 0deg,
+    #b66dff 70deg,
+    #4d9bff 140deg,
+    #7dffb4 210deg,
+    #ffd24d 280deg,
+    #ff4d8d 360deg
+  );
+  animation: rgb-spin 6s linear infinite;
+  box-shadow:
+    0 0 30px -8px rgba(255, 77, 141, 0.35),
+    0 0 60px -16px rgba(77, 155, 255, 0.3);
+  transition: box-shadow 0.3s ease;
+}
+.rgb-aurora:focus-within {
+  box-shadow:
+    0 0 40px -6px rgba(255, 77, 141, 0.55),
+    0 0 80px -12px rgba(77, 155, 255, 0.45),
+    0 0 120px -20px rgba(182, 109, 255, 0.4);
+}
+.rgb-blob {
+  background: conic-gradient(
+    from 0deg,
+    #ff4d8d, #b66dff, #4d9bff, #7dffb4, #ffd24d, #ff4d8d
+  );
+  animation: rgb-spin 14s linear infinite;
+}
