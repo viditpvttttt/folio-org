@@ -59,7 +59,7 @@ export function ChatRoom({ threadId }: { threadId: string }) {
     id: threadId,
     transport: new DefaultChatTransport({
       api: "/api/chat",
-      headers: () => (authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      headers: (): Record<string, string> => (authToken ? { Authorization: `Bearer ${authToken}` } : {}),
       body: { threadId },
     }),
     onError: (e) => toast.error(e.message || "Something went wrong"),
