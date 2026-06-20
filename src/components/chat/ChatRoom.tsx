@@ -249,15 +249,19 @@ export function ChatRoom({ threadId }: { threadId: string }) {
                           : "bg-transparent p-0",
                       )}
                     >
-                      {m.parts.map((p, i) =>
-                        p.type === "text" ? (
-                          m.role === "assistant" ? (
+                      {m.parts.map((p, i) => {
+                        if (p.type === "text") {
+                          return m.role === "assistant" ? (
                             <MessageResponse key={i}>{p.text}</MessageResponse>
                           ) : (
                             <span key={i}>{p.text}</span>
-                          )
-                        ) : null,
-                      )}
+                          );
+                        }
+                        if (typeof p.type === "string" && p.type.startsWith("tool-")) {
+                          return <ToolPart key={i} part={p as unknown as { type: string; state?: string; output?: unknown; input?: unknown }} />;
+                        }
+                        return null;
+                      })}
                     </MessageContent>
                   </Message>
                 ))
