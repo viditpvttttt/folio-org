@@ -21,10 +21,77 @@ import {
 } from "@/components/ai-elements/prompt-input";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { AmbientScene } from "./AmbientScene";
+import { WeatherCard, type WeatherData } from "./WeatherCard";
+import { Clock, CalendarClock, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { createThread, deleteThread, getThreadMessages, listThreads } from "@/lib/threads.functions";
 import { cn } from "@/lib/utils";
+
+type PlanBlock = { title: string; start: string; end: string; minutes: number };
+
+function ToolPart({ part }: { part: { type: string; state?: string; output?: unknown; input?: unknown } }) {
+  const name = part.type.replace(/^tool-/, "");
+  const running = part.state !== "output-available" && part.state !== "output-error";
+
+  if (running) {
+    return (
+      <div className="my-2 inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/60 px-3 py-1.5 text-xs text-muted-foreground backdrop-blur">
+        <Loader2 className="h-3 w-3 animate-spin" />
+        {name === "getWeather" && "Checking the sky…"}
+        {name === "getCurrentTime" && "Reading the clock…"}
+        {name === "planMyDay" && "Shaping your day…"}
+        {!["getWeather", "getCurrentTime", "planMyDay"].includes(name) && `Running ${name}…`}
+      </div>
+    );
+  }
+
+  const output = part.output as Record<string, unknown> | undefined;
+  if (!output) return null;
+  if ("error" in output) {
+    return <div className="my-2 text-xs text-destructive">{String(output.error)}</div>;
+  }
+
+  if (name === "getWeather") return <WeatherCard data={output as unknown as WeatherData} />;
+
+  if (name === "getCurrentTime") {
+    const o = output as { timezone: string; formatted: string };
+    return (
+      <div className="my-2 inline-flex items-center gap-3 rounded-xl border border-border/60 bg-card/70 px-4 py-3 backdrop-blur">
+        <Clock className="h-5 w-5 text-foreground/70" />
+        <div>
+          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{o.timezone}</div>
+          <div className="font-serif text-lg leading-tight">{o.formatted}</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (name === "planMyDay") {
+    const o = output as { blocks: PlanBlock[] };
+    return (
+      <div className="my-2 w-full max-w-md overflow-hidden rounded-xl border border-border/60 bg-card/70 backdrop-blur">
+        <div className="flex items-center gap-2 border-b border-border/60 px-4 py-2.5">
+          <CalendarClock className="h-4 w-4" />
+          <span className="font-serif text-base">Your day</span>
+        </div>
+        <ul className="divide-y divide-border/40">
+          {o.blocks.map((b, i) => (
+            <li key={i} className="flex items-center gap-3 px-4 py-2.5 text-sm">
+              <span className="font-mono text-xs text-muted-foreground tabular-nums w-24">
+                {b.start} – {b.end}
+              </span>
+              <span className="flex-1">{b.title}</span>
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{b.minutes}m</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
+  return null;
+}
 
 export function ChatRoom({ threadId }: { threadId: string }) {
   const navigate = useNavigate();
