@@ -1,7 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
-import type { UIMessage } from "ai";
+
+export type PersistedMessage = { id: string; role: "user" | "assistant" | "system"; parts: unknown };
+
 
 export const listThreads = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
