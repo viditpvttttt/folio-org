@@ -41,6 +41,7 @@ export const getThreadMessages = createServerFn({ method: "POST" })
     return rows.map((r) => ({
       id: r.id,
       role: r.role as "user" | "assistant" | "system",
-      parts: (Array.isArray(r.parts) ? r.parts : []) as UIMessage["parts"],
-    })) as UIMessage[];
+      parts: (Array.isArray(r.parts) ? r.parts : []) as unknown,
+    })) satisfies PersistedMessage[];
   });
+
