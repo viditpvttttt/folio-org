@@ -1,8 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import type { Json } from "@/integrations/supabase/types";
 
-export type PersistedMessage = { id: string; role: "user" | "assistant" | "system"; parts: unknown };
+export type PersistedMessage = { id: string; role: "user" | "assistant" | "system"; parts: Json };
+
 
 
 export const listThreads = createServerFn({ method: "GET" })
