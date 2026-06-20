@@ -9,7 +9,6 @@ import { Plus, Trash2, LogOut, Menu } from "lucide-react";
 import {
   Conversation,
   ConversationContent,
-  ConversationEmptyState,
   ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
 import { Message, MessageContent, MessageResponse } from "@/components/ai-elements/message";
