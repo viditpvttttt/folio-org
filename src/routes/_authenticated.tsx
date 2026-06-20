@@ -16,7 +16,7 @@ function AuthLayout() {
   if (loading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="font-serif text-lg text-muted-foreground">Opening your workspace…</div>
+        <div className="font-serif text-lg text-muted-foreground">Opening Folio…</div>
       </div>
     );
   }
