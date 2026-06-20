@@ -235,10 +235,27 @@ export function ChatRoom({ threadId }: { threadId: string }) {
           <Conversation className="flex-1">
             <ConversationContent className="mx-auto w-full max-w-3xl px-4 py-8">
               {messages.length === 0 ? (
-                <ConversationEmptyState
-                  title="Hey — what's on your mind?"
-                  description="Ask anything. Brainstorm, plan, draft, decide, vent. I'm here."
-                />
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <h2 className="font-serif text-4xl mb-2">Good to see you.</h2>
+                  <p className="text-muted-foreground mb-8 max-w-md">
+                    Folio knows the weather, the clock around the world, and how to shape a messy day into a plan. Or just talk.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full max-w-2xl">
+                    {[
+                      "What's the weather in Tokyo?",
+                      "What time is it in New York?",
+                      "Plan my day: workout 45m, deep work 2h, lunch 30m, emails 30m",
+                    ].map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => sendMessage({ text: s })}
+                        className="text-left text-sm rounded-xl border border-border/60 bg-card/60 backdrop-blur px-3 py-2.5 hover:bg-card/90 transition"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               ) : (
                 messages.map((m) => (
                   <Message key={m.id} from={m.role === "user" ? "user" : "assistant"}>
