@@ -1,15 +1,123 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { convertToModelMessages, streamText, type UIMessage } from "ai";
+import { convertToModelMessages, streamText, stepCountIs, tool, type UIMessage } from "ai";
+import { z } from "zod";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
 const SYSTEM_PROMPT = `You are Folio — a calm, warm, world-class personal assistant for everyday life.
-You help with planning the day, thinking through decisions, drafting messages, explaining things simply, and just talking.
-Speak in a friendly, concise, human voice. Use light markdown (headings, bullets, **bold**) when it actually helps.
-Avoid corporate filler. Be specific. If a request is ambiguous, ask one focused question instead of guessing.`;
+You help with planning the day, thinking through decisions, drafting messages, explaining things simply, weather, time, quick calculations, and just talking.
+
+You have tools available:
+- getWeather: current weather + 5-day forecast for any city. ALWAYS use this when a user asks about weather, what to wear, whether to bring an umbrella, etc. Do not invent weather data.
+- getCurrentTime: current date/time in any IANA timezone. Use for "what time is it in Tokyo", scheduling across zones, etc.
+- planMyDay: turn a rough list of intentions into a clean time-blocked plan.
+
+After a tool returns, give a short friendly summary in your own words — do NOT re-list every field; the UI already renders a rich card. Speak in a friendly, concise, human voice. Use light markdown when it helps. If a request is ambiguous, ask one focused question instead of guessing.`;
 
 type Body = { messages?: UIMessage[]; threadId?: string };
+
+const WMO: Record<number, string> = {
+  0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
+  45: "Foggy", 48: "Rime fog",
+  51: "Light drizzle", 53: "Drizzle", 55: "Heavy drizzle",
+  61: "Light rain", 63: "Rain", 65: "Heavy rain",
+  71: "Light snow", 73: "Snow", 75: "Heavy snow", 77: "Snow grains",
+  80: "Rain showers", 81: "Heavy showers", 82: "Violent showers",
+  85: "Snow showers", 86: "Heavy snow showers",
+  95: "Thunderstorm", 96: "Thunderstorm w/ hail", 99: "Severe thunderstorm",
+};
+const describe = (c: number) => WMO[c] ?? "Unknown";
+
+const weatherTool = tool({
+  description: "Get current weather conditions and a 5-day forecast for a city or place.",
+  inputSchema: z.object({
+    location: z.string().describe("City name, e.g. 'Tokyo' or 'Paris, France'"),
+    units: z.enum(["celsius", "fahrenheit"]).default("celsius"),
+  }),
+  execute: async ({ location, units }) => {
+    const geoRes = await fetch(
+      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(location)}&count=1`,
+    );
+    const geo = await geoRes.json();
+    const place = geo?.results?.[0];
+    if (!place) return { error: `Couldn't find "${location}".` };
+
+    const tempUnit = units === "fahrenheit" ? "fahrenheit" : "celsius";
+    const windUnit = units === "fahrenheit" ? "mph" : "kmh";
+    const wRes = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}` +
+        `&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,is_day` +
+        `&daily=temperature_2m_max,temperature_2m_min,weather_code` +
+        `&temperature_unit=${tempUnit}&wind_speed_unit=${windUnit}&timezone=auto&forecast_days=5`,
+    );
+    const w = await wRes.json();
+    const cur = w.current;
+    const daily = (w.daily?.time ?? []).map((date: string, i: number) => ({
+      date,
+      max: w.daily.temperature_2m_max[i],
+      min: w.daily.temperature_2m_min[i],
+      code: w.daily.weather_code[i],
+      description: describe(w.daily.weather_code[i]),
+    }));
+
+    return {
+      location: place.name,
+      country: place.country,
+      temperature: cur.temperature_2m,
+      apparent: cur.apparent_temperature,
+      humidity: cur.relative_humidity_2m,
+      windSpeed: cur.wind_speed_10m,
+      weatherCode: cur.weather_code,
+      isDay: cur.is_day,
+      description: describe(cur.weather_code),
+      daily,
+      units: { temp: tempUnit === "celsius" ? "°C" : "°F", wind: windUnit },
+    };
+  },
+});
+
+const timeTool = tool({
+  description: "Get the current date and time in any IANA timezone.",
+  inputSchema: z.object({
+    timezone: z.string().describe("IANA timezone like 'America/New_York' or 'Asia/Tokyo'"),
+  }),
+  execute: async ({ timezone }) => {
+    try {
+      const now = new Date();
+      const formatter = new Intl.DateTimeFormat("en-US", {
+        timeZone: timezone, weekday: "long", year: "numeric", month: "long",
+        day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "short",
+      });
+      return { timezone, formatted: formatter.format(now), iso: now.toISOString() };
+    } catch {
+      return { error: `Unknown timezone: ${timezone}` };
+    }
+  },
+});
+
+const planTool = tool({
+  description: "Build a clean time-blocked plan from a list of tasks/intentions.",
+  inputSchema: z.object({
+    startTime: z.string().describe("Start time like '09:00'").default("09:00"),
+    tasks: z.array(z.object({
+      title: z.string(),
+      minutes: z.number().int().min(5).max(480).default(30),
+    })).min(1),
+  }),
+  execute: async ({ startTime, tasks }) => {
+    const [h, m] = startTime.split(":").map(Number);
+    let cursor = (h || 9) * 60 + (m || 0);
+    const blocks = tasks.map((t) => {
+      const start = cursor;
+      cursor += t.minutes;
+      const fmt = (mins: number) =>
+        `${String(Math.floor(mins / 60) % 24).padStart(2, "0")}:${String(mins % 60).padStart(2, "0")}`;
+      return { title: t.title, start: fmt(start), end: fmt(cursor), minutes: t.minutes };
+    });
+    return { blocks, totalMinutes: blocks.reduce((a, b) => a + b.minutes, 0) };
+  },
+});
 
 export const Route = createFileRoute("/api/chat")({
   server: {
@@ -50,6 +158,8 @@ export const Route = createFileRoute("/api/chat")({
           model,
           system: SYSTEM_PROMPT,
           messages: await convertToModelMessages(messages),
+          tools: { getWeather: weatherTool, getCurrentTime: timeTool, planMyDay: planTool },
+          stopWhen: stepCountIs(50),
         });
 
         return result.toUIMessageStreamResponse({
@@ -75,7 +185,6 @@ export const Route = createFileRoute("/api/chat")({
                 });
               }
               await supabase.from("threads").update({ updated_at: new Date().toISOString() }).eq("id", threadId);
-              // auto-title from first user message
               if (userMsg) {
                 const { data: existing } = await supabase
                   .from("threads").select("title").eq("id", threadId).maybeSingle();
