@@ -338,7 +338,17 @@ export const Route = createFileRoute("/api/chat")({
           model,
           system: SYSTEM_PROMPT,
           messages: await convertToModelMessages(messages),
-          tools: { getWeather: weatherTool, getCurrentTime: timeTool, planMyDay: planTool },
+          tools: {
+            getWeather: weatherTool,
+            getCurrentTime: timeTool,
+            planMyDay: planTool,
+            calculate: calcTool,
+            convertUnits: convertTool,
+            convertCurrency: currencyTool,
+            defineWord: defineTool,
+            summarizeUrl: summarizeUrlTool,
+            randomPick: randomTool,
+          },
           stopWhen: stepCountIs(50),
         });
 
