@@ -125,6 +125,180 @@ const planTool = tool({
   },
 });
 
+// -------- calculate --------
+const calcTool = tool({
+  description: "Safely evaluate an arithmetic expression. Supports + - * / % ** parentheses and Math functions (sqrt, sin, cos, log, etc).",
+  inputSchema: z.object({ expression: z.string() }),
+  execute: async ({ expression }) => {
+    if (!/^[\d\s+\-*/%().,eE^a-zA-Z_]*$/.test(expression)) {
+      return { error: "Invalid characters in expression" };
+    }
+    try {
+      const safe = expression.replace(/\^/g, "**");
+      // eslint-disable-next-line no-new-func
+      const fn = new Function("Math", `"use strict"; return (${safe});`);
+      const result = fn(Math);
+      if (typeof result !== "number" || !isFinite(result)) return { error: "Result is not a finite number" };
+      return { expression, result };
+    } catch (e) {
+      return { error: (e as Error).message };
+    }
+  },
+});
+
+// -------- convertUnits --------
+const UNIT_FACTORS: Record<string, { base: string; toBase: (v: number) => number; fromBase: (v: number) => number }> = {
+  // length -> meter
+  mm: { base: "length", toBase: (v) => v / 1000, fromBase: (v) => v * 1000 },
+  cm: { base: "length", toBase: (v) => v / 100, fromBase: (v) => v * 100 },
+  m: { base: "length", toBase: (v) => v, fromBase: (v) => v },
+  km: { base: "length", toBase: (v) => v * 1000, fromBase: (v) => v / 1000 },
+  in: { base: "length", toBase: (v) => v * 0.0254, fromBase: (v) => v / 0.0254 },
+  ft: { base: "length", toBase: (v) => v * 0.3048, fromBase: (v) => v / 0.3048 },
+  yd: { base: "length", toBase: (v) => v * 0.9144, fromBase: (v) => v / 0.9144 },
+  mi: { base: "length", toBase: (v) => v * 1609.344, fromBase: (v) => v / 1609.344 },
+  // mass -> kg
+  mg: { base: "mass", toBase: (v) => v / 1e6, fromBase: (v) => v * 1e6 },
+  g: { base: "mass", toBase: (v) => v / 1000, fromBase: (v) => v * 1000 },
+  kg: { base: "mass", toBase: (v) => v, fromBase: (v) => v },
+  lb: { base: "mass", toBase: (v) => v * 0.45359237, fromBase: (v) => v / 0.45359237 },
+  oz: { base: "mass", toBase: (v) => v * 0.0283495, fromBase: (v) => v / 0.0283495 },
+  // volume -> liter
+  ml: { base: "volume", toBase: (v) => v / 1000, fromBase: (v) => v * 1000 },
+  l: { base: "volume", toBase: (v) => v, fromBase: (v) => v },
+  gal: { base: "volume", toBase: (v) => v * 3.78541, fromBase: (v) => v / 3.78541 },
+  cup: { base: "volume", toBase: (v) => v * 0.24, fromBase: (v) => v / 0.24 },
+  // time -> seconds
+  s: { base: "time", toBase: (v) => v, fromBase: (v) => v },
+  min: { base: "time", toBase: (v) => v * 60, fromBase: (v) => v / 60 },
+  h: { base: "time", toBase: (v) => v * 3600, fromBase: (v) => v / 3600 },
+  day: { base: "time", toBase: (v) => v * 86400, fromBase: (v) => v / 86400 },
+  // speed -> m/s
+  "m/s": { base: "speed", toBase: (v) => v, fromBase: (v) => v },
+  "km/h": { base: "speed", toBase: (v) => v / 3.6, fromBase: (v) => v * 3.6 },
+  mph: { base: "speed", toBase: (v) => v * 0.44704, fromBase: (v) => v / 0.44704 },
+  knot: { base: "speed", toBase: (v) => v * 0.514444, fromBase: (v) => v / 0.514444 },
+};
+
+const convertTool = tool({
+  description: "Convert between units (length, mass, volume, time, speed, temperature). For temperature use 'c', 'f', or 'k'.",
+  inputSchema: z.object({
+    value: z.number(),
+    from: z.string().describe("Unit, e.g. 'km', 'lb', 'c', 'mph'"),
+    to: z.string().describe("Unit to convert to"),
+  }),
+  execute: async ({ value, from, to }) => {
+    const f = from.toLowerCase().trim();
+    const t = to.toLowerCase().trim();
+    // temperature special-case
+    const temp = ["c", "f", "k"];
+    if (temp.includes(f) && temp.includes(t)) {
+      const toC = f === "c" ? value : f === "f" ? (value - 32) * (5 / 9) : value - 273.15;
+      const out = t === "c" ? toC : t === "f" ? toC * (9 / 5) + 32 : toC + 273.15;
+      return { value, from: f, to: t, result: Number(out.toFixed(4)) };
+    }
+    const fu = UNIT_FACTORS[f];
+    const tu = UNIT_FACTORS[t];
+    if (!fu || !tu) return { error: `Unknown unit. Supported: ${Object.keys(UNIT_FACTORS).join(", ")}, c/f/k` };
+    if (fu.base !== tu.base) return { error: `Cannot convert ${fu.base} to ${tu.base}` };
+    const result = tu.fromBase(fu.toBase(value));
+    return { value, from: f, to: t, result: Number(result.toFixed(6)) };
+  },
+});
+
+// -------- convertCurrency --------
+const currencyTool = tool({
+  description: "Convert between currencies using live exchange rates.",
+  inputSchema: z.object({
+    amount: z.number().default(1),
+    from: z.string().describe("3-letter code like 'USD'"),
+    to: z.string().describe("3-letter code like 'EUR'"),
+  }),
+  execute: async ({ amount, from, to }) => {
+    try {
+      const f = from.toUpperCase();
+      const t = to.toUpperCase();
+      const res = await fetch(`https://api.frankfurter.dev/v1/latest?base=${f}&symbols=${t}`);
+      if (!res.ok) return { error: `Rate lookup failed (${res.status})` };
+      const data = await res.json();
+      const rate = data?.rates?.[t];
+      if (!rate) return { error: `No rate for ${f} -> ${t}` };
+      return { amount, from: f, to: t, rate, result: Number((amount * rate).toFixed(4)), date: data.date };
+    } catch (e) {
+      return { error: (e as Error).message };
+    }
+  },
+});
+
+// -------- defineWord --------
+const defineTool = tool({
+  description: "Look up a word's definition, part of speech, and examples.",
+  inputSchema: z.object({ word: z.string() }),
+  execute: async ({ word }) => {
+    try {
+      const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
+      if (!res.ok) return { error: `No definition found for "${word}"` };
+      const data = await res.json();
+      const entry = data?.[0];
+      if (!entry) return { error: `No definition found for "${word}"` };
+      const meanings = (entry.meanings ?? []).slice(0, 3).map((m: { partOfSpeech: string; definitions: { definition: string; example?: string }[] }) => ({
+        partOfSpeech: m.partOfSpeech,
+        definitions: (m.definitions ?? []).slice(0, 2).map((d) => ({
+          definition: d.definition,
+          example: d.example,
+        })),
+      }));
+      const phonetic = entry.phonetic ?? entry.phonetics?.find((p: { text?: string }) => p.text)?.text;
+      return { word: entry.word, phonetic, meanings };
+    } catch (e) {
+      return { error: (e as Error).message };
+    }
+  },
+});
+
+// -------- summarizeUrl --------
+const summarizeUrlTool = tool({
+  description: "Fetch the readable text of a web page so the assistant can summarize it.",
+  inputSchema: z.object({ url: z.string().url() }),
+  execute: async ({ url }) => {
+    try {
+      const res = await fetch(`https://r.jina.ai/${url}`, {
+        headers: { "X-Return-Format": "markdown" },
+      });
+      if (!res.ok) return { error: `Could not fetch (${res.status})` };
+      const text = await res.text();
+      const trimmed = text.slice(0, 8000);
+      return { url, contentLength: text.length, content: trimmed };
+    } catch (e) {
+      return { error: (e as Error).message };
+    }
+  },
+});
+
+// -------- randomPick --------
+const randomTool = tool({
+  description: "Random helper: flip a coin, roll dice, or pick from a list.",
+  inputSchema: z.object({
+    mode: z.enum(["coin", "dice", "pick"]),
+    sides: z.number().int().min(2).max(1000).optional().describe("Dice sides (default 6)"),
+    count: z.number().int().min(1).max(20).optional().describe("Number of dice or picks (default 1)"),
+    choices: z.array(z.string()).optional().describe("Required for 'pick'"),
+  }),
+  execute: async ({ mode, sides = 6, count = 1, choices }) => {
+    if (mode === "coin") {
+      const flips = Array.from({ length: count }, () => (Math.random() < 0.5 ? "Heads" : "Tails"));
+      return { mode, results: flips };
+    }
+    if (mode === "dice") {
+      const rolls = Array.from({ length: count }, () => 1 + Math.floor(Math.random() * sides));
+      return { mode, sides, results: rolls, total: rolls.reduce((a, b) => a + b, 0) };
+    }
+    if (!choices || choices.length === 0) return { error: "choices required" };
+    const picks = Array.from({ length: count }, () => choices[Math.floor(Math.random() * choices.length)]);
+    return { mode, results: picks };
+  },
+});
+
 export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
