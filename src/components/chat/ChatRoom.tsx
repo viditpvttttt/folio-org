@@ -342,27 +342,35 @@ export function ChatRoom({ threadId }: { threadId: string }) {
             >
               <Menu className="h-4 w-4" />
             </button>
-            <span className="font-serif text-lg">Your assistant</span>
+            <OrbStatus active={isLoading} />
+            <span className="font-serif text-lg">Folio</span>
+            <span className="text-xs text-muted-foreground hidden sm:inline">· your everyday assistant</span>
           </header>
 
           <Conversation className="flex-1">
             <ConversationContent className="mx-auto w-full max-w-3xl px-4 py-8">
               {messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="h-32 w-32 mb-4">
+                    <OrbStatus active={true} />
+                  </div>
                   <h2 className="font-serif text-4xl mb-2">Good to see you.</h2>
                   <p className="text-muted-foreground mb-8 max-w-md">
-                    Folio knows the weather, the clock around the world, and how to shape a messy day into a plan. Or just talk.
+                    Weather, time zones, math, unit & currency conversion, dictionary, web page summaries, day planning — Folio handles the small stuff so you don't have to.
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full max-w-2xl">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-2xl">
                     {[
                       "What's the weather in Tokyo?",
-                      "What time is it in New York?",
+                      "Convert 250 USD to EUR",
+                      "What's 15% tip on $84.50?",
+                      "Define 'serendipity'",
+                      "How many km is 12 miles?",
                       "Plan my day: workout 45m, deep work 2h, lunch 30m, emails 30m",
                     ].map((s) => (
                       <button
                         key={s}
                         onClick={() => sendMessage({ text: s })}
-                        className="text-left text-sm rounded-xl border border-border/60 bg-card/60 backdrop-blur px-3 py-2.5 hover:bg-card/90 transition"
+                        className="text-left text-sm rounded-xl border border-border/60 bg-card/60 backdrop-blur px-3 py-2.5 hover:bg-card/90 hover:scale-[1.02] transition"
                       >
                         {s}
                       </button>
