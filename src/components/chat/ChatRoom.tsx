@@ -34,14 +34,23 @@ function ToolPart({ part }: { part: { type: string; state?: string; output?: unk
   const name = part.type.replace(/^tool-/, "");
   const running = part.state !== "output-available" && part.state !== "output-error";
 
+  const labels: Record<string, string> = {
+    getWeather: "Checking the sky…",
+    getCurrentTime: "Reading the clock…",
+    planMyDay: "Shaping your day…",
+    calculate: "Crunching numbers…",
+    convertUnits: "Converting…",
+    convertCurrency: "Fetching exchange rate…",
+    defineWord: "Opening the dictionary…",
+    summarizeUrl: "Reading the page…",
+    randomPick: "Rolling…",
+  };
+
   if (running) {
     return (
       <div className="my-2 inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/60 px-3 py-1.5 text-xs text-muted-foreground backdrop-blur">
         <Loader2 className="h-3 w-3 animate-spin" />
-        {name === "getWeather" && "Checking the sky…"}
-        {name === "getCurrentTime" && "Reading the clock…"}
-        {name === "planMyDay" && "Shaping your day…"}
-        {!["getWeather", "getCurrentTime", "planMyDay"].includes(name) && `Running ${name}…`}
+        {labels[name] ?? `Running ${name}…`}
       </div>
     );
   }
