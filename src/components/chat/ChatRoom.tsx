@@ -351,9 +351,7 @@ export function ChatRoom({ threadId }: { threadId: string }) {
             <ConversationContent className="mx-auto w-full max-w-3xl px-4 py-8">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="h-32 w-32 mb-4">
-                    <OrbStatus active={true} />
-                  </div>
+                  <OrbStatus active={true} className="h-32 w-32 mb-4" />
                   <h2 className="font-serif text-4xl mb-2">Good to see you.</h2>
                   <p className="text-muted-foreground mb-8 max-w-md">
                     Weather, time zones, math, unit & currency conversion, dictionary, web page summaries, day planning — Folio handles the small stuff so you don't have to.
