@@ -99,6 +99,110 @@ function ToolPart({ part }: { part: { type: string; state?: string; output?: unk
     );
   }
 
+  if (name === "calculate") {
+    const o = output as { expression: string; result: number };
+    return (
+      <div className="my-2 inline-flex items-center gap-3 rounded-xl border border-border/60 bg-card/70 px-4 py-3 backdrop-blur">
+        <Calculator className="h-5 w-5 text-foreground/70" />
+        <div>
+          <div className="font-mono text-xs text-muted-foreground">{o.expression}</div>
+          <div className="font-serif text-2xl leading-tight tabular-nums">{o.result}</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (name === "convertUnits") {
+    const o = output as { value: number; from: string; to: string; result: number };
+    return (
+      <div className="my-2 inline-flex items-center gap-3 rounded-xl border border-border/60 bg-card/70 px-4 py-3 backdrop-blur">
+        <Ruler className="h-5 w-5 text-foreground/70" />
+        <div className="font-serif text-lg tabular-nums">
+          {o.value} <span className="text-muted-foreground text-sm">{o.from}</span>
+          <span className="mx-2 text-muted-foreground">→</span>
+          {o.result} <span className="text-muted-foreground text-sm">{o.to}</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (name === "convertCurrency") {
+    const o = output as { amount: number; from: string; to: string; rate: number; result: number; date: string };
+    return (
+      <div className="my-2 w-full max-w-sm overflow-hidden rounded-xl border border-border/60 bg-gradient-to-br from-emerald-500/15 via-card/80 to-sky-500/15 backdrop-blur">
+        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border/40">
+          <Coins className="h-4 w-4" />
+          <span className="font-serif text-base">Exchange</span>
+          <span className="ml-auto text-[10px] uppercase tracking-wider text-muted-foreground">{o.date}</span>
+        </div>
+        <div className="px-4 py-3">
+          <div className="font-serif text-2xl tabular-nums">
+            {o.amount} {o.from} <span className="text-muted-foreground">=</span> {o.result} {o.to}
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">1 {o.from} = {o.rate} {o.to}</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (name === "defineWord") {
+    const o = output as { word: string; phonetic?: string; meanings: { partOfSpeech: string; definitions: { definition: string; example?: string }[] }[] };
+    return (
+      <div className="my-2 w-full max-w-md overflow-hidden rounded-xl border border-border/60 bg-card/70 backdrop-blur">
+        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border/40">
+          <BookOpen className="h-4 w-4" />
+          <span className="font-serif text-lg">{o.word}</span>
+          {o.phonetic && <span className="text-xs text-muted-foreground">{o.phonetic}</span>}
+        </div>
+        <div className="px-4 py-3 space-y-3">
+          {o.meanings.map((m, i) => (
+            <div key={i}>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground italic">{m.partOfSpeech}</div>
+              <ul className="mt-1 space-y-1 text-sm">
+                {m.definitions.map((d, j) => (
+                  <li key={j}>
+                    <span>{d.definition}</span>
+                    {d.example && <div className="text-xs italic text-muted-foreground">"{d.example}"</div>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (name === "summarizeUrl") {
+    const o = output as { url: string; contentLength: number };
+    return (
+      <div className="my-2 inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/60 px-3 py-1.5 text-xs text-muted-foreground backdrop-blur">
+        <Link2 className="h-3 w-3" />
+        Read <span className="truncate max-w-[200px]">{o.url}</span> · {Math.round(o.contentLength / 1000)}k chars
+      </div>
+    );
+  }
+
+  if (name === "randomPick") {
+    const o = output as { mode: string; results: (string | number)[]; sides?: number; total?: number };
+    return (
+      <div className="my-2 inline-flex items-center gap-3 rounded-xl border border-border/60 bg-card/70 px-4 py-3 backdrop-blur">
+        <Dices className="h-5 w-5 text-foreground/70" />
+        <div>
+          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            {o.mode}{o.sides ? ` · d${o.sides}` : ""}
+          </div>
+          <div className="font-serif text-lg">
+            {o.results.join(", ")}
+            {typeof o.total === "number" && o.results.length > 1 && (
+              <span className="ml-2 text-sm text-muted-foreground">(sum {o.total})</span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return null;
 }
 
