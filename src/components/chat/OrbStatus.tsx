@@ -27,9 +27,9 @@ function Orb({ active }: { active: boolean }) {
   );
 }
 
-export function OrbStatus({ active }: { active: boolean }) {
+export function OrbStatus({ active, className = "h-9 w-9" }: { active: boolean; className?: string }) {
   return (
-    <div className="h-9 w-9 shrink-0">
+    <div className={`${className} shrink-0`}>
       <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 2.6], fov: 45 }} gl={{ alpha: true, antialias: true }}>
         <ambientLight intensity={0.6} />
         <pointLight position={[2, 2, 2]} intensity={1.4} color="#ff4d8d" />
