@@ -65,6 +65,8 @@ export function VoiceButton({ disabled, onTranscript, onAmplitude, onListeningCh
       tick();
 
       setState("recording");
+      onListeningChange?.(true);
+
     } catch (e) {
       toast.error((e as Error).message || "Microphone unavailable");
     }
