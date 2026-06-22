@@ -79,7 +79,9 @@ export function VoiceButton({ disabled, onTranscript, onAmplitude, onListeningCh
   };
 
   const handleStop = async () => {
+    onListeningChange?.(false);
     setState("transcribing");
+
     const rec = recRef.current;
     const blob = new Blob(chunksRef.current, { type: rec?.mimeType || "audio/webm" });
     if (blob.size < 1024) {
