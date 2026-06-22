@@ -418,30 +418,33 @@ export function ChatRoom({ threadId }: { threadId: string }) {
                 </div>
               ) : (
                 messages.map((m) => (
-                  <Message key={m.id} from={m.role === "user" ? "user" : "assistant"}>
-                    <MessageContent
-                      className={cn(
-                        m.role === "user"
-                          ? "bg-foreground text-background"
-                          : "bg-transparent p-0",
-                      )}
-                    >
-                      {m.parts.map((p, i) => {
-                        if (p.type === "text") {
-                          return m.role === "assistant" ? (
-                            <MessageResponse key={i}>{p.text}</MessageResponse>
-                          ) : (
-                            <span key={i}>{p.text}</span>
-                          );
-                        }
-                        if (typeof p.type === "string" && p.type.startsWith("tool-")) {
-                          return <ToolPart key={i} part={p as unknown as { type: string; state?: string; output?: unknown; input?: unknown }} />;
-                        }
-                        return null;
-                      })}
-                    </MessageContent>
-                  </Message>
+                  <div key={m.id} className="bubble-in">
+                    <Message from={m.role === "user" ? "user" : "assistant"}>
+                      <MessageContent
+                        className={cn(
+                          m.role === "user"
+                            ? "bg-foreground text-background"
+                            : "bg-transparent p-0",
+                        )}
+                      >
+                        {m.parts.map((p, i) => {
+                          if (p.type === "text") {
+                            return m.role === "assistant" ? (
+                              <MessageResponse key={i}>{p.text}</MessageResponse>
+                            ) : (
+                              <span key={i}>{p.text}</span>
+                            );
+                          }
+                          if (typeof p.type === "string" && p.type.startsWith("tool-")) {
+                            return <ToolPart key={i} part={p as unknown as { type: string; state?: string; output?: unknown; input?: unknown }} />;
+                          }
+                          return null;
+                        })}
+                      </MessageContent>
+                    </Message>
+                  </div>
                 ))
+
               )}
               {status === "submitted" && (
                 <Message from="assistant">
