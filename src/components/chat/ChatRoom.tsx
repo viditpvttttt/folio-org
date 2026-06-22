@@ -223,6 +223,11 @@ export function ChatRoom({ threadId }: { threadId: string }) {
   const getMsgs = useServerFn(getThreadMessages);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [authToken, setAuthToken] = useState<string | null>(null);
+  const [voiceAmp, setVoiceAmp] = useState(0);
+  const [listening, setListening] = useState(false);
+  const [voiceOn, setVoiceOn] = useState(false);
+  const speakCancelRef = useRef<(() => void) | null>(null);
+  const lastSpokenIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setAuthToken(data.session?.access_token ?? null));
@@ -250,10 +255,19 @@ export function ChatRoom({ threadId }: { threadId: string }) {
       body: { threadId },
     }),
     onError: (e) => toast.error(e.message || "Something went wrong"),
-    onFinish: () => {
+    onFinish: ({ message }) => {
       qc.invalidateQueries({ queryKey: ["threads"] });
+      if (voiceOn && message.role === "assistant" && message.id !== lastSpokenIdRef.current) {
+        const text = message.parts.map((p) => (p.type === "text" ? p.text : "")).join(" ").trim();
+        if (text) {
+          lastSpokenIdRef.current = message.id;
+          speakCancelRef.current?.();
+          speak(text).then((cancel) => { speakCancelRef.current = cancel; }).catch(() => {});
+        }
+      }
     },
   });
+
 
   useEffect(() => {
     if (initialQ.data) setMessages(initialQ.data as unknown as UIMessage[]);
