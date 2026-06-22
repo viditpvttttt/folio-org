@@ -157,6 +157,13 @@
     0 0 80px -12px rgba(77, 155, 255, 0.45),
     0 0 120px -20px rgba(182, 109, 255, 0.4);
 }
+.rgb-aurora.is-loud {
+  animation-duration: 2.4s;
+  box-shadow:
+    0 0 60px -4px rgba(255, 77, 141, 0.7),
+    0 0 110px -10px rgba(77, 155, 255, 0.55),
+    0 0 160px -16px rgba(125, 255, 180, 0.45);
+}
 .rgb-blob {
   background: conic-gradient(
     from 0deg,
@@ -164,3 +171,10 @@
   );
   animation: rgb-spin 14s linear infinite;
 }
+
+/* Bubble entry */
+@keyframes bubble-in {
+  0% { opacity: 0; transform: translateY(8px) scale(0.98); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.bubble-in { animation: bubble-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); }

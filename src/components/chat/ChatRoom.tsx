@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Plus, Trash2, LogOut, Menu } from "lucide-react";
+import { Plus, Trash2, LogOut, Menu, Volume2, VolumeX } from "lucide-react";
 import {
   Conversation,
   ConversationContent,
@@ -22,11 +22,15 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import { AmbientScene } from "./AmbientScene";
 import { OrbStatus } from "./OrbStatus";
 import { WeatherCard, type WeatherData } from "./WeatherCard";
+import { WeatherWidget } from "./WeatherWidget";
+import { TiltCard } from "./TiltCard";
+import { VoiceButton, speak } from "./VoiceButton";
 import { Clock, CalendarClock, Loader2, Calculator, Ruler, Coins, BookOpen, Link2, Dices } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { createThread, deleteThread, getThreadMessages, listThreads } from "@/lib/threads.functions";
 import { cn } from "@/lib/utils";
+
 
 type PlanBlock = { title: string; start: string; end: string; minutes: number };
 
@@ -61,7 +65,7 @@ function ToolPart({ part }: { part: { type: string; state?: string; output?: unk
     return <div className="my-2 text-xs text-destructive">{String(output.error)}</div>;
   }
 
-  if (name === "getWeather") return <WeatherCard data={output as unknown as WeatherData} />;
+  if (name === "getWeather") return <TiltCard max={8}><WeatherCard data={output as unknown as WeatherData} /></TiltCard>;
 
   if (name === "getCurrentTime") {
     const o = output as { timezone: string; formatted: string };
@@ -79,25 +83,28 @@ function ToolPart({ part }: { part: { type: string; state?: string; output?: unk
   if (name === "planMyDay") {
     const o = output as { blocks: PlanBlock[] };
     return (
-      <div className="my-2 w-full max-w-md overflow-hidden rounded-xl border border-border/60 bg-card/70 backdrop-blur">
-        <div className="flex items-center gap-2 border-b border-border/60 px-4 py-2.5">
-          <CalendarClock className="h-4 w-4" />
-          <span className="font-serif text-base">Your day</span>
+      <TiltCard max={6}>
+        <div className="my-2 w-full max-w-md overflow-hidden rounded-xl border border-border/60 bg-card/70 backdrop-blur">
+          <div className="flex items-center gap-2 border-b border-border/60 px-4 py-2.5">
+            <CalendarClock className="h-4 w-4" />
+            <span className="font-serif text-base">Your day</span>
+          </div>
+          <ul className="divide-y divide-border/40">
+            {o.blocks.map((b, i) => (
+              <li key={i} className="flex items-center gap-3 px-4 py-2.5 text-sm">
+                <span className="font-mono text-xs text-muted-foreground tabular-nums w-24">
+                  {b.start} – {b.end}
+                </span>
+                <span className="flex-1">{b.title}</span>
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{b.minutes}m</span>
+              </li>
+            ))}
+          </ul>
         </div>
-        <ul className="divide-y divide-border/40">
-          {o.blocks.map((b, i) => (
-            <li key={i} className="flex items-center gap-3 px-4 py-2.5 text-sm">
-              <span className="font-mono text-xs text-muted-foreground tabular-nums w-24">
-                {b.start} – {b.end}
-              </span>
-              <span className="flex-1">{b.title}</span>
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{b.minutes}m</span>
-            </li>
-          ))}
-        </ul>
-      </div>
+      </TiltCard>
     );
   }
+
 
   if (name === "calculate") {
     const o = output as { expression: string; result: number };
@@ -216,6 +223,11 @@ export function ChatRoom({ threadId }: { threadId: string }) {
   const getMsgs = useServerFn(getThreadMessages);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [authToken, setAuthToken] = useState<string | null>(null);
+  const [voiceAmp, setVoiceAmp] = useState(0);
+  const [listening, setListening] = useState(false);
+  const [voiceOn, setVoiceOn] = useState(false);
+  const speakCancelRef = useRef<(() => void) | null>(null);
+  const lastSpokenIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setAuthToken(data.session?.access_token ?? null));
@@ -243,10 +255,19 @@ export function ChatRoom({ threadId }: { threadId: string }) {
       body: { threadId },
     }),
     onError: (e) => toast.error(e.message || "Something went wrong"),
-    onFinish: () => {
+    onFinish: ({ message }) => {
       qc.invalidateQueries({ queryKey: ["threads"] });
+      if (voiceOn && message.role === "assistant" && message.id !== lastSpokenIdRef.current) {
+        const text = message.parts.map((p) => (p.type === "text" ? p.text : "")).join(" ").trim();
+        if (text) {
+          lastSpokenIdRef.current = message.id;
+          speakCancelRef.current?.();
+          speak(text).then((cancel) => { speakCancelRef.current = cancel; }).catch(() => {});
+        }
+      }
     },
   });
+
 
   useEffect(() => {
     if (initialQ.data) setMessages(initialQ.data as unknown as UIMessage[]);
@@ -297,9 +318,11 @@ export function ChatRoom({ threadId }: { threadId: string }) {
               <Plus className="h-3.5 w-3.5" /> New
             </button>
           </div>
+          <WeatherWidget />
           <div className="px-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground py-2">
             Conversations
           </div>
+
           <div className="flex-1 overflow-y-auto px-2 pb-3 space-y-1">
             {threadsQ.data?.map((t) => (
               <div
@@ -342,17 +365,35 @@ export function ChatRoom({ threadId }: { threadId: string }) {
             >
               <Menu className="h-4 w-4" />
             </button>
-            <OrbStatus active={isLoading} />
+            <OrbStatus active={isLoading} amplitude={voiceAmp} listening={listening} />
             <span className="font-serif text-lg">Folio</span>
             <span className="text-xs text-muted-foreground hidden sm:inline">· your everyday assistant</span>
+            <button
+              onClick={() => {
+                if (voiceOn) { speakCancelRef.current?.(); speakCancelRef.current = null; }
+                setVoiceOn((v) => !v);
+              }}
+              className={cn(
+                "ml-auto inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full transition",
+                voiceOn ? "bg-foreground text-background" : "bg-foreground/5 hover:bg-foreground/10 text-foreground/70",
+              )}
+              aria-label="Toggle voice replies"
+              title={voiceOn ? "Voice replies on" : "Voice replies off"}
+            >
+              {voiceOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+              <span className="hidden sm:inline">Voice</span>
+            </button>
           </header>
+
+
 
           <Conversation className="flex-1">
             <ConversationContent className="mx-auto w-full max-w-3xl px-4 py-8">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <OrbStatus active={true} className="h-32 w-32 mb-4" />
+                  <OrbStatus active={true} amplitude={voiceAmp} listening={listening} className="h-32 w-32 mb-4" />
                   <h2 className="font-serif text-4xl mb-2">Good to see you.</h2>
+
                   <p className="text-muted-foreground mb-8 max-w-md">
                     Weather, time zones, math, unit & currency conversion, dictionary, web page summaries, day planning — Folio handles the small stuff so you don't have to.
                   </p>
@@ -377,30 +418,33 @@ export function ChatRoom({ threadId }: { threadId: string }) {
                 </div>
               ) : (
                 messages.map((m) => (
-                  <Message key={m.id} from={m.role === "user" ? "user" : "assistant"}>
-                    <MessageContent
-                      className={cn(
-                        m.role === "user"
-                          ? "bg-foreground text-background"
-                          : "bg-transparent p-0",
-                      )}
-                    >
-                      {m.parts.map((p, i) => {
-                        if (p.type === "text") {
-                          return m.role === "assistant" ? (
-                            <MessageResponse key={i}>{p.text}</MessageResponse>
-                          ) : (
-                            <span key={i}>{p.text}</span>
-                          );
-                        }
-                        if (typeof p.type === "string" && p.type.startsWith("tool-")) {
-                          return <ToolPart key={i} part={p as unknown as { type: string; state?: string; output?: unknown; input?: unknown }} />;
-                        }
-                        return null;
-                      })}
-                    </MessageContent>
-                  </Message>
+                  <div key={m.id} className="bubble-in">
+                    <Message from={m.role === "user" ? "user" : "assistant"}>
+                      <MessageContent
+                        className={cn(
+                          m.role === "user"
+                            ? "bg-foreground text-background"
+                            : "bg-transparent p-0",
+                        )}
+                      >
+                        {m.parts.map((p, i) => {
+                          if (p.type === "text") {
+                            return m.role === "assistant" ? (
+                              <MessageResponse key={i}>{p.text}</MessageResponse>
+                            ) : (
+                              <span key={i}>{p.text}</span>
+                            );
+                          }
+                          if (typeof p.type === "string" && p.type.startsWith("tool-")) {
+                            return <ToolPart key={i} part={p as unknown as { type: string; state?: string; output?: unknown; input?: unknown }} />;
+                          }
+                          return null;
+                        })}
+                      </MessageContent>
+                    </Message>
+                  </div>
                 ))
+
               )}
               {status === "submitted" && (
                 <Message from="assistant">
@@ -416,23 +460,34 @@ export function ChatRoom({ threadId }: { threadId: string }) {
           {/* Composer with RGB ambient glow */}
           <div className="px-4 pb-6 pt-2">
             <div className="mx-auto w-full max-w-3xl">
-              <div className="rgb-aurora rounded-2xl p-[2px]">
+              <div className={cn("rgb-aurora rounded-2xl p-[2px]", (isLoading || listening) && "is-loud")}>
                 <PromptInput
                   onSubmit={handleSubmit}
                   className="bg-background/95 backdrop-blur rounded-[14px] border-0 shadow-lg"
                 >
                   <PromptInputTextarea
-                    placeholder="Ask Folio anything…"
+                    placeholder={listening ? "Listening…" : "Ask Folio anything — or tap the mic"}
                     autoFocus
                     disabled={isLoading}
                   />
-                  <PromptInputFooter className="justify-end">
+                  <PromptInputFooter className="justify-between">
+                    <VoiceButton
+                      disabled={isLoading}
+                      onListeningChange={setListening}
+                      onAmplitude={setVoiceAmp}
+                      onTranscript={(text) => {
+                        setListening(false);
+                        setVoiceAmp(0);
+                        sendMessage({ text });
+                      }}
+                    />
+
                     <PromptInputSubmit status={status} disabled={isLoading} />
                   </PromptInputFooter>
                 </PromptInput>
               </div>
               <p className="text-[11px] text-muted-foreground text-center mt-2">
-                Folio · your everyday assistant
+                Folio · hold the mic to talk · toggle voice replies in the header
               </p>
             </div>
           </div>
@@ -441,3 +496,4 @@ export function ChatRoom({ threadId }: { threadId: string }) {
     </div>
   );
 }
+
