@@ -53,23 +53,35 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          default_lat: number | null
+          default_location: string | null
+          default_lon: number | null
           display_name: string | null
           id: string
           updated_at: string
+          voice_enabled: boolean
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          default_lat?: number | null
+          default_location?: string | null
+          default_lon?: number | null
           display_name?: string | null
           id: string
           updated_at?: string
+          voice_enabled?: boolean
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
+          default_lat?: number | null
+          default_location?: string | null
+          default_lon?: number | null
           display_name?: string | null
           id?: string
           updated_at?: string
+          voice_enabled?: boolean
         }
         Relationships: []
       }
