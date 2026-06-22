@@ -65,7 +65,7 @@ function ToolPart({ part }: { part: { type: string; state?: string; output?: unk
     return <div className="my-2 text-xs text-destructive">{String(output.error)}</div>;
   }
 
-  if (name === "getWeather") return <WeatherCard data={output as unknown as WeatherData} />;
+  if (name === "getWeather") return <TiltCard max={8}><WeatherCard data={output as unknown as WeatherData} /></TiltCard>;
 
   if (name === "getCurrentTime") {
     const o = output as { timezone: string; formatted: string };
