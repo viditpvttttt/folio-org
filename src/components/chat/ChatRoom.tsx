@@ -460,23 +460,32 @@ export function ChatRoom({ threadId }: { threadId: string }) {
           {/* Composer with RGB ambient glow */}
           <div className="px-4 pb-6 pt-2">
             <div className="mx-auto w-full max-w-3xl">
-              <div className="rgb-aurora rounded-2xl p-[2px]">
+              <div className={cn("rgb-aurora rounded-2xl p-[2px]", (isLoading || listening) && "is-loud")}>
                 <PromptInput
                   onSubmit={handleSubmit}
                   className="bg-background/95 backdrop-blur rounded-[14px] border-0 shadow-lg"
                 >
                   <PromptInputTextarea
-                    placeholder="Ask Folio anything…"
+                    placeholder={listening ? "Listening…" : "Ask Folio anything — or tap the mic"}
                     autoFocus
                     disabled={isLoading}
                   />
-                  <PromptInputFooter className="justify-end">
+                  <PromptInputFooter className="justify-between">
+                    <VoiceButton
+                      disabled={isLoading}
+                      onAmplitude={(a) => { setVoiceAmp(a); setListening(a > 0 || listening); }}
+                      onTranscript={(text) => {
+                        setListening(false);
+                        setVoiceAmp(0);
+                        sendMessage({ text });
+                      }}
+                    />
                     <PromptInputSubmit status={status} disabled={isLoading} />
                   </PromptInputFooter>
                 </PromptInput>
               </div>
               <p className="text-[11px] text-muted-foreground text-center mt-2">
-                Folio · your everyday assistant
+                Folio · hold the mic to talk · toggle voice replies in the header
               </p>
             </div>
           </div>
@@ -485,3 +494,4 @@ export function ChatRoom({ threadId }: { threadId: string }) {
     </div>
   );
 }
+
