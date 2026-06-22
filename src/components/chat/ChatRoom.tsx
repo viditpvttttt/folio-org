@@ -473,13 +473,15 @@ export function ChatRoom({ threadId }: { threadId: string }) {
                   <PromptInputFooter className="justify-between">
                     <VoiceButton
                       disabled={isLoading}
-                      onAmplitude={(a) => { setVoiceAmp(a); setListening(a > 0 || listening); }}
+                      onListeningChange={setListening}
+                      onAmplitude={setVoiceAmp}
                       onTranscript={(text) => {
                         setListening(false);
                         setVoiceAmp(0);
                         sendMessage({ text });
                       }}
                     />
+
                     <PromptInputSubmit status={status} disabled={isLoading} />
                   </PromptInputFooter>
                 </PromptInput>
