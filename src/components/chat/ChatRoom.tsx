@@ -83,25 +83,28 @@ function ToolPart({ part }: { part: { type: string; state?: string; output?: unk
   if (name === "planMyDay") {
     const o = output as { blocks: PlanBlock[] };
     return (
-      <div className="my-2 w-full max-w-md overflow-hidden rounded-xl border border-border/60 bg-card/70 backdrop-blur">
-        <div className="flex items-center gap-2 border-b border-border/60 px-4 py-2.5">
-          <CalendarClock className="h-4 w-4" />
-          <span className="font-serif text-base">Your day</span>
+      <TiltCard max={6}>
+        <div className="my-2 w-full max-w-md overflow-hidden rounded-xl border border-border/60 bg-card/70 backdrop-blur">
+          <div className="flex items-center gap-2 border-b border-border/60 px-4 py-2.5">
+            <CalendarClock className="h-4 w-4" />
+            <span className="font-serif text-base">Your day</span>
+          </div>
+          <ul className="divide-y divide-border/40">
+            {o.blocks.map((b, i) => (
+              <li key={i} className="flex items-center gap-3 px-4 py-2.5 text-sm">
+                <span className="font-mono text-xs text-muted-foreground tabular-nums w-24">
+                  {b.start} – {b.end}
+                </span>
+                <span className="flex-1">{b.title}</span>
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{b.minutes}m</span>
+              </li>
+            ))}
+          </ul>
         </div>
-        <ul className="divide-y divide-border/40">
-          {o.blocks.map((b, i) => (
-            <li key={i} className="flex items-center gap-3 px-4 py-2.5 text-sm">
-              <span className="font-mono text-xs text-muted-foreground tabular-nums w-24">
-                {b.start} – {b.end}
-              </span>
-              <span className="flex-1">{b.title}</span>
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{b.minutes}m</span>
-            </li>
-          ))}
-        </ul>
-      </div>
+      </TiltCard>
     );
   }
+
 
   if (name === "calculate") {
     const o = output as { expression: string; result: number };
