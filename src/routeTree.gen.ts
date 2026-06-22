@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiTranscribeRouteImport } from './routes/api/transcribe'
+import { Route as ApiSpeakRouteImport } from './routes/api/speak'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat.index'
 import { Route as AuthenticatedChatThreadIdRouteImport } from './routes/_authenticated/chat.$threadId'
@@ -28,6 +30,16 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTranscribeRoute = ApiTranscribeRouteImport.update({
+  id: '/api/transcribe',
+  path: '/api/transcribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSpeakRoute = ApiSpeakRouteImport.update({
+  id: '/api/speak',
+  path: '/api/speak',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiChatRoute = ApiChatRouteImport.update({
@@ -51,6 +63,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/speak': typeof ApiSpeakRoute
+  '/api/transcribe': typeof ApiTranscribeRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/chat/': typeof AuthenticatedChatIndexRoute
 }
@@ -58,6 +72,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/speak': typeof ApiSpeakRoute
+  '/api/transcribe': typeof ApiTranscribeRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/chat': typeof AuthenticatedChatIndexRoute
 }
@@ -67,20 +83,38 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/speak': typeof ApiSpeakRoute
+  '/api/transcribe': typeof ApiTranscribeRoute
   '/_authenticated/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/api/chat' | '/chat/$threadId' | '/chat/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/api/chat'
+    | '/api/speak'
+    | '/api/transcribe'
+    | '/chat/$threadId'
+    | '/chat/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/api/chat' | '/chat/$threadId' | '/chat'
+  to:
+    | '/'
+    | '/login'
+    | '/api/chat'
+    | '/api/speak'
+    | '/api/transcribe'
+    | '/chat/$threadId'
+    | '/chat'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/login'
     | '/api/chat'
+    | '/api/speak'
+    | '/api/transcribe'
     | '/_authenticated/chat/$threadId'
     | '/_authenticated/chat/'
   fileRoutesById: FileRoutesById
@@ -90,6 +124,8 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiSpeakRoute: typeof ApiSpeakRoute
+  ApiTranscribeRoute: typeof ApiTranscribeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -113,6 +149,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/transcribe': {
+      id: '/api/transcribe'
+      path: '/api/transcribe'
+      fullPath: '/api/transcribe'
+      preLoaderRoute: typeof ApiTranscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/speak': {
+      id: '/api/speak'
+      path: '/api/speak'
+      fullPath: '/api/speak'
+      preLoaderRoute: typeof ApiSpeakRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/chat': {
@@ -158,6 +208,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiSpeakRoute: ApiSpeakRoute,
+  ApiTranscribeRoute: ApiTranscribeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
