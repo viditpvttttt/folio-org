@@ -318,9 +318,11 @@ export function ChatRoom({ threadId }: { threadId: string }) {
               <Plus className="h-3.5 w-3.5" /> New
             </button>
           </div>
+          <WeatherWidget />
           <div className="px-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground py-2">
             Conversations
           </div>
+
           <div className="flex-1 overflow-y-auto px-2 pb-3 space-y-1">
             {threadsQ.data?.map((t) => (
               <div
