@@ -365,10 +365,27 @@ export function ChatRoom({ threadId }: { threadId: string }) {
             >
               <Menu className="h-4 w-4" />
             </button>
-            <OrbStatus active={isLoading} />
+            <OrbStatus active={isLoading} amplitude={voiceAmp} listening={listening} />
             <span className="font-serif text-lg">Folio</span>
             <span className="text-xs text-muted-foreground hidden sm:inline">· your everyday assistant</span>
+            <button
+              onClick={() => {
+                if (voiceOn) { speakCancelRef.current?.(); speakCancelRef.current = null; }
+                setVoiceOn((v) => !v);
+              }}
+              className={cn(
+                "ml-auto inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full transition",
+                voiceOn ? "bg-foreground text-background" : "bg-foreground/5 hover:bg-foreground/10 text-foreground/70",
+              )}
+              aria-label="Toggle voice replies"
+              title={voiceOn ? "Voice replies on" : "Voice replies off"}
+            >
+              {voiceOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+              <span className="hidden sm:inline">Voice</span>
+            </button>
           </header>
+
+
 
           <Conversation className="flex-1">
             <ConversationContent className="mx-auto w-full max-w-3xl px-4 py-8">
