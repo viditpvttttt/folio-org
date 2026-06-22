@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Plus, Trash2, LogOut, Menu } from "lucide-react";
+import { Plus, Trash2, LogOut, Menu, Volume2, VolumeX } from "lucide-react";
 import {
   Conversation,
   ConversationContent,
@@ -22,11 +22,15 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import { AmbientScene } from "./AmbientScene";
 import { OrbStatus } from "./OrbStatus";
 import { WeatherCard, type WeatherData } from "./WeatherCard";
+import { WeatherWidget } from "./WeatherWidget";
+import { TiltCard } from "./TiltCard";
+import { VoiceButton, speak } from "./VoiceButton";
 import { Clock, CalendarClock, Loader2, Calculator, Ruler, Coins, BookOpen, Link2, Dices } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { createThread, deleteThread, getThreadMessages, listThreads } from "@/lib/threads.functions";
 import { cn } from "@/lib/utils";
+
 
 type PlanBlock = { title: string; start: string; end: string; minutes: number };
 
