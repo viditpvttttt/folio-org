@@ -377,7 +377,7 @@ export function ChatRoom({ threadId }: { threadId: string }) {
             >
               <Menu className="h-4 w-4" />
             </button>
-            <OrbStatus active={isLoading} amplitude={voiceAmp} listening={listening} />
+            <OrbStatus active={isLoading} amplitude={voiceAmp} listening={listening} speaking={speaking} />
             <span className="font-serif text-lg">Folio</span>
             <span className="text-xs text-muted-foreground hidden sm:inline">· your everyday assistant</span>
             <button
