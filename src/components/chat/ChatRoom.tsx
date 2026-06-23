@@ -265,7 +265,15 @@ export function ChatRoom({ threadId }: { threadId: string }) {
         if (text) {
           lastSpokenIdRef.current = message.id;
           speakCancelRef.current?.();
-          speak(text).then((cancel) => { speakCancelRef.current = cancel; }).catch(() => {});
+          setSpeaking(true);
+          speak(text)
+            .then((cancel) => {
+              speakCancelRef.current = () => { cancel(); setSpeaking(false); };
+              // best-effort: clear speaking after estimated duration (~140 wpm)
+              const ms = Math.max(1500, (text.split(/\s+/).length / 140) * 60_000);
+              setTimeout(() => setSpeaking(false), ms);
+            })
+            .catch(() => setSpeaking(false));
         }
       }
     },
