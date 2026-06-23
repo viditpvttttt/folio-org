@@ -6,11 +6,12 @@ import { cn } from "@/lib/utils";
 type Props = {
   disabled?: boolean;
   onTranscript: (text: string) => void;
+  onInterim?: (text: string) => void;
   onAmplitude?: (level: number) => void; // 0..1
   onListeningChange?: (listening: boolean) => void;
 };
 
-export function VoiceButton({ disabled, onTranscript, onAmplitude, onListeningChange }: Props) {
+export function VoiceButton({ disabled, onTranscript, onInterim, onAmplitude, onListeningChange }: Props) {
 
   const [state, setState] = useState<"idle" | "recording" | "transcribing">("idle");
   const recRef = useRef<MediaRecorder | null>(null);
