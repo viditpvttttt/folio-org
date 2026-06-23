@@ -460,13 +460,44 @@ export function ChatRoom({ threadId }: { threadId: string }) {
             <ConversationScrollButton />
           </Conversation>
 
-          {/* Composer with RGB ambient glow */}
+          {/* Composer with glassmorphic RGB blur halo */}
           <div className="px-4 pb-6 pt-2">
             <div className="mx-auto w-full max-w-3xl">
-              <div className={cn("rgb-aurora rounded-2xl p-[2px]", (isLoading || listening) && "is-loud")}>
+              {/* Live caption while listening / transcribing */}
+              {(listening || interim) && (
+                <div className="mb-3 flex justify-center">
+                  <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm text-foreground/90 backdrop-blur-xl shadow-[0_8px_40px_-12px_rgba(255,77,141,0.45)]">
+                    <span className="relative flex h-2 w-2">
+                      <span className="absolute inset-0 animate-ping rounded-full bg-[#ff4d8d]/70" />
+                      <span className="relative h-2 w-2 rounded-full bg-[#ff4d8d]" />
+                    </span>
+                    <span className="font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                      {listening ? "Listening" : "Transcribing"}
+                    </span>
+                    {interim && (
+                      <span className="ml-1 max-w-[60vw] truncate italic text-foreground/95">
+                        "{interim}"
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className={cn("relative rgb-aurora rounded-2xl p-[2px]", (isLoading || listening) && "is-loud")}
+                style={{ filter: "blur(0px)" }}
+              >
+                {/* Outer blurred RGB halo */}
+                <div
+                  aria-hidden
+                  className={cn(
+                    "pointer-events-none absolute -inset-4 rounded-[28px] rgb-aurora opacity-60",
+                    (isLoading || listening) && "opacity-90 is-loud",
+                  )}
+                  style={{ filter: "blur(28px)" }}
+                />
                 <PromptInput
                   onSubmit={handleSubmit}
-                  className="bg-background/95 backdrop-blur rounded-[14px] border-0 shadow-lg"
+                  className="relative bg-background/40 backdrop-blur-2xl rounded-[14px] border border-white/15 shadow-[0_10px_50px_-12px_rgba(0,0,0,0.5)]"
                 >
                   <PromptInputTextarea
                     placeholder={listening ? "Listening…" : "Ask Folio anything — or tap the mic"}
@@ -478,9 +509,11 @@ export function ChatRoom({ threadId }: { threadId: string }) {
                       disabled={isLoading}
                       onListeningChange={setListening}
                       onAmplitude={setVoiceAmp}
+                      onInterim={setInterim}
                       onTranscript={(text) => {
                         setListening(false);
                         setVoiceAmp(0);
+                        setInterim("");
                         sendMessage({ text });
                       }}
                     />
