@@ -228,6 +228,7 @@ export function ChatRoom({ threadId }: { threadId: string }) {
   const [listening, setListening] = useState(false);
   const [voiceOn, setVoiceOn] = useState(false);
   const [interim, setInterim] = useState("");
+  const [speaking, setSpeaking] = useState(false);
   const speakCancelRef = useRef<(() => void) | null>(null);
   const lastSpokenIdRef = useRef<string | null>(null);
 
@@ -264,7 +265,15 @@ export function ChatRoom({ threadId }: { threadId: string }) {
         if (text) {
           lastSpokenIdRef.current = message.id;
           speakCancelRef.current?.();
-          speak(text).then((cancel) => { speakCancelRef.current = cancel; }).catch(() => {});
+          setSpeaking(true);
+          speak(text)
+            .then((cancel) => {
+              speakCancelRef.current = () => { cancel(); setSpeaking(false); };
+              // best-effort: clear speaking after estimated duration (~140 wpm)
+              const ms = Math.max(1500, (text.split(/\s+/).length / 140) * 60_000);
+              setTimeout(() => setSpeaking(false), ms);
+            })
+            .catch(() => setSpeaking(false));
         }
       }
     },
@@ -368,7 +377,7 @@ export function ChatRoom({ threadId }: { threadId: string }) {
             >
               <Menu className="h-4 w-4" />
             </button>
-            <OrbStatus active={isLoading} amplitude={voiceAmp} listening={listening} />
+            <OrbStatus active={isLoading} amplitude={voiceAmp} listening={listening} speaking={speaking} />
             <span className="font-serif text-lg">Folio</span>
             <span className="text-xs text-muted-foreground hidden sm:inline">· your everyday assistant</span>
             <button
@@ -394,7 +403,7 @@ export function ChatRoom({ threadId }: { threadId: string }) {
             <ConversationContent className="mx-auto w-full max-w-3xl px-4 py-8">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <OrbStatus active={true} amplitude={voiceAmp} listening={listening} className="h-32 w-32 mb-4" />
+                  <OrbStatus active={true} amplitude={voiceAmp} listening={listening} speaking={speaking} className="h-32 w-32 mb-4" />
                   <h2 className="font-serif text-4xl mb-2">Good to see you.</h2>
 
                   <p className="text-muted-foreground mb-8 max-w-md">
