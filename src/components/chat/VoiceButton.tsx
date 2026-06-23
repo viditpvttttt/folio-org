@@ -6,11 +6,12 @@ import { cn } from "@/lib/utils";
 type Props = {
   disabled?: boolean;
   onTranscript: (text: string) => void;
+  onInterim?: (text: string) => void;
   onAmplitude?: (level: number) => void; // 0..1
   onListeningChange?: (listening: boolean) => void;
 };
 
-export function VoiceButton({ disabled, onTranscript, onAmplitude, onListeningChange }: Props) {
+export function VoiceButton({ disabled, onTranscript, onInterim, onAmplitude, onListeningChange }: Props) {
 
   const [state, setState] = useState<"idle" | "recording" | "transcribing">("idle");
   const recRef = useRef<MediaRecorder | null>(null);
@@ -93,12 +94,40 @@ export function VoiceButton({ disabled, onTranscript, onAmplitude, onListeningCh
       const fd = new FormData();
       const ext = (rec?.mimeType || "audio/webm").includes("mp4") ? "mp4" : "webm";
       fd.append("file", blob, `voice.${ext}`);
-      const res = await fetch("/api/transcribe", { method: "POST", body: fd });
-      if (!res.ok) throw new Error(await res.text());
-      const { text } = await res.json();
-      if (text?.trim()) onTranscript(text.trim());
+      const res = await fetch("/api/transcribe?stream=1", { method: "POST", body: fd });
+      if (!res.ok || !res.body) throw new Error(await res.text());
+
+      const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+      let buf = "";
+      let acc = "";
+      let finalText = "";
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += value;
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.startsWith("data:")) continue;
+          const payload = line.slice(5).trim();
+          if (!payload || payload === "[DONE]") continue;
+          try {
+            const evt = JSON.parse(payload);
+            if (evt.type === "transcript.text.delta" && evt.delta) {
+              acc += evt.delta;
+              onInterim?.(acc);
+            } else if (evt.type === "transcript.text.done" && evt.text) {
+              finalText = evt.text;
+            }
+          } catch { /* ignore */ }
+        }
+      }
+      const text = (finalText || acc).trim();
+      onInterim?.("");
+      if (text) onTranscript(text);
       else toast.error("I didn't catch that. Try again.");
     } catch (e) {
+      onInterim?.("");
       toast.error((e as Error).message || "Couldn't transcribe");
     } finally {
       setState("idle");

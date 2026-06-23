@@ -7,6 +7,9 @@ export const Route = createFileRoute("/api/transcribe")({
         const key = process.env.LOVABLE_API_KEY;
         if (!key) return new Response("Missing LOVABLE_API_KEY", { status: 500 });
 
+        const url = new URL(request.url);
+        const wantStream = url.searchParams.get("stream") === "1";
+
         const incoming = await request.formData();
         const file = incoming.get("file");
         if (!(file instanceof File) || file.size < 512) {
@@ -21,6 +24,7 @@ export const Route = createFileRoute("/api/transcribe")({
           : mt === "audio/wav" ? "wav"
           : "webm";
         form.append("file", file, `recording.${ext}`);
+        if (wantStream) form.append("stream", "true");
 
         const res = await fetch("https://ai.gateway.lovable.dev/v1/audio/transcriptions", {
           method: "POST",
@@ -31,6 +35,12 @@ export const Route = createFileRoute("/api/transcribe")({
         if (!res.ok) {
           const text = await res.text().catch(() => "");
           return new Response(text || `Transcription failed (${res.status})`, { status: res.status });
+        }
+
+        if (wantStream && res.body) {
+          return new Response(res.body, {
+            headers: { "Content-Type": "text/event-stream" },
+          });
         }
 
         const data = await res.json();
