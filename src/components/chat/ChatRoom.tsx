@@ -301,7 +301,8 @@ export function ChatRoom({ threadId }: { threadId: string }) {
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-background text-foreground">
       <AmbientScene />
-      <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] -z-10" />
+      <CursorGlow />
+      <div className="absolute inset-0 bg-background/55 backdrop-blur-[2px] -z-10" />
 
       <div className="flex h-full">
         {/* Sidebar */}
