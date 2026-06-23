@@ -228,6 +228,7 @@ export function ChatRoom({ threadId }: { threadId: string }) {
   const [listening, setListening] = useState(false);
   const [voiceOn, setVoiceOn] = useState(false);
   const [interim, setInterim] = useState("");
+  const [speaking, setSpeaking] = useState(false);
   const speakCancelRef = useRef<(() => void) | null>(null);
   const lastSpokenIdRef = useRef<string | null>(null);
 
