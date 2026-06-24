@@ -234,6 +234,17 @@ export function ChatRoom({ threadId }: { threadId: string }) {
   const [speaking, setSpeaking] = useState(false);
   const speakCancelRef = useRef<(() => void) | null>(null);
   const lastSpokenIdRef = useRef<string | null>(null);
+  const [physics, setPhysics] = useState<OrbPhysics>(() => {
+    if (typeof window === "undefined") return DEFAULT_PHYSICS;
+    try {
+      const raw = window.localStorage.getItem("folio.orb-physics");
+      return raw ? { ...DEFAULT_PHYSICS, ...JSON.parse(raw) } : DEFAULT_PHYSICS;
+    } catch { return DEFAULT_PHYSICS; }
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem("folio.orb-physics", JSON.stringify(physics)); } catch { /* ignore */ }
+  }, [physics]);
+
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setAuthToken(data.session?.access_token ?? null));
