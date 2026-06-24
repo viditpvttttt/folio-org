@@ -397,24 +397,38 @@ export function ChatRoom({ threadId }: { threadId: string }) {
             >
               <Menu className="h-4 w-4" />
             </button>
-            <OrbStatus active={isLoading} amplitude={voiceAmp} listening={listening} speaking={speaking} />
+            <OrbStatus active={isLoading} amplitude={voiceAmp} listening={listening} speaking={speaking} {...physics} />
             <span className="font-serif text-lg">Folio</span>
-            <span className="text-xs text-muted-foreground hidden sm:inline">· your everyday assistant</span>
-            <button
-              onClick={() => {
-                if (voiceOn) { speakCancelRef.current?.(); speakCancelRef.current = null; }
-                setVoiceOn((v) => !v);
-              }}
-              className={cn(
-                "ml-auto inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full transition",
-                voiceOn ? "bg-foreground text-background" : "bg-foreground/5 hover:bg-foreground/10 text-foreground/70",
-              )}
-              aria-label="Toggle voice replies"
-              title={voiceOn ? "Voice replies on" : "Voice replies off"}
-            >
-              {voiceOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-              <span className="hidden sm:inline">Voice</span>
-            </button>
+            <nav className="ml-3 hidden md:flex items-center gap-1 text-xs">
+              <Link to="/dashboard" className="px-2.5 py-1 rounded-full hover:bg-foreground/5 text-foreground/70 inline-flex items-center gap-1">
+                <LayoutDashboard className="h-3 w-3" /> Dashboard
+              </Link>
+              <Link to="/chat" className="px-2.5 py-1 rounded-full bg-foreground/10 inline-flex items-center gap-1">
+                <MessageCircle className="h-3 w-3" /> Chat
+              </Link>
+              <Link to="/settings" className="px-2.5 py-1 rounded-full hover:bg-foreground/5 text-foreground/70 inline-flex items-center gap-1">
+                <SettingsIcon className="h-3 w-3" /> Settings
+              </Link>
+            </nav>
+            <div className="ml-auto flex items-center gap-2">
+              <OrbControls value={physics} onChange={setPhysics} />
+              <button
+                onClick={() => {
+                  if (voiceOn) { speakCancelRef.current?.(); speakCancelRef.current = null; }
+                  setVoiceOn((v) => !v);
+                }}
+                className={cn(
+                  "inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full transition",
+                  voiceOn ? "bg-foreground text-background" : "bg-foreground/5 hover:bg-foreground/10 text-foreground/70",
+                )}
+                aria-label="Toggle voice replies"
+                title={voiceOn ? "Voice replies on" : "Voice replies off"}
+              >
+                {voiceOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+                <span className="hidden sm:inline">Voice</span>
+              </button>
+            </div>
+
           </header>
 
 
