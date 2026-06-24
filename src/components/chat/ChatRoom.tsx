@@ -304,6 +304,21 @@ export function ChatRoom({ threadId }: { threadId: string }) {
     if (initialQ.data) setMessages(initialQ.data as unknown as UIMessage[]);
   }, [initialQ.data, setMessages]);
 
+  // Pickup an optional prefill prompt handed off from the Dashboard.
+  useEffect(() => {
+    if (!threadId || initialQ.isLoading) return;
+    try {
+      const key = `folio.prefill.${threadId}`;
+      const q = sessionStorage.getItem(key);
+      if (q && messages.length === 0) {
+        sessionStorage.removeItem(key);
+        sendMessage({ text: q });
+      }
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [threadId, initialQ.isLoading]);
+
+
   const handleSubmit = async ({ text }: { text: string }) => {
     if (!text.trim()) return;
     await sendMessage({ text: text.trim() });
