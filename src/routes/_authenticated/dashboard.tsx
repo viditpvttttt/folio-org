@@ -57,7 +57,8 @@ function DashboardPage() {
   const startWith = async (q: string) => {
     const t = await create();
     qc.invalidateQueries({ queryKey: ["threads"] });
-    navigate({ to: "/chat/$threadId", params: { threadId: t.id }, search: { q } as never });
+    try { sessionStorage.setItem(`folio.prefill.${t.id}`, q); } catch { /* ignore */ }
+    navigate({ to: "/chat/$threadId", params: { threadId: t.id } });
   };
 
   const newChat = async () => {
