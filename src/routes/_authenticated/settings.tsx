@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { LogOut, MessageCircle, LayoutDashboard, SettingsIcon } from "lucide-react";
+import { LogOut, MessageCircle, LayoutDashboard, Settings as SettingsIcon } from "lucide-react";
 import { AmbientScene } from "@/components/chat/AmbientScene";
 import { CursorGlow } from "@/components/chat/CursorGlow";
 import { OrbStatus } from "@/components/chat/OrbStatus";
