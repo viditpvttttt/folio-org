@@ -23,7 +23,7 @@ import { AmbientScene } from "./AmbientScene";
 import { OrbStatus } from "./OrbStatus";
 import { OrbControls, DEFAULT_PHYSICS, type OrbPhysics } from "./OrbControls";
 import { Link } from "@tanstack/react-router";
-import { LayoutDashboard, MessageCircle, SettingsIcon } from "lucide-react";
+import { LayoutDashboard, MessageCircle, Settings as SettingsIcon } from "lucide-react";
 import { WeatherCard, type WeatherData } from "./WeatherCard";
 import { WeatherWidget } from "./WeatherWidget";
 import { TiltCard } from "./TiltCard";
