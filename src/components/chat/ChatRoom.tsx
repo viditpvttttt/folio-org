@@ -254,7 +254,13 @@ export function ChatRoom({ threadId }: { threadId: string }) {
     id: threadId,
     transport: new DefaultChatTransport({
       api: "/api/chat",
-      headers: (): Record<string, string> => (authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      // Fetch a fresh session on every request to avoid race conditions
+      // where the in-state token isn't ready yet (causing 401 Unauthorized).
+      headers: async (): Promise<Record<string, string>> => {
+        const { data } = await supabase.auth.getSession();
+        const token = data.session?.access_token ?? authToken;
+        return token ? { Authorization: `Bearer ${token}` } : {};
+      },
       body: { threadId },
     }),
     onError: (e) => toast.error(e.message || "Something went wrong"),
