@@ -21,6 +21,9 @@ import {
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { AmbientScene } from "./AmbientScene";
 import { OrbStatus } from "./OrbStatus";
+import { OrbControls, DEFAULT_PHYSICS, type OrbPhysics } from "./OrbControls";
+import { Link } from "@tanstack/react-router";
+import { LayoutDashboard, MessageCircle, Settings as SettingsIcon } from "lucide-react";
 import { WeatherCard, type WeatherData } from "./WeatherCard";
 import { WeatherWidget } from "./WeatherWidget";
 import { TiltCard } from "./TiltCard";
@@ -231,6 +234,17 @@ export function ChatRoom({ threadId }: { threadId: string }) {
   const [speaking, setSpeaking] = useState(false);
   const speakCancelRef = useRef<(() => void) | null>(null);
   const lastSpokenIdRef = useRef<string | null>(null);
+  const [physics, setPhysics] = useState<OrbPhysics>(() => {
+    if (typeof window === "undefined") return DEFAULT_PHYSICS;
+    try {
+      const raw = window.localStorage.getItem("folio.orb-physics");
+      return raw ? { ...DEFAULT_PHYSICS, ...JSON.parse(raw) } : DEFAULT_PHYSICS;
+    } catch { return DEFAULT_PHYSICS; }
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem("folio.orb-physics", JSON.stringify(physics)); } catch { /* ignore */ }
+  }, [physics]);
+
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setAuthToken(data.session?.access_token ?? null));
@@ -254,7 +268,13 @@ export function ChatRoom({ threadId }: { threadId: string }) {
     id: threadId,
     transport: new DefaultChatTransport({
       api: "/api/chat",
-      headers: (): Record<string, string> => (authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      // Fetch a fresh session on every request to avoid race conditions
+      // where the in-state token isn't ready yet (causing 401 Unauthorized).
+      headers: async (): Promise<Record<string, string>> => {
+        const { data } = await supabase.auth.getSession();
+        const token = data.session?.access_token ?? authToken;
+        return token ? { Authorization: `Bearer ${token}` } : {};
+      },
       body: { threadId },
     }),
     onError: (e) => toast.error(e.message || "Something went wrong"),
@@ -283,6 +303,21 @@ export function ChatRoom({ threadId }: { threadId: string }) {
   useEffect(() => {
     if (initialQ.data) setMessages(initialQ.data as unknown as UIMessage[]);
   }, [initialQ.data, setMessages]);
+
+  // Pickup an optional prefill prompt handed off from the Dashboard.
+  useEffect(() => {
+    if (!threadId || initialQ.isLoading) return;
+    try {
+      const key = `folio.prefill.${threadId}`;
+      const q = sessionStorage.getItem(key);
+      if (q && messages.length === 0) {
+        sessionStorage.removeItem(key);
+        sendMessage({ text: q });
+      }
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [threadId, initialQ.isLoading]);
+
 
   const handleSubmit = async ({ text }: { text: string }) => {
     if (!text.trim()) return;
@@ -377,24 +412,38 @@ export function ChatRoom({ threadId }: { threadId: string }) {
             >
               <Menu className="h-4 w-4" />
             </button>
-            <OrbStatus active={isLoading} amplitude={voiceAmp} listening={listening} speaking={speaking} />
+            <OrbStatus active={isLoading} amplitude={voiceAmp} listening={listening} speaking={speaking} {...physics} />
             <span className="font-serif text-lg">Folio</span>
-            <span className="text-xs text-muted-foreground hidden sm:inline">· your everyday assistant</span>
-            <button
-              onClick={() => {
-                if (voiceOn) { speakCancelRef.current?.(); speakCancelRef.current = null; }
-                setVoiceOn((v) => !v);
-              }}
-              className={cn(
-                "ml-auto inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full transition",
-                voiceOn ? "bg-foreground text-background" : "bg-foreground/5 hover:bg-foreground/10 text-foreground/70",
-              )}
-              aria-label="Toggle voice replies"
-              title={voiceOn ? "Voice replies on" : "Voice replies off"}
-            >
-              {voiceOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-              <span className="hidden sm:inline">Voice</span>
-            </button>
+            <nav className="ml-3 hidden md:flex items-center gap-1 text-xs">
+              <Link to="/dashboard" className="px-2.5 py-1 rounded-full hover:bg-foreground/5 text-foreground/70 inline-flex items-center gap-1">
+                <LayoutDashboard className="h-3 w-3" /> Dashboard
+              </Link>
+              <Link to="/chat" className="px-2.5 py-1 rounded-full bg-foreground/10 inline-flex items-center gap-1">
+                <MessageCircle className="h-3 w-3" /> Chat
+              </Link>
+              <Link to="/settings" className="px-2.5 py-1 rounded-full hover:bg-foreground/5 text-foreground/70 inline-flex items-center gap-1">
+                <SettingsIcon className="h-3 w-3" /> Settings
+              </Link>
+            </nav>
+            <div className="ml-auto flex items-center gap-2">
+              <OrbControls value={physics} onChange={setPhysics} />
+              <button
+                onClick={() => {
+                  if (voiceOn) { speakCancelRef.current?.(); speakCancelRef.current = null; }
+                  setVoiceOn((v) => !v);
+                }}
+                className={cn(
+                  "inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full transition",
+                  voiceOn ? "bg-foreground text-background" : "bg-foreground/5 hover:bg-foreground/10 text-foreground/70",
+                )}
+                aria-label="Toggle voice replies"
+                title={voiceOn ? "Voice replies on" : "Voice replies off"}
+              >
+                {voiceOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+                <span className="hidden sm:inline">Voice</span>
+              </button>
+            </div>
+
           </header>
 
 
@@ -403,7 +452,7 @@ export function ChatRoom({ threadId }: { threadId: string }) {
             <ConversationContent className="mx-auto w-full max-w-3xl px-4 py-8">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <OrbStatus active={true} amplitude={voiceAmp} listening={listening} speaking={speaking} className="h-32 w-32 mb-4" />
+                  <OrbStatus active={true} amplitude={voiceAmp} listening={listening} speaking={speaking} {...physics} className="h-32 w-32 mb-4" />
                   <h2 className="font-serif text-4xl mb-2">Good to see you.</h2>
 
                   <p className="text-muted-foreground mb-8 max-w-md">

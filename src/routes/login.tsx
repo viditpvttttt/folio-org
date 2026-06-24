@@ -18,7 +18,7 @@ function LoginPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && user) navigate({ to: "/chat" });
+    if (!loading && user) navigate({ to: "/dashboard" });
   }, [user, loading, navigate]);
 
   async function handleEmail(e: React.FormEvent) {
@@ -28,7 +28,7 @@ function LoginPage() {
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email, password,
-          options: { emailRedirectTo: `${window.location.origin}/chat` },
+          options: { emailRedirectTo: `${window.location.origin}/dashboard` },
         });
         if (error) throw error;
         toast.success("Welcome to Folio");
@@ -46,7 +46,7 @@ function LoginPage() {
   async function handleGoogle() {
     setBusy(true);
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: `${window.location.origin}/chat`,
+      redirect_uri: `${window.location.origin}/dashboard`,
     });
     if (result.error) { toast.error("Google sign-in failed"); setBusy(false); return; }
     if (result.redirected) return;

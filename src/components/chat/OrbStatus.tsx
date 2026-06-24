@@ -82,7 +82,19 @@ const fragmentShader = /* glsl */ `
   }
 `;
 
-function SilkOrb({ state, amplitude }: { state: State; amplitude: number }) {
+function SilkOrb({
+  state,
+  amplitude,
+  fluidity,
+  damping,
+  distort,
+}: {
+  state: State;
+  amplitude: number;
+  fluidity: number;
+  damping: number;
+  distort: number;
+}) {
   const mesh = useRef<THREE.Mesh>(null);
   const halo = useRef<THREE.Mesh>(null);
   const ampRef = useRef(0);
@@ -95,7 +107,8 @@ function SilkOrb({ state, amplitude }: { state: State; amplitude: number }) {
       uActive: { value: 0 },
       uListen: { value: 0 },
       uSpeak: { value: 0 },
-      // soft lavender → pink → white rim — matches reference
+      uFluidity: { value: fluidity },
+      uDistort: { value: distort },
       uColorA: { value: new THREE.Color("#b89cff") },
       uColorB: { value: new THREE.Color("#e6d4ff") },
       uColorC: { value: new THREE.Color("#ffffff") },
@@ -105,18 +118,18 @@ function SilkOrb({ state, amplitude }: { state: State; amplitude: number }) {
 
   useFrame((s, dt) => {
     const t = s.clock.elapsedTime;
+    // damping: 0 = sluggish, 1 = snappy. Map to a smoothing rate.
+    const rate = 2 + damping * 14; // 2..16
 
-    // critically-damped smoothing on amplitude for fluid physics
     const target = state === "listening" ? amplitude : state === "speaking" ? amplitude * 0.7 + 0.15 : 0;
-    ampRef.current += (target - ampRef.current) * Math.min(1, dt * 8);
+    ampRef.current += (target - ampRef.current) * Math.min(1, dt * rate);
 
-    // breathing scale — gentle on idle, stronger on activity
     const breath =
       state === "thinking" ? 1 + Math.sin(t * 2.2) * 0.04
-      : state === "speaking" ? 1 + Math.sin(t * 6) * 0.025 + ampRef.current * 0.18
-      : state === "listening" ? 1 + ampRef.current * 0.25
+      : state === "speaking" ? 1 + Math.sin(t * 6) * 0.025 + ampRef.current * (0.12 + fluidity * 0.18)
+      : state === "listening" ? 1 + ampRef.current * (0.15 + fluidity * 0.25)
       : 1 + Math.sin(t * 1.1) * 0.015;
-    scaleRef.current += (breath - scaleRef.current) * Math.min(1, dt * 6);
+    scaleRef.current += (breath - scaleRef.current) * Math.min(1, dt * (rate * 0.6));
 
     if (mesh.current) {
       mesh.current.scale.setScalar(scaleRef.current);
@@ -130,11 +143,12 @@ function SilkOrb({ state, amplitude }: { state: State; amplitude: number }) {
 
     uniforms.uTime.value = t;
     uniforms.uAmp.value = ampRef.current;
+    uniforms.uFluidity.value = fluidity;
+    uniforms.uDistort.value = distort;
     uniforms.uListen.value += ((state === "listening" ? 1 : 0) - uniforms.uListen.value) * Math.min(1, dt * 4);
     uniforms.uSpeak.value += ((state === "speaking" ? 1 : 0) - uniforms.uSpeak.value) * Math.min(1, dt * 4);
     uniforms.uActive.value += ((state === "thinking" ? 1 : 0) - uniforms.uActive.value) * Math.min(1, dt * 4);
 
-    // state-driven palette shift
     const a = uniforms.uColorA.value;
     const b = uniforms.uColorB.value;
     if (state === "listening") {
@@ -154,7 +168,6 @@ function SilkOrb({ state, amplitude }: { state: State; amplitude: number }) {
 
   return (
     <group>
-      {/* Soft outer bloom halo */}
       <mesh ref={halo}>
         <sphereGeometry args={[1.1, 64, 64]} />
         <shaderMaterial
@@ -167,7 +180,6 @@ function SilkOrb({ state, amplitude }: { state: State; amplitude: number }) {
         />
       </mesh>
 
-      {/* Silk orb */}
       <mesh ref={mesh}>
         <sphereGeometry args={[1, 128, 128]} />
         <shaderMaterial
@@ -186,21 +198,27 @@ export function OrbStatus({
   amplitude = 0,
   listening = false,
   speaking = false,
+  fluidity = 0.5,
+  damping = 0.5,
+  distort = 0.4,
   className = "h-9 w-9",
 }: {
   active: boolean;
   amplitude?: number;
   listening?: boolean;
   speaking?: boolean;
+  fluidity?: number;
+  damping?: number;
+  distort?: number;
   className?: string;
 }) {
   const state: State = listening ? "listening" : speaking ? "speaking" : active ? "thinking" : "idle";
-
   return (
     <div className={`${className} shrink-0`}>
       <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 3.2], fov: 38 }} gl={{ alpha: true, antialias: true, premultipliedAlpha: false }}>
-        <SilkOrb state={state} amplitude={amplitude} />
+        <SilkOrb state={state} amplitude={amplitude} fluidity={fluidity} damping={damping} distort={distort} />
       </Canvas>
     </div>
   );
 }
+
