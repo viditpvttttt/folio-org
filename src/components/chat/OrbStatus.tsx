@@ -192,3 +192,33 @@ function SilkOrb({
     </group>
   );
 }
+
+export function OrbStatus({
+  active,
+  amplitude = 0,
+  listening = false,
+  speaking = false,
+  fluidity = 0.5,
+  damping = 0.5,
+  distort = 0.4,
+  className = "h-9 w-9",
+}: {
+  active: boolean;
+  amplitude?: number;
+  listening?: boolean;
+  speaking?: boolean;
+  fluidity?: number;
+  damping?: number;
+  distort?: number;
+  className?: string;
+}) {
+  const state: State = listening ? "listening" : speaking ? "speaking" : active ? "thinking" : "idle";
+  return (
+    <div className={`${className} shrink-0`}>
+      <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 3.2], fov: 38 }} gl={{ alpha: true, antialias: true, premultipliedAlpha: false }}>
+        <SilkOrb state={state} amplitude={amplitude} fluidity={fluidity} damping={damping} distort={distort} />
+      </Canvas>
+    </div>
+  );
+}
+
