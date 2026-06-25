@@ -29,7 +29,7 @@ import { WeatherWidget } from "./WeatherWidget";
 import { TiltCard } from "./TiltCard";
 import { VoiceButton, speak } from "./VoiceButton";
 import { CursorGlow } from "./CursorGlow";
-import { Clock, CalendarClock, Loader2, Calculator, Ruler, Coins, BookOpen, Link2, Dices } from "lucide-react";
+import { Clock, CalendarClock, Loader2, Calculator, Ruler, Coins, BookOpen, Link2, Dices, Newspaper, Languages, KeyRound, QrCode, ChefHat, Palette, Smile, Copy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { createThread, deleteThread, getThreadMessages, listThreads } from "@/lib/threads.functions";
