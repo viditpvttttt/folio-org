@@ -544,6 +544,13 @@ export const Route = createFileRoute("/api/chat")({
             defineWord: defineTool,
             summarizeUrl: summarizeUrlTool,
             randomPick: randomTool,
+            getNews: newsTool,
+            translateText: translateTool,
+            generatePassword: passwordTool,
+            generateQrCode: qrTool,
+            getRecipe: recipeTool,
+            getColorPalette: paletteTool,
+            getJoke: jokeTool,
           },
           stopWhen: stepCountIs(50),
         });
