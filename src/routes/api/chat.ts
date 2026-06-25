@@ -16,6 +16,13 @@ You have tools available:
 - convertUnits: convert length, mass, temperature, volume, time, speed.
 - convertCurrency: live exchange rates between currencies.
 - defineWord: dictionary lookup with definitions, part of speech, examples.
+- getNews: top tech / world headlines.
+- translateText: translate a phrase between any two languages.
+- generatePassword: cryptographically strong password.
+- generateQrCode: render any text or URL as a QR code.
+- getRecipe: a random recipe with ingredients & steps (or search by name).
+- getColorPalette: generate a harmonious color palette.
+- getJoke: a clean dad joke when the mood needs lifting.
 - summarizeUrl: fetch a web page; you then summarize it for the user.
 - randomPick: flip coin, roll dice, or pick from a list.
 
