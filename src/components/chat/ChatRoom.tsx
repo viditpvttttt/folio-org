@@ -29,7 +29,7 @@ import { WeatherWidget } from "./WeatherWidget";
 import { TiltCard } from "./TiltCard";
 import { VoiceButton, speak } from "./VoiceButton";
 import { CursorGlow } from "./CursorGlow";
-import { Clock, CalendarClock, Loader2, Calculator, Ruler, Coins, BookOpen, Link2, Dices } from "lucide-react";
+import { Clock, CalendarClock, Loader2, Calculator, Ruler, Coins, BookOpen, Link2, Dices, Newspaper, Languages, KeyRound, QrCode, ChefHat, Palette, Smile, Copy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { createThread, deleteThread, getThreadMessages, listThreads } from "@/lib/threads.functions";
@@ -52,6 +52,13 @@ function ToolPart({ part }: { part: { type: string; state?: string; output?: unk
     defineWord: "Opening the dictionary…",
     summarizeUrl: "Reading the page…",
     randomPick: "Rolling…",
+    getNews: "Scanning headlines…",
+    translateText: "Translating…",
+    generatePassword: "Forging a strong password…",
+    generateQrCode: "Drawing QR code…",
+    getRecipe: "Looking up the recipe…",
+    getColorPalette: "Mixing colors…",
+    getJoke: "Thinking of a joke…",
   };
 
   if (running) {
@@ -210,6 +217,150 @@ function ToolPart({ part }: { part: { type: string; state?: string; output?: unk
             )}
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (name === "getNews") {
+    const o = output as { topic: string; items: { title: string; url: string; points: number; author: string }[] };
+    return (
+      <TiltCard max={4}>
+        <div className="my-2 w-full max-w-md overflow-hidden rounded-xl border border-border/60 bg-card/70 backdrop-blur">
+          <div className="flex items-center gap-2 border-b border-border/60 px-4 py-2.5">
+            <Newspaper className="h-4 w-4" />
+            <span className="font-serif text-base">Headlines</span>
+            <span className="ml-auto text-[10px] uppercase tracking-wider text-muted-foreground">{o.topic}</span>
+          </div>
+          <ul className="divide-y divide-border/40">
+            {o.items.map((it, i) => (
+              <li key={i} className="px-4 py-2.5">
+                <a href={it.url} target="_blank" rel="noreferrer" className="text-sm hover:underline">{it.title}</a>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">
+                  ▲ {it.points} · {it.author}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </TiltCard>
+    );
+  }
+
+  if (name === "translateText") {
+    const o = output as { source: string; from: string; to: string; translated: string };
+    return (
+      <div className="my-2 w-full max-w-md overflow-hidden rounded-xl border border-border/60 bg-card/70 backdrop-blur">
+        <div className="flex items-center gap-2 border-b border-border/40 px-4 py-2.5">
+          <Languages className="h-4 w-4" />
+          <span className="font-serif text-base">Translate</span>
+          <span className="ml-auto font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{o.from} → {o.to}</span>
+        </div>
+        <div className="px-4 py-3 space-y-2">
+          <div className="text-xs text-muted-foreground italic">"{o.source}"</div>
+          <div className="font-serif text-xl leading-snug">{o.translated}</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (name === "generatePassword") {
+    const o = output as { password: string; length: number; strength: string };
+    return (
+      <div className="my-2 inline-flex items-center gap-3 rounded-xl border border-border/60 bg-card/70 px-4 py-3 backdrop-blur">
+        <KeyRound className="h-5 w-5 text-foreground/70" />
+        <div>
+          <div className="font-mono text-lg tracking-wide select-all">{o.password}</div>
+          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mt-0.5">
+            {o.length} chars · {o.strength}
+          </div>
+        </div>
+        <button
+          onClick={() => { navigator.clipboard?.writeText(o.password); }}
+          className="ml-2 p-1.5 rounded-md hover:bg-foreground/10 transition"
+          aria-label="Copy password"
+        >
+          <Copy className="h-4 w-4" />
+        </button>
+      </div>
+    );
+  }
+
+  if (name === "generateQrCode") {
+    const o = output as { content: string; imageUrl: string };
+    return (
+      <TiltCard max={6}>
+        <div className="my-2 inline-flex flex-col items-center gap-2 rounded-xl border border-border/60 bg-white p-4 backdrop-blur">
+          <QrCode className="h-4 w-4 text-foreground/60 self-start" />
+          <img src={o.imageUrl} alt="QR code" className="rounded-md" width={220} height={220} />
+          <div className="text-xs text-muted-foreground max-w-[220px] truncate text-center">{o.content}</div>
+        </div>
+      </TiltCard>
+    );
+  }
+
+  if (name === "getRecipe") {
+    const o = output as { name: string; category?: string; area?: string; image?: string; instructions: string; ingredients: { name: string; measure: string }[] };
+    return (
+      <TiltCard max={4}>
+        <div className="my-2 w-full max-w-md overflow-hidden rounded-xl border border-border/60 bg-card/70 backdrop-blur">
+          {o.image && <img src={o.image} alt={o.name} className="h-40 w-full object-cover" />}
+          <div className="px-4 py-3">
+            <div className="flex items-center gap-2">
+              <ChefHat className="h-4 w-4" />
+              <span className="font-serif text-lg">{o.name}</span>
+            </div>
+            <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mt-1">
+              {o.area} · {o.category}
+            </div>
+            <div className="mt-3">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Ingredients</div>
+              <ul className="text-sm grid grid-cols-2 gap-x-3 gap-y-0.5">
+                {o.ingredients.slice(0, 12).map((i, k) => (
+                  <li key={k}><span className="text-muted-foreground">{i.measure}</span> {i.name}</li>
+                ))}
+              </ul>
+            </div>
+            <p className="mt-3 text-sm text-foreground/85 leading-relaxed line-clamp-6 whitespace-pre-wrap">{o.instructions}</p>
+          </div>
+        </div>
+      </TiltCard>
+    );
+  }
+
+  if (name === "getColorPalette") {
+    const o = output as { base: string; colors: string[] };
+    return (
+      <div className="my-2 w-full max-w-md overflow-hidden rounded-xl border border-border/60 bg-card/70 backdrop-blur">
+        <div className="flex items-center gap-2 border-b border-border/40 px-4 py-2.5">
+          <Palette className="h-4 w-4" />
+          <span className="font-serif text-base">Palette</span>
+          <span className="ml-auto font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{o.base}</span>
+        </div>
+        <div className="flex">
+          {o.colors.map((c) => (
+            <button
+              key={c}
+              onClick={() => navigator.clipboard?.writeText(c)}
+              className="group flex-1 aspect-square relative transition hover:flex-[1.5]"
+              style={{ background: c }}
+              title={`Copy ${c}`}
+            >
+              <span className="absolute inset-x-0 bottom-1 text-[10px] font-mono text-white/90 opacity-0 group-hover:opacity-100 transition text-center drop-shadow">
+                {c}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (name === "getJoke") {
+    const o = output as { joke: string };
+    return (
+      <div className="my-2 inline-flex items-start gap-3 rounded-xl border border-border/60 bg-card/70 px-4 py-3 backdrop-blur max-w-md">
+        <Smile className="h-5 w-5 text-foreground/70 mt-0.5 shrink-0" />
+        <div className="font-serif text-base leading-snug">{o.joke}</div>
       </div>
     );
   }
@@ -456,16 +607,18 @@ export function ChatRoom({ threadId }: { threadId: string }) {
                   <h2 className="font-serif text-4xl mb-2">Good to see you.</h2>
 
                   <p className="text-muted-foreground mb-8 max-w-md">
-                    Weather, time zones, math, unit & currency conversion, dictionary, web page summaries, day planning — Folio handles the small stuff so you don't have to.
+                    Weather, news, translation, recipes, QR codes, palettes, passwords, math, conversions, planning — Folio is a calm one-stop assistant for the day.
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-2xl">
                     {[
+                      "Top tech headlines today",
+                      "Translate 'good morning, friend' to Japanese",
+                      "Generate a 24-char password",
+                      "Make a QR code for https://folio.app",
+                      "Give me a random dinner recipe",
+                      "Palette from #6c5ce7",
                       "What's the weather in Tokyo?",
-                      "Convert 250 USD to EUR",
-                      "What's 15% tip on $84.50?",
-                      "Define 'serendipity'",
-                      "How many km is 12 miles?",
-                      "Plan my day: workout 45m, deep work 2h, lunch 30m, emails 30m",
+                      "Tell me a dad joke",
                     ].map((s) => (
                       <button
                         key={s}

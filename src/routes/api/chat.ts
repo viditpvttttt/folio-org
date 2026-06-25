@@ -16,6 +16,13 @@ You have tools available:
 - convertUnits: convert length, mass, temperature, volume, time, speed.
 - convertCurrency: live exchange rates between currencies.
 - defineWord: dictionary lookup with definitions, part of speech, examples.
+- getNews: top tech / world headlines.
+- translateText: translate a phrase between any two languages.
+- generatePassword: cryptographically strong password.
+- generateQrCode: render any text or URL as a QR code.
+- getRecipe: a random recipe with ingredients & steps (or search by name).
+- getColorPalette: generate a harmonious color palette.
+- getJoke: a clean dad joke when the mood needs lifting.
 - summarizeUrl: fetch a web page; you then summarize it for the user.
 - randomPick: flip coin, roll dice, or pick from a list.
 
@@ -299,6 +306,195 @@ const randomTool = tool({
   },
 });
 
+// -------- getNews --------
+const newsTool = tool({
+  description: "Get top trending news headlines (tech-leaning, from Hacker News).",
+  inputSchema: z.object({
+    topic: z.string().optional().describe("Optional topic filter, e.g. 'AI'"),
+    limit: z.number().int().min(1).max(10).default(6),
+  }),
+  execute: async ({ topic, limit = 6 }) => {
+    try {
+      const q = topic
+        ? `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(topic)}&tags=story&hitsPerPage=${limit}`
+        : `https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=${limit}`;
+      const res = await fetch(q);
+      if (!res.ok) return { error: `News lookup failed (${res.status})` };
+      const data = await res.json();
+      const items = (data.hits ?? []).slice(0, limit).map((h: { title?: string; url?: string; points?: number; author?: string; objectID: string }) => ({
+        title: h.title ?? "(untitled)",
+        url: h.url ?? `https://news.ycombinator.com/item?id=${h.objectID}`,
+        points: h.points ?? 0,
+        author: h.author ?? "",
+      }));
+      return { topic: topic ?? "trending", items };
+    } catch (e) { return { error: (e as Error).message }; }
+  },
+});
+
+// -------- translateText --------
+const translateTool = tool({
+  description: "Translate text between languages. Use ISO codes like 'en', 'es', 'fr', 'ja'.",
+  inputSchema: z.object({
+    text: z.string().min(1),
+    from: z.string().default("auto"),
+    to: z.string().describe("Target language code like 'es', 'fr', 'ja'"),
+  }),
+  execute: async ({ text, from = "auto", to }) => {
+    try {
+      const pair = `${from === "auto" ? "autodetect" : from}|${to}`;
+      const res = await fetch(
+        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${encodeURIComponent(pair)}`,
+      );
+      if (!res.ok) return { error: `Translate failed (${res.status})` };
+      const data = await res.json();
+      const translated = data?.responseData?.translatedText;
+      if (!translated) return { error: "No translation returned" };
+      return { source: text, from, to, translated };
+    } catch (e) { return { error: (e as Error).message }; }
+  },
+});
+
+// -------- generatePassword --------
+const passwordTool = tool({
+  description: "Generate a cryptographically strong password.",
+  inputSchema: z.object({
+    length: z.number().int().min(8).max(128).default(20),
+    symbols: z.boolean().default(true),
+    numbers: z.boolean().default(true),
+  }),
+  execute: async ({ length = 20, symbols = true, numbers = true }) => {
+    const lower = "abcdefghijkmnopqrstuvwxyz";
+    const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+    const nums = "23456789";
+    const syms = "!@#$%^&*()-_=+[]{};:,.?";
+    let alphabet = lower + upper;
+    if (numbers) alphabet += nums;
+    if (symbols) alphabet += syms;
+    const bytes = new Uint32Array(length);
+    crypto.getRandomValues(bytes);
+    const password = Array.from(bytes, (b) => alphabet[b % alphabet.length]).join("");
+    const strength = length >= 20 ? "very strong" : length >= 14 ? "strong" : length >= 10 ? "ok" : "weak";
+    return { password, length, strength };
+  },
+});
+
+// -------- generateQrCode --------
+const qrTool = tool({
+  description: "Generate a QR code image URL for any text, link, wifi string, or contact.",
+  inputSchema: z.object({
+    content: z.string().min(1).describe("Text or URL to encode"),
+    size: z.number().int().min(120).max(800).default(280),
+  }),
+  execute: async ({ content, size = 280 }) => {
+    const url = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(content)}`;
+    return { content, size, imageUrl: url };
+  },
+});
+
+// -------- getRecipe --------
+const recipeTool = tool({
+  description: "Get a recipe — random by default, or search by dish name.",
+  inputSchema: z.object({
+    query: z.string().optional().describe("Optional dish name to search for"),
+  }),
+  execute: async ({ query }) => {
+    try {
+      const endpoint = query
+        ? `https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(query)}`
+        : `https://www.themealdb.com/api/json/v1/1/random.php`;
+      const res = await fetch(endpoint);
+      if (!res.ok) return { error: `Recipe lookup failed (${res.status})` };
+      const data = await res.json();
+      const meal = data?.meals?.[0];
+      if (!meal) return { error: `No recipe found${query ? ` for "${query}"` : ""}` };
+      const ingredients: { name: string; measure: string }[] = [];
+      for (let i = 1; i <= 20; i++) {
+        const name = meal[`strIngredient${i}`];
+        const measure = meal[`strMeasure${i}`];
+        if (name && name.trim()) ingredients.push({ name: name.trim(), measure: (measure ?? "").trim() });
+      }
+      return {
+        name: meal.strMeal,
+        category: meal.strCategory,
+        area: meal.strArea,
+        image: meal.strMealThumb,
+        instructions: (meal.strInstructions ?? "").slice(0, 1200),
+        ingredients,
+        source: meal.strSource || meal.strYoutube || null,
+      };
+    } catch (e) { return { error: (e as Error).message }; }
+  },
+});
+
+// -------- getColorPalette --------
+const paletteTool = tool({
+  description: "Generate a 5-color harmonious palette from a base hex color or named theme (e.g. 'sunset', 'forest').",
+  inputSchema: z.object({
+    base: z.string().describe("Hex like '#3b82f6' or a mood word like 'sunset'"),
+  }),
+  execute: async ({ base }) => {
+    const moods: Record<string, string> = {
+      sunset: "#ff6b6b", forest: "#2f855a", ocean: "#1e6091", lavender: "#9b8cce",
+      sand: "#d4a373", mono: "#3a3a3a", neon: "#ff00aa", paper: "#f4ecd8",
+    };
+    let hex = base.trim().toLowerCase();
+    if (!hex.startsWith("#")) hex = moods[hex] ?? `#${hex}`;
+    if (!/^#[0-9a-f]{6}$/.test(hex)) return { error: "Provide a hex like #3b82f6 or a mood word." };
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    // RGB -> HSL
+    const max = Math.max(r, g, b) / 255, min = Math.min(r, g, b) / 255;
+    let h = 0; const l = (max + min) / 2;
+    const d = max - min;
+    const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+    if (d !== 0) {
+      const rr = r / 255, gg = g / 255, bb = b / 255;
+      if (max === rr) h = ((gg - bb) / d) % 6;
+      else if (max === gg) h = (bb - rr) / d + 2;
+      else h = (rr - gg) / d + 4;
+      h = (h * 60 + 360) % 360;
+    }
+    const hsl2hex = (H: number, S: number, L: number) => {
+      const C = (1 - Math.abs(2 * L - 1)) * S;
+      const X = C * (1 - Math.abs(((H / 60) % 2) - 1));
+      const m = L - C / 2;
+      let [rr, gg, bb] = [0, 0, 0];
+      if (H < 60) [rr, gg, bb] = [C, X, 0];
+      else if (H < 120) [rr, gg, bb] = [X, C, 0];
+      else if (H < 180) [rr, gg, bb] = [0, C, X];
+      else if (H < 240) [rr, gg, bb] = [0, X, C];
+      else if (H < 300) [rr, gg, bb] = [X, 0, C];
+      else [rr, gg, bb] = [C, 0, X];
+      const to = (v: number) => Math.round((v + m) * 255).toString(16).padStart(2, "0");
+      return `#${to(rr)}${to(gg)}${to(bb)}`;
+    };
+    const colors = [
+      hsl2hex((h + 0) % 360, Math.min(1, s + 0.05), Math.max(0.15, l - 0.25)),
+      hsl2hex((h + 0) % 360, s, Math.max(0.25, l - 0.1)),
+      hex,
+      hsl2hex((h + 30) % 360, Math.min(1, s), Math.min(0.85, l + 0.12)),
+      hsl2hex((h + 180) % 360, Math.min(1, s * 0.8), Math.min(0.9, l + 0.18)),
+    ];
+    return { base: hex, colors };
+  },
+});
+
+// -------- getJoke --------
+const jokeTool = tool({
+  description: "Get a clean dad joke.",
+  inputSchema: z.object({}),
+  execute: async () => {
+    try {
+      const res = await fetch("https://icanhazdadjoke.com/", { headers: { Accept: "application/json" } });
+      if (!res.ok) return { error: `Joke lookup failed (${res.status})` };
+      const data = await res.json();
+      return { joke: data.joke as string };
+    } catch (e) { return { error: (e as Error).message }; }
+  },
+});
+
 export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
@@ -348,6 +544,13 @@ export const Route = createFileRoute("/api/chat")({
             defineWord: defineTool,
             summarizeUrl: summarizeUrlTool,
             randomPick: randomTool,
+            getNews: newsTool,
+            translateText: translateTool,
+            generatePassword: passwordTool,
+            generateQrCode: qrTool,
+            getRecipe: recipeTool,
+            getColorPalette: paletteTool,
+            getJoke: jokeTool,
           },
           stopWhen: stepCountIs(50),
         });
