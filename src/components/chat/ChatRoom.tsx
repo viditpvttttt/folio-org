@@ -52,6 +52,13 @@ function ToolPart({ part }: { part: { type: string; state?: string; output?: unk
     defineWord: "Opening the dictionary…",
     summarizeUrl: "Reading the page…",
     randomPick: "Rolling…",
+    getNews: "Scanning headlines…",
+    translateText: "Translating…",
+    generatePassword: "Forging a strong password…",
+    generateQrCode: "Drawing QR code…",
+    getRecipe: "Looking up the recipe…",
+    getColorPalette: "Mixing colors…",
+    getJoke: "Thinking of a joke…",
   };
 
   if (running) {
