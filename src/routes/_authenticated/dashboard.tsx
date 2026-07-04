@@ -330,7 +330,3 @@ function DashboardPage() {
     </div>
   );
 }
-      </main>
-    </div>
-  );
-}
