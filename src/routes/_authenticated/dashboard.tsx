@@ -53,9 +53,14 @@ function DashboardPage() {
   const qc = useQueryClient();
   const list = useServerFn(listThreads);
   const create = useServerFn(createThread);
+  const listMems = useServerFn(listMemories);
+  const addMem = useServerFn(addMemory);
+  const delMem = useServerFn(deleteMemory);
 
   const threadsQ = useQuery({ queryKey: ["threads", user?.id], queryFn: () => list(), enabled: !!user });
+  const memsQ = useQuery({ queryKey: ["memories", user?.id], queryFn: () => listMems(), enabled: !!user });
   const now = useNow();
+  const [memInput, setMemInput] = useState("");
 
   const startWith = async (q: string) => {
     const t = await create();
@@ -70,11 +75,49 @@ function DashboardPage() {
     navigate({ to: "/chat/$threadId", params: { threadId: t.id } });
   };
 
+  const saveMemory = async () => {
+    const content = memInput.trim();
+    if (!content) return;
+    try {
+      await addMem({ data: { content } });
+      setMemInput("");
+      qc.invalidateQueries({ queryKey: ["memories"] });
+      toast.success("Saved to memory");
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  };
+
+  const removeMemory = async (id: string) => {
+    await delMem({ data: { id } });
+    qc.invalidateQueries({ queryKey: ["memories"] });
+  };
+
+  const CONNECTORS = [
+    { icon: Cloud, label: "Weather", q: "What's the weather where I am right now?", hue: "from-sky-500/25 to-cyan-500/10" },
+    { icon: Newspaper, label: "News", q: "Top tech headlines today", hue: "from-orange-500/25 to-red-500/10" },
+    { icon: Languages, label: "Translate", q: "Translate 'good morning' to Japanese", hue: "from-emerald-500/25 to-teal-500/10" },
+    { icon: Coins, label: "Currency", q: "Convert 250 USD to EUR", hue: "from-amber-500/25 to-yellow-500/10" },
+    { icon: BookOpen, label: "Dictionary", q: "Define 'serendipity'", hue: "from-indigo-500/25 to-violet-500/10" },
+    { icon: ChefHat, label: "Recipes", q: "Give me a random dinner recipe", hue: "from-rose-500/25 to-pink-500/10" },
+    { icon: Palette, label: "Palettes", q: "Palette from #6c5ce7", hue: "from-fuchsia-500/25 to-purple-500/10" },
+    { icon: KeyRound, label: "Passwords", q: "Generate a 24-char password", hue: "from-slate-500/25 to-zinc-500/10" },
+    { icon: QrCode, label: "QR codes", q: "Make a QR code for https://folio.app", hue: "from-lime-500/25 to-green-500/10" },
+    { icon: Link2, label: "Web reader", q: "Summarize https://news.ycombinator.com", hue: "from-blue-500/25 to-sky-500/10" },
+  ];
+
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden bg-background text-foreground">
       <AmbientScene />
       <CursorGlow />
-      <div className="absolute inset-0 bg-background/55 backdrop-blur-[2px] -z-10" />
+      {/* Ambient RGB blobs (like homepage) */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-40 -left-32 h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle_at_center,#ff4d8d_0%,transparent_65%)] opacity-40 blur-3xl" />
+        <div className="absolute top-40 -right-32 h-[560px] w-[560px] rounded-full bg-[radial-gradient(circle_at_center,#4d9bff_0%,transparent_65%)] opacity-40 blur-3xl" />
+        <div className="absolute bottom-0 left-1/3 h-[460px] w-[460px] rounded-full bg-[radial-gradient(circle_at_center,#b66dff_0%,transparent_65%)] opacity-35 blur-3xl" />
+        <div className="absolute bottom-10 right-1/4 h-[380px] w-[380px] rounded-full bg-[radial-gradient(circle_at_center,#7dffb4_0%,transparent_65%)] opacity-30 blur-3xl" />
+      </div>
+      <div className="absolute inset-0 bg-background/40 backdrop-blur-[2px] -z-10" />
 
       {/* Top nav */}
       <header className="relative z-10 px-6 py-4 flex items-center gap-4 border-b border-border/40 backdrop-blur-xl bg-background/30">
