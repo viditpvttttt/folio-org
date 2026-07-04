@@ -777,26 +777,35 @@ export function ChatRoom({ threadId }: { threadId: string }) {
                 />
                 <PromptInput
                   onSubmit={handleSubmit}
+                  accept="image/*,application/pdf,text/*,.md,.csv,.json"
+                  multiple
+                  maxFiles={6}
+                  maxFileSize={10 * 1024 * 1024}
+                  onError={(e) => toast.error(e.message)}
                   className="relative bg-background/40 backdrop-blur-2xl rounded-[14px] border border-white/15 shadow-[0_10px_50px_-12px_rgba(0,0,0,0.5)]"
                 >
+                  <AttachPreview />
                   <PromptInputTextarea
-                    placeholder={listening ? "Listening…" : "Ask Folio anything — or tap the mic"}
+                    placeholder={listening ? "Listening…" : "Ask Folio anything — attach photos, PDFs, or tap the mic"}
                     autoFocus
                     disabled={isLoading}
                   />
                   <PromptInputFooter className="justify-between">
-                    <VoiceButton
-                      disabled={isLoading}
-                      onListeningChange={setListening}
-                      onAmplitude={setVoiceAmp}
-                      onInterim={setInterim}
-                      onTranscript={(text) => {
-                        setListening(false);
-                        setVoiceAmp(0);
-                        setInterim("");
-                        sendMessage({ text });
-                      }}
-                    />
+                    <div className="flex items-center gap-2">
+                      <AttachButton />
+                      <VoiceButton
+                        disabled={isLoading}
+                        onListeningChange={setListening}
+                        onAmplitude={setVoiceAmp}
+                        onInterim={setInterim}
+                        onTranscript={(text) => {
+                          setListening(false);
+                          setVoiceAmp(0);
+                          setInterim("");
+                          sendMessage({ text });
+                        }}
+                      />
+                    </div>
 
                     <PromptInputSubmit status={status} disabled={isLoading} />
                   </PromptInputFooter>
