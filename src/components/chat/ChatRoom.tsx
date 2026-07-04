@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Plus, Trash2, LogOut, Menu, Volume2, VolumeX } from "lucide-react";
+import { Plus, Trash2, LogOut, Menu, Volume2, VolumeX, Paperclip, X, FileText } from "lucide-react";
 import {
   Conversation,
   ConversationContent,
@@ -17,6 +17,7 @@ import {
   PromptInputTextarea,
   PromptInputFooter,
   PromptInputSubmit,
+  usePromptInputAttachments,
 } from "@/components/ai-elements/prompt-input";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { AmbientScene } from "./AmbientScene";
