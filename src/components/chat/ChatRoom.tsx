@@ -471,9 +471,18 @@ export function ChatRoom({ threadId }: { threadId: string }) {
   }, [threadId, initialQ.isLoading]);
 
 
-  const handleSubmit = async ({ text }: { text: string }) => {
-    if (!text.trim()) return;
-    await sendMessage({ text: text.trim() });
+  const handleSubmit = async ({ text, files }: { text: string; files?: { url: string; mediaType?: string; filename?: string }[] }) => {
+    const trimmed = text.trim();
+    if (!trimmed && (!files || files.length === 0)) return;
+    await sendMessage({
+      text: trimmed || "(attached file)",
+      files: files?.map((f) => ({
+        type: "file" as const,
+        url: f.url,
+        mediaType: f.mediaType ?? "application/octet-stream",
+        filename: f.filename,
+      })),
+    });
   };
 
   const handleNewChat = async () => {
