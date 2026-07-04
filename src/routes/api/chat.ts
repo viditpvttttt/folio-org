@@ -484,6 +484,22 @@ const jokeTool = tool({
   },
 });
 
+// -------- rememberFact factory (needs per-request supabase + userId) --------
+function makeRememberTool(sb: ReturnType<typeof createClient<Database>>, userId: string) {
+  return tool({
+    description: "Save a durable, useful fact about the user (name, city, preferences, allergies, work, goals). Keep it short.",
+    inputSchema: z.object({
+      content: z.string().min(2).max(300).describe("The fact to remember, in first person e.g. 'Prefers metric units'."),
+      kind: z.enum(["fact", "preference", "goal", "profile"]).default("fact"),
+    }),
+    execute: async ({ content, kind }) => {
+      const { error } = await sb.from("user_memories").insert({ user_id: userId, content, kind });
+      if (error) return { error: error.message };
+      return { saved: true, content, kind };
+    },
+  });
+}
+
 export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
