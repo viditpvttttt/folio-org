@@ -532,12 +532,18 @@ export const Route = createFileRoute("/api/chat")({
           .from("threads").select("id").eq("id", threadId).maybeSingle();
         if (threadErr || !thread) return new Response("Thread not found", { status: 404 });
 
+        const { data: mems } = await supabase
+          .from("user_memories").select("content,kind").order("created_at", { ascending: false }).limit(30);
+        const memoryBlock = mems && mems.length
+          ? `\n\nKnown facts about the user (contextual memory — use naturally when relevant, do not recite):\n${mems.map((m) => `- (${m.kind}) ${m.content}`).join("\n")}`
+          : "";
+
         const gateway = createLovableAiGatewayProvider(key);
         const model = gateway("google/gemini-3-flash-preview");
 
         const result = streamText({
           model,
-          system: SYSTEM_PROMPT,
+          system: SYSTEM_PROMPT + memoryBlock,
           messages: await convertToModelMessages(messages),
           tools: {
             getWeather: weatherTool,
@@ -556,6 +562,7 @@ export const Route = createFileRoute("/api/chat")({
             getRecipe: recipeTool,
             getColorPalette: paletteTool,
             getJoke: jokeTool,
+            rememberFact: makeRememberTool(supabase, userId),
           },
           stopWhen: stepCountIs(50),
         });
