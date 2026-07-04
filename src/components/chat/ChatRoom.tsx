@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Plus, Trash2, LogOut, Menu, Volume2, VolumeX } from "lucide-react";
+import { Plus, Trash2, LogOut, Menu, Volume2, VolumeX, Paperclip, X, FileText } from "lucide-react";
 import {
   Conversation,
   ConversationContent,
@@ -17,6 +17,7 @@ import {
   PromptInputTextarea,
   PromptInputFooter,
   PromptInputSubmit,
+  usePromptInputAttachments,
 } from "@/components/ai-elements/prompt-input";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { AmbientScene } from "./AmbientScene";
@@ -368,6 +369,53 @@ function ToolPart({ part }: { part: { type: string; state?: string; output?: unk
   return null;
 }
 
+function AttachButton() {
+  const a = usePromptInputAttachments();
+  return (
+    <button
+      type="button"
+      onClick={a.openFileDialog}
+      className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-border/60 bg-background/60 backdrop-blur hover:bg-foreground/10 transition"
+      aria-label="Attach photo or file"
+      title="Attach photo or file"
+    >
+      <Paperclip className="h-4 w-4" />
+    </button>
+  );
+}
+
+function AttachPreview() {
+  const a = usePromptInputAttachments();
+  if (a.files.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-2 px-3 pt-3">
+      {a.files.map((f) => {
+        const isImg = f.mediaType?.startsWith("image/");
+        return (
+          <div key={f.id} className="relative group rounded-lg border border-border/60 bg-card/70 backdrop-blur overflow-hidden">
+            {isImg ? (
+              <img src={f.url} alt={f.filename ?? "attachment"} className="h-16 w-16 object-cover" />
+            ) : (
+              <div className="h-16 w-40 flex items-center gap-2 px-2 text-xs">
+                <FileText className="h-4 w-4 shrink-0" />
+                <span className="truncate">{f.filename ?? "file"}</span>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => a.remove(f.id)}
+              className="absolute top-0.5 right-0.5 rounded-full bg-background/80 p-0.5 opacity-0 group-hover:opacity-100 transition"
+              aria-label="Remove attachment"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function ChatRoom({ threadId }: { threadId: string }) {
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
@@ -470,9 +518,18 @@ export function ChatRoom({ threadId }: { threadId: string }) {
   }, [threadId, initialQ.isLoading]);
 
 
-  const handleSubmit = async ({ text }: { text: string }) => {
-    if (!text.trim()) return;
-    await sendMessage({ text: text.trim() });
+  const handleSubmit = async ({ text, files }: { text: string; files?: { url: string; mediaType?: string; filename?: string }[] }) => {
+    const trimmed = text.trim();
+    if (!trimmed && (!files || files.length === 0)) return;
+    await sendMessage({
+      text: trimmed || "(attached file)",
+      files: files?.map((f) => ({
+        type: "file" as const,
+        url: f.url,
+        mediaType: f.mediaType ?? "application/octet-stream",
+        filename: f.filename,
+      })),
+    });
   };
 
   const handleNewChat = async () => {
@@ -649,6 +706,18 @@ export function ChatRoom({ threadId }: { threadId: string }) {
                               <span key={i}>{p.text}</span>
                             );
                           }
+                          if (p.type === "file") {
+                            const fp = p as unknown as { url: string; mediaType?: string; filename?: string };
+                            const isImg = fp.mediaType?.startsWith("image/");
+                            return isImg ? (
+                              <img key={i} src={fp.url} alt={fp.filename ?? "attachment"} className="mt-1 mb-1 max-h-72 rounded-lg border border-border/60" />
+                            ) : (
+                              <a key={i} href={fp.url} target="_blank" rel="noreferrer" className="mt-1 mb-1 inline-flex items-center gap-2 rounded-lg border border-border/60 bg-card/60 px-3 py-2 text-xs backdrop-blur hover:bg-card/80">
+                                <FileText className="h-4 w-4" />
+                                <span className="truncate max-w-[220px]">{fp.filename ?? "Attachment"}</span>
+                              </a>
+                            );
+                          }
                           if (typeof p.type === "string" && p.type.startsWith("tool-")) {
                             return <ToolPart key={i} part={p as unknown as { type: string; state?: string; output?: unknown; input?: unknown }} />;
                           }
@@ -708,26 +777,35 @@ export function ChatRoom({ threadId }: { threadId: string }) {
                 />
                 <PromptInput
                   onSubmit={handleSubmit}
+                  accept="image/*,application/pdf,text/*,.md,.csv,.json"
+                  multiple
+                  maxFiles={6}
+                  maxFileSize={10 * 1024 * 1024}
+                  onError={(e) => toast.error(e.message)}
                   className="relative bg-background/40 backdrop-blur-2xl rounded-[14px] border border-white/15 shadow-[0_10px_50px_-12px_rgba(0,0,0,0.5)]"
                 >
+                  <AttachPreview />
                   <PromptInputTextarea
-                    placeholder={listening ? "Listening…" : "Ask Folio anything — or tap the mic"}
+                    placeholder={listening ? "Listening…" : "Ask Folio anything — attach photos, PDFs, or tap the mic"}
                     autoFocus
                     disabled={isLoading}
                   />
                   <PromptInputFooter className="justify-between">
-                    <VoiceButton
-                      disabled={isLoading}
-                      onListeningChange={setListening}
-                      onAmplitude={setVoiceAmp}
-                      onInterim={setInterim}
-                      onTranscript={(text) => {
-                        setListening(false);
-                        setVoiceAmp(0);
-                        setInterim("");
-                        sendMessage({ text });
-                      }}
-                    />
+                    <div className="flex items-center gap-2">
+                      <AttachButton />
+                      <VoiceButton
+                        disabled={isLoading}
+                        onListeningChange={setListening}
+                        onAmplitude={setVoiceAmp}
+                        onInterim={setInterim}
+                        onTranscript={(text) => {
+                          setListening(false);
+                          setVoiceAmp(0);
+                          setInterim("");
+                          sendMessage({ text });
+                        }}
+                      />
+                    </div>
 
                     <PromptInputSubmit status={status} disabled={isLoading} />
                   </PromptInputFooter>
