@@ -2,9 +2,11 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import {
   MessageCircle, Plus, LogOut, Cloud, Calculator, Ruler, Coins,
   BookOpen, Dices, CalendarClock, Sparkles, Clock, ArrowRight,
+  Brain, Trash2, Newspaper, Languages, KeyRound, QrCode, ChefHat, Palette, Link2,
 } from "lucide-react";
 import { AmbientScene } from "@/components/chat/AmbientScene";
 import { CursorGlow } from "@/components/chat/CursorGlow";
@@ -13,6 +15,7 @@ import { TiltCard } from "@/components/chat/TiltCard";
 import { WeatherWidget } from "@/components/chat/WeatherWidget";
 import { useAuth } from "@/hooks/use-auth";
 import { createThread, listThreads } from "@/lib/threads.functions";
+import { addMemory, deleteMemory, listMemories } from "@/lib/memories.functions";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
