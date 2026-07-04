@@ -659,6 +659,18 @@ export function ChatRoom({ threadId }: { threadId: string }) {
                               <span key={i}>{p.text}</span>
                             );
                           }
+                          if (p.type === "file") {
+                            const fp = p as unknown as { url: string; mediaType?: string; filename?: string };
+                            const isImg = fp.mediaType?.startsWith("image/");
+                            return isImg ? (
+                              <img key={i} src={fp.url} alt={fp.filename ?? "attachment"} className="mt-1 mb-1 max-h-72 rounded-lg border border-border/60" />
+                            ) : (
+                              <a key={i} href={fp.url} target="_blank" rel="noreferrer" className="mt-1 mb-1 inline-flex items-center gap-2 rounded-lg border border-border/60 bg-card/60 px-3 py-2 text-xs backdrop-blur hover:bg-card/80">
+                                <FileText className="h-4 w-4" />
+                                <span className="truncate max-w-[220px]">{fp.filename ?? "Attachment"}</span>
+                              </a>
+                            );
+                          }
                           if (typeof p.type === "string" && p.type.startsWith("tool-")) {
                             return <ToolPart key={i} part={p as unknown as { type: string; state?: string; output?: unknown; input?: unknown }} />;
                           }
