@@ -369,6 +369,53 @@ function ToolPart({ part }: { part: { type: string; state?: string; output?: unk
   return null;
 }
 
+function AttachButton() {
+  const a = usePromptInputAttachments();
+  return (
+    <button
+      type="button"
+      onClick={a.openFileDialog}
+      className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-border/60 bg-background/60 backdrop-blur hover:bg-foreground/10 transition"
+      aria-label="Attach photo or file"
+      title="Attach photo or file"
+    >
+      <Paperclip className="h-4 w-4" />
+    </button>
+  );
+}
+
+function AttachPreview() {
+  const a = usePromptInputAttachments();
+  if (a.files.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-2 px-3 pt-3">
+      {a.files.map((f) => {
+        const isImg = f.mediaType?.startsWith("image/");
+        return (
+          <div key={f.id} className="relative group rounded-lg border border-border/60 bg-card/70 backdrop-blur overflow-hidden">
+            {isImg ? (
+              <img src={f.url} alt={f.filename ?? "attachment"} className="h-16 w-16 object-cover" />
+            ) : (
+              <div className="h-16 w-40 flex items-center gap-2 px-2 text-xs">
+                <FileText className="h-4 w-4 shrink-0" />
+                <span className="truncate">{f.filename ?? "file"}</span>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => a.remove(f.id)}
+              className="absolute top-0.5 right-0.5 rounded-full bg-background/80 p-0.5 opacity-0 group-hover:opacity-100 transition"
+              aria-label="Remove attachment"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function ChatRoom({ threadId }: { threadId: string }) {
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
