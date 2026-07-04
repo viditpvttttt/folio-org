@@ -208,10 +208,86 @@ function DashboardPage() {
           </div>
         </section>
 
-        {/* Two columns */}
-        <section className="grid lg:grid-cols-2 gap-6">
+        {/* Connectors */}
+        <section className="mb-10">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-serif text-2xl">Connectors</h2>
+            <span className="text-xs text-muted-foreground">Live APIs Folio can call for you</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            {CONNECTORS.map(({ icon: Icon, label, q, hue }) => (
+              <TiltCard key={label} max={12}>
+                <button
+                  onClick={() => startWith(q)}
+                  className={`relative w-full text-left rounded-xl border border-border/60 bg-gradient-to-br ${hue} backdrop-blur-xl p-4 hover:scale-[1.02] transition group overflow-hidden`}
+                >
+                  <div className="absolute -top-6 -right-6 h-20 w-20 rounded-full bg-white/10 blur-2xl opacity-70 group-hover:opacity-100 transition" />
+                  <Icon className="h-5 w-5 mb-2 text-foreground/80" />
+                  <div className="font-medium text-sm">{label}</div>
+                  <div className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground inline-flex items-center gap-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Connected
+                  </div>
+                </button>
+              </TiltCard>
+            ))}
+          </div>
+        </section>
+
+        {/* Memory + weather + threads */}
+        <section className="grid lg:grid-cols-3 gap-6">
           <TiltCard max={4}>
-            <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl overflow-hidden">
+            <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl overflow-hidden h-full">
+              <div className="px-5 py-3 border-b border-border/40 flex items-center gap-2">
+                <Brain className="h-4 w-4" />
+                <span className="font-serif text-lg">Contextual memory</span>
+                <span className="ml-auto text-[10px] uppercase tracking-wider text-muted-foreground">
+                  {memsQ.data?.length ?? 0} saved
+                </span>
+              </div>
+              <div className="p-4 space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Facts Folio remembers about you across conversations. Add anything — name, city, dietary preferences, work.
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    value={memInput}
+                    onChange={(e) => setMemInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") saveMemory(); }}
+                    placeholder="e.g. I live in Berlin"
+                    className="flex-1 h-9 rounded-md border border-border/60 bg-background/60 px-3 text-sm outline-none focus:ring-1 focus:ring-ring"
+                  />
+                  <button
+                    onClick={saveMemory}
+                    className="h-9 px-3 rounded-md bg-foreground text-background text-sm hover:opacity-90"
+                  >
+                    Save
+                  </button>
+                </div>
+                <ul className="space-y-1.5 max-h-60 overflow-y-auto">
+                  {(memsQ.data ?? []).map((m) => (
+                    <li key={m.id} className="group flex items-start gap-2 rounded-lg border border-border/40 bg-background/40 px-3 py-2 text-sm">
+                      <span className="text-[9px] uppercase tracking-wider text-muted-foreground mt-1 shrink-0">{m.kind}</span>
+                      <span className="flex-1">{m.content}</span>
+                      <button
+                        onClick={() => removeMemory(m.id)}
+                        className="opacity-0 group-hover:opacity-60 hover:opacity-100 transition"
+                        aria-label="Forget"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </li>
+                  ))}
+                  {memsQ.data && memsQ.data.length === 0 && (
+                    <li className="text-xs text-muted-foreground text-center py-4">Nothing remembered yet.</li>
+                  )}
+                </ul>
+              </div>
+            </div>
+          </TiltCard>
+
+          <TiltCard max={4}>
+            <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl overflow-hidden h-full">
               <div className="px-5 py-3 border-b border-border/40 flex items-center gap-2">
                 <Cloud className="h-4 w-4" />
                 <span className="font-serif text-lg">Local weather</span>
@@ -223,7 +299,7 @@ function DashboardPage() {
           </TiltCard>
 
           <TiltCard max={4}>
-            <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl overflow-hidden">
+            <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl overflow-hidden h-full">
               <div className="px-5 py-3 border-b border-border/40 flex items-center gap-2">
                 <MessageCircle className="h-4 w-4" />
                 <span className="font-serif text-lg">Recent conversations</span>
@@ -250,6 +326,10 @@ function DashboardPage() {
             </div>
           </TiltCard>
         </section>
+      </main>
+    </div>
+  );
+}
       </main>
     </div>
   );
