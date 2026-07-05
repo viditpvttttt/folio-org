@@ -4,6 +4,10 @@ import { z } from "zod";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import {
+  gmailListTool, gmailSendTool, gmailReadTool,
+  notionSearchTool, vercelProjectsTool, cursorStatusTool,
+} from "@/lib/connector-tools.server";
 
 const SYSTEM_PROMPT = `You are Folio — a calm, warm, world-class personal assistant for everyday life.
 You help with planning the day, thinking through decisions, drafting messages, explaining things, weather, time, math, currency, units, definitions, summarizing web pages, understanding photos and documents the user attaches, and just talking.
@@ -13,6 +17,12 @@ You have tools available:
 - getNews, translateText, generatePassword, generateQrCode, getRecipe, getColorPalette, getJoke.
 - summarizeUrl, randomPick.
 - rememberFact: save a durable fact about the user (name, city, preferences, goals, allergies, work). Use it QUIETLY whenever the user shares something worth remembering long-term. Never save secrets, one-time trivia, or things the user asked you to forget.
+- Connected accounts (only work if the user connected them at /connectors):
+  - gmailListMessages, gmailReadMessage, gmailSendMessage — Gmail. ALWAYS repeat the recipient/subject and ask the user to confirm before calling gmailSendMessage.
+  - notionSearch — search the user's Notion workspace.
+  - vercelListProjects — list the user's Vercel projects.
+  - cursorStatus — check Cursor account status.
+  If a connector tool returns notConnected:true, tell the user to open the Connectors page and tap Connect.
 
 When the user attaches a photo or document, read it carefully and describe or answer their question about it.
 After a tool returns, give a short friendly summary in your own words — do NOT re-list every field; the UI renders rich cards. Speak warmly and concisely. Use light markdown when it helps. If ambiguous, ask one focused question.`;
@@ -563,6 +573,12 @@ export const Route = createFileRoute("/api/chat")({
             getColorPalette: paletteTool,
             getJoke: jokeTool,
             rememberFact: makeRememberTool(supabase, userId),
+            gmailListMessages: gmailListTool(supabase),
+            gmailReadMessage: gmailReadTool(supabase),
+            gmailSendMessage: gmailSendTool(supabase),
+            notionSearch: notionSearchTool(supabase),
+            vercelListProjects: vercelProjectsTool(supabase),
+            cursorStatus: cursorStatusTool(supabase),
           },
           stopWhen: stepCountIs(50),
         });
