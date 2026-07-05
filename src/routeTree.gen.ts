@@ -17,8 +17,11 @@ import { Route as ApiSpeakRouteImport } from './routes/api/speak'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedConnectorsRouteImport } from './routes/_authenticated/connectors'
 import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat.index'
 import { Route as AuthenticatedChatThreadIdRouteImport } from './routes/_authenticated/chat.$threadId'
+import { Route as ApiPublicOauthProviderStartRouteImport } from './routes/api/public/oauth.$provider.start'
+import { Route as ApiPublicOauthProviderCallbackRouteImport } from './routes/api/public/oauth.$provider.callback'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -59,6 +62,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedConnectorsRoute = AuthenticatedConnectorsRouteImport.update({
+  id: '/connectors',
+  path: '/connectors',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedChatIndexRoute = AuthenticatedChatIndexRouteImport.update({
   id: '/chat/',
   path: '/chat/',
@@ -70,10 +78,23 @@ const AuthenticatedChatThreadIdRoute =
     path: '/chat/$threadId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const ApiPublicOauthProviderStartRoute =
+  ApiPublicOauthProviderStartRouteImport.update({
+    id: '/api/public/oauth/$provider/start',
+    path: '/api/public/oauth/$provider/start',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicOauthProviderCallbackRoute =
+  ApiPublicOauthProviderCallbackRouteImport.update({
+    id: '/api/public/oauth/$provider/callback',
+    path: '/api/public/oauth/$provider/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/connectors': typeof AuthenticatedConnectorsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/api/chat': typeof ApiChatRoute
@@ -81,10 +102,13 @@ export interface FileRoutesByFullPath {
   '/api/transcribe': typeof ApiTranscribeRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/chat/': typeof AuthenticatedChatIndexRoute
+  '/api/public/oauth/$provider/callback': typeof ApiPublicOauthProviderCallbackRoute
+  '/api/public/oauth/$provider/start': typeof ApiPublicOauthProviderStartRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/connectors': typeof AuthenticatedConnectorsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/api/chat': typeof ApiChatRoute
@@ -92,12 +116,15 @@ export interface FileRoutesByTo {
   '/api/transcribe': typeof ApiTranscribeRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/chat': typeof AuthenticatedChatIndexRoute
+  '/api/public/oauth/$provider/callback': typeof ApiPublicOauthProviderCallbackRoute
+  '/api/public/oauth/$provider/start': typeof ApiPublicOauthProviderStartRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
+  '/_authenticated/connectors': typeof AuthenticatedConnectorsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/api/chat': typeof ApiChatRoute
@@ -105,12 +132,15 @@ export interface FileRoutesById {
   '/api/transcribe': typeof ApiTranscribeRoute
   '/_authenticated/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
+  '/api/public/oauth/$provider/callback': typeof ApiPublicOauthProviderCallbackRoute
+  '/api/public/oauth/$provider/start': typeof ApiPublicOauthProviderStartRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/login'
+    | '/connectors'
     | '/dashboard'
     | '/settings'
     | '/api/chat'
@@ -118,10 +148,13 @@ export interface FileRouteTypes {
     | '/api/transcribe'
     | '/chat/$threadId'
     | '/chat/'
+    | '/api/public/oauth/$provider/callback'
+    | '/api/public/oauth/$provider/start'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
+    | '/connectors'
     | '/dashboard'
     | '/settings'
     | '/api/chat'
@@ -129,11 +162,14 @@ export interface FileRouteTypes {
     | '/api/transcribe'
     | '/chat/$threadId'
     | '/chat'
+    | '/api/public/oauth/$provider/callback'
+    | '/api/public/oauth/$provider/start'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/login'
+    | '/_authenticated/connectors'
     | '/_authenticated/dashboard'
     | '/_authenticated/settings'
     | '/api/chat'
@@ -141,6 +177,8 @@ export interface FileRouteTypes {
     | '/api/transcribe'
     | '/_authenticated/chat/$threadId'
     | '/_authenticated/chat/'
+    | '/api/public/oauth/$provider/callback'
+    | '/api/public/oauth/$provider/start'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -150,6 +188,8 @@ export interface RootRouteChildren {
   ApiChatRoute: typeof ApiChatRoute
   ApiSpeakRoute: typeof ApiSpeakRoute
   ApiTranscribeRoute: typeof ApiTranscribeRoute
+  ApiPublicOauthProviderCallbackRoute: typeof ApiPublicOauthProviderCallbackRoute
+  ApiPublicOauthProviderStartRoute: typeof ApiPublicOauthProviderStartRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -210,6 +250,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/connectors': {
+      id: '/_authenticated/connectors'
+      path: '/connectors'
+      fullPath: '/connectors'
+      preLoaderRoute: typeof AuthenticatedConnectorsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/chat/': {
       id: '/_authenticated/chat/'
       path: '/chat'
@@ -224,10 +271,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatThreadIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/api/public/oauth/$provider/start': {
+      id: '/api/public/oauth/$provider/start'
+      path: '/api/public/oauth/$provider/start'
+      fullPath: '/api/public/oauth/$provider/start'
+      preLoaderRoute: typeof ApiPublicOauthProviderStartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/oauth/$provider/callback': {
+      id: '/api/public/oauth/$provider/callback'
+      path: '/api/public/oauth/$provider/callback'
+      fullPath: '/api/public/oauth/$provider/callback'
+      preLoaderRoute: typeof ApiPublicOauthProviderCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedConnectorsRoute: typeof AuthenticatedConnectorsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedChatThreadIdRoute: typeof AuthenticatedChatThreadIdRoute
@@ -235,6 +297,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedConnectorsRoute: AuthenticatedConnectorsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedChatThreadIdRoute: AuthenticatedChatThreadIdRoute,
@@ -252,6 +315,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatRoute: ApiChatRoute,
   ApiSpeakRoute: ApiSpeakRoute,
   ApiTranscribeRoute: ApiTranscribeRoute,
+  ApiPublicOauthProviderCallbackRoute: ApiPublicOauthProviderCallbackRoute,
+  ApiPublicOauthProviderStartRoute: ApiPublicOauthProviderStartRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
