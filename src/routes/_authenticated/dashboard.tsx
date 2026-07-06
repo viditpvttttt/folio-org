@@ -7,6 +7,7 @@ import {
   MessageCircle, Plus, LogOut, Cloud, Calculator, Ruler, Coins,
   BookOpen, Dices, CalendarClock, Sparkles, Clock, ArrowRight,
   Brain, Trash2, Newspaper, Languages, KeyRound, QrCode, ChefHat, Palette, Link2,
+  Code2, ImageIcon, Terminal,
 } from "lucide-react";
 import { AmbientScene } from "@/components/chat/AmbientScene";
 import { CursorGlow } from "@/components/chat/CursorGlow";
@@ -37,10 +38,12 @@ function useNow() {
 }
 
 const PROMPTS = [
+  { icon: ImageIcon, label: "Generate image", q: "Draw a serene mountain lake at sunrise, watercolor" },
+  { icon: Code2, label: "Explain code", q: "Explain the difference between debounce and throttle with a JS example" },
+  { icon: Terminal, label: "Run a snippet", q: "Run: [1,2,3,4,5].reduce((a,b)=>a+b,0)" },
   { icon: Cloud, label: "Weather", q: "What's the weather where I am right now?" },
   { icon: Calculator, label: "Quick math", q: "What's 15% tip on $84.50?" },
   { icon: Ruler, label: "Convert units", q: "Convert 12 miles to kilometers" },
-  { icon: Coins, label: "Currency", q: "Convert 250 USD to EUR" },
   { icon: BookOpen, label: "Define a word", q: "Define 'serendipity'" },
   { icon: CalendarClock, label: "Plan my day", q: "Plan my day: workout 45m, deep work 2h, lunch 30m, emails 30m" },
   { icon: Dices, label: "Pick for me", q: "Flip a coin three times" },
@@ -126,6 +129,7 @@ function DashboardPage() {
         <nav className="ml-6 hidden md:flex items-center gap-1 text-sm">
           <Link to="/dashboard" className="px-3 py-1.5 rounded-full bg-foreground/10 font-medium">Dashboard</Link>
           <Link to="/chat" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Chat</Link>
+          <Link to="/workbench" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Workbench</Link>
           <Link to="/connectors" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Connectors</Link>
           <Link to="/settings" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Settings</Link>
         </nav>

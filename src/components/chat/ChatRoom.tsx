@@ -30,7 +30,7 @@ import { WeatherWidget } from "./WeatherWidget";
 import { TiltCard } from "./TiltCard";
 import { VoiceButton, speak } from "./VoiceButton";
 import { CursorGlow } from "./CursorGlow";
-import { Clock, CalendarClock, Loader2, Calculator, Ruler, Coins, BookOpen, Link2, Dices, Newspaper, Languages, KeyRound, QrCode, ChefHat, Palette, Smile, Copy } from "lucide-react";
+import { Clock, CalendarClock, Loader2, Calculator, Ruler, Coins, BookOpen, Link2, Dices, Newspaper, Languages, KeyRound, QrCode, ChefHat, Palette, Smile, Copy, Wand2, ImageIcon, Terminal } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { createThread, deleteThread, getThreadMessages, listThreads } from "@/lib/threads.functions";
@@ -60,6 +60,9 @@ function ToolPart({ part }: { part: { type: string; state?: string; output?: unk
     getRecipe: "Looking up the recipe…",
     getColorPalette: "Mixing colors…",
     getJoke: "Thinking of a joke…",
+    generateImage: "Painting an image…",
+    editImage: "Reworking the image…",
+    runCode: "Running your code…",
   };
 
   if (running) {
@@ -366,6 +369,56 @@ function ToolPart({ part }: { part: { type: string; state?: string; output?: unk
     );
   }
 
+  if (name === "generateImage" || name === "editImage") {
+    const o = output as { dataUrl: string; prompt: string };
+    return (
+      <TiltCard max={5}>
+        <figure className="my-2 w-full max-w-md overflow-hidden rounded-2xl border border-border/60 bg-card/70 backdrop-blur">
+          <img src={o.dataUrl} alt={o.prompt} className="w-full object-cover" />
+          <figcaption className="flex items-center gap-2 px-4 py-2.5 border-t border-border/40">
+            {name === "editImage" ? <Wand2 className="h-3.5 w-3.5" /> : <ImageIcon className="h-3.5 w-3.5" />}
+            <span className="text-xs text-muted-foreground italic truncate">{o.prompt}</span>
+            <a
+              href={o.dataUrl}
+              download={`folio-${Date.now()}.png`}
+              className="ml-auto text-[10px] uppercase tracking-wider text-foreground/70 hover:text-foreground"
+            >
+              Save
+            </a>
+          </figcaption>
+        </figure>
+      </TiltCard>
+    );
+  }
+
+  if (name === "runCode") {
+    const o = output as { stdout?: string; stderr?: string; returnValue?: string; durationMs: number };
+    return (
+      <div className="my-2 w-full max-w-2xl overflow-hidden rounded-xl border border-border/60 bg-neutral-950/90 text-neutral-100 backdrop-blur font-mono text-[12px]">
+        <div className="flex items-center gap-2 border-b border-white/10 px-4 py-2 text-neutral-400">
+          <Terminal className="h-3.5 w-3.5" />
+          <span className="uppercase tracking-[0.2em] text-[10px]">stdout</span>
+          <span className="ml-auto text-[10px]">{o.durationMs}ms</span>
+        </div>
+        <pre className="px-4 py-3 whitespace-pre-wrap break-words min-h-[2.5rem]">
+          {o.stdout || <span className="italic text-neutral-500">(no output)</span>}
+        </pre>
+        {o.returnValue !== undefined && (
+          <div className="border-t border-white/10 px-4 py-2">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-neutral-400 mb-1">return</div>
+            <pre className="whitespace-pre-wrap break-words text-emerald-300">{o.returnValue}</pre>
+          </div>
+        )}
+        {o.stderr && (
+          <div className="border-t border-white/10 px-4 py-2">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-rose-400 mb-1">error</div>
+            <pre className="whitespace-pre-wrap break-words text-rose-300">{o.stderr}</pre>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return null;
 }
 
@@ -629,6 +682,9 @@ export function ChatRoom({ threadId }: { threadId: string }) {
               <Link to="/chat" className="px-2.5 py-1 rounded-full bg-foreground/10 inline-flex items-center gap-1">
                 <MessageCircle className="h-3 w-3" /> Chat
               </Link>
+              <Link to="/workbench" className="px-2.5 py-1 rounded-full hover:bg-foreground/5 text-foreground/70 inline-flex items-center gap-1">
+                <Terminal className="h-3 w-3" /> Workbench
+              </Link>
               <Link to="/settings" className="px-2.5 py-1 rounded-full hover:bg-foreground/5 text-foreground/70 inline-flex items-center gap-1">
                 <SettingsIcon className="h-3 w-3" /> Settings
               </Link>
@@ -668,14 +724,14 @@ export function ChatRoom({ threadId }: { threadId: string }) {
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-2xl">
                     {[
+                      "Draw a serene mountain lake at sunrise, watercolor",
+                      "Write a Python function that flattens a nested list",
+                      "Run: [1,2,3,4].reduce((a,b)=>a+b,0)",
                       "Top tech headlines today",
-                      "Translate 'good morning, friend' to Japanese",
                       "Generate a 24-char password",
                       "Make a QR code for https://folio.app",
-                      "Give me a random dinner recipe",
                       "Palette from #6c5ce7",
                       "What's the weather in Tokyo?",
-                      "Tell me a dad joke",
                     ].map((s) => (
                       <button
                         key={s}
