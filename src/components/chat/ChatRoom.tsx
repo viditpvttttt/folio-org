@@ -682,6 +682,9 @@ export function ChatRoom({ threadId }: { threadId: string }) {
               <Link to="/chat" className="px-2.5 py-1 rounded-full bg-foreground/10 inline-flex items-center gap-1">
                 <MessageCircle className="h-3 w-3" /> Chat
               </Link>
+              <Link to="/workbench" className="px-2.5 py-1 rounded-full hover:bg-foreground/5 text-foreground/70 inline-flex items-center gap-1">
+                <Terminal className="h-3 w-3" /> Workbench
+              </Link>
               <Link to="/settings" className="px-2.5 py-1 rounded-full hover:bg-foreground/5 text-foreground/70 inline-flex items-center gap-1">
                 <SettingsIcon className="h-3 w-3" /> Settings
               </Link>
