@@ -721,14 +721,14 @@ export function ChatRoom({ threadId }: { threadId: string }) {
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-2xl">
                     {[
+                      "Draw a serene mountain lake at sunrise, watercolor",
+                      "Write a Python function that flattens a nested list",
+                      "Run: [1,2,3,4].reduce((a,b)=>a+b,0)",
                       "Top tech headlines today",
-                      "Translate 'good morning, friend' to Japanese",
                       "Generate a 24-char password",
                       "Make a QR code for https://folio.app",
-                      "Give me a random dinner recipe",
                       "Palette from #6c5ce7",
                       "What's the weather in Tokyo?",
-                      "Tell me a dad joke",
                     ].map((s) => (
                       <button
                         key={s}
