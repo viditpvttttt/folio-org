@@ -30,7 +30,7 @@ import { WeatherWidget } from "./WeatherWidget";
 import { TiltCard } from "./TiltCard";
 import { VoiceButton, speak } from "./VoiceButton";
 import { CursorGlow } from "./CursorGlow";
-import { Clock, CalendarClock, Loader2, Calculator, Ruler, Coins, BookOpen, Link2, Dices, Newspaper, Languages, KeyRound, QrCode, ChefHat, Palette, Smile, Copy } from "lucide-react";
+import { Clock, CalendarClock, Loader2, Calculator, Ruler, Coins, BookOpen, Link2, Dices, Newspaper, Languages, KeyRound, QrCode, ChefHat, Palette, Smile, Copy, Wand2, ImageIcon, Terminal, Code2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { createThread, deleteThread, getThreadMessages, listThreads } from "@/lib/threads.functions";
@@ -60,6 +60,9 @@ function ToolPart({ part }: { part: { type: string; state?: string; output?: unk
     getRecipe: "Looking up the recipe…",
     getColorPalette: "Mixing colors…",
     getJoke: "Thinking of a joke…",
+    generateImage: "Painting an image…",
+    editImage: "Reworking the image…",
+    runCode: "Running your code…",
   };
 
   if (running) {
@@ -362,6 +365,56 @@ function ToolPart({ part }: { part: { type: string; state?: string; output?: unk
       <div className="my-2 inline-flex items-start gap-3 rounded-xl border border-border/60 bg-card/70 px-4 py-3 backdrop-blur max-w-md">
         <Smile className="h-5 w-5 text-foreground/70 mt-0.5 shrink-0" />
         <div className="font-serif text-base leading-snug">{o.joke}</div>
+      </div>
+    );
+  }
+
+  if (name === "generateImage" || name === "editImage") {
+    const o = output as { dataUrl: string; prompt: string };
+    return (
+      <TiltCard max={5}>
+        <figure className="my-2 w-full max-w-md overflow-hidden rounded-2xl border border-border/60 bg-card/70 backdrop-blur">
+          <img src={o.dataUrl} alt={o.prompt} className="w-full object-cover" />
+          <figcaption className="flex items-center gap-2 px-4 py-2.5 border-t border-border/40">
+            {name === "editImage" ? <Wand2 className="h-3.5 w-3.5" /> : <ImageIcon className="h-3.5 w-3.5" />}
+            <span className="text-xs text-muted-foreground italic truncate">{o.prompt}</span>
+            <a
+              href={o.dataUrl}
+              download={`folio-${Date.now()}.png`}
+              className="ml-auto text-[10px] uppercase tracking-wider text-foreground/70 hover:text-foreground"
+            >
+              Save
+            </a>
+          </figcaption>
+        </figure>
+      </TiltCard>
+    );
+  }
+
+  if (name === "runCode") {
+    const o = output as { stdout?: string; stderr?: string; returnValue?: string; durationMs: number };
+    return (
+      <div className="my-2 w-full max-w-2xl overflow-hidden rounded-xl border border-border/60 bg-neutral-950/90 text-neutral-100 backdrop-blur font-mono text-[12px]">
+        <div className="flex items-center gap-2 border-b border-white/10 px-4 py-2 text-neutral-400">
+          <Terminal className="h-3.5 w-3.5" />
+          <span className="uppercase tracking-[0.2em] text-[10px]">stdout</span>
+          <span className="ml-auto text-[10px]">{o.durationMs}ms</span>
+        </div>
+        <pre className="px-4 py-3 whitespace-pre-wrap break-words min-h-[2.5rem]">
+          {o.stdout || <span className="italic text-neutral-500">(no output)</span>}
+        </pre>
+        {o.returnValue !== undefined && (
+          <div className="border-t border-white/10 px-4 py-2">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-neutral-400 mb-1">return</div>
+            <pre className="whitespace-pre-wrap break-words text-emerald-300">{o.returnValue}</pre>
+          </div>
+        )}
+        {o.stderr && (
+          <div className="border-t border-white/10 px-4 py-2">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-rose-400 mb-1">error</div>
+            <pre className="whitespace-pre-wrap break-words text-rose-300">{o.stderr}</pre>
+          </div>
+        )}
       </div>
     );
   }
