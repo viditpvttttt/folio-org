@@ -10,6 +10,7 @@ import {
 import { useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/hooks/use-auth";
+import { AccessibilityProvider } from "@/hooks/use-accessibility";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -97,9 +98,11 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <AuthInvalidator />
-        <Outlet />
-        <Toaster />
+        <AccessibilityProvider>
+          <AuthInvalidator />
+          <Outlet />
+          <Toaster />
+        </AccessibilityProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
