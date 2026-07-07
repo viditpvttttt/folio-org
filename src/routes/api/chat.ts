@@ -553,9 +553,14 @@ export const Route = createFileRoute("/api/chat")({
         if (threadErr || !thread) return new Response("Thread not found", { status: 404 });
 
         const { data: mems } = await supabase
-          .from("user_memories").select("content,kind").order("created_at", { ascending: false }).limit(30);
-        const memoryBlock = mems && mems.length
-          ? `\n\nKnown facts about the user (contextual memory — use naturally when relevant, do not recite):\n${mems.map((m) => `- (${m.kind}) ${m.content}`).join("\n")}`
+          .from("user_memories").select("content,kind").order("created_at", { ascending: false }).limit(50);
+        const stacks = (mems ?? []).filter((m) => m.kind === "stack");
+        const facts = (mems ?? []).filter((m) => m.kind !== "stack");
+        const stackBlock = stacks.length
+          ? `\n\nUser's project stack (match this style when writing code — languages, frameworks, conventions, file layout):\n${stacks.map((s) => `- ${s.content}`).join("\n")}`
+          : "";
+        const memoryBlock = facts.length
+          ? `\n\nKnown facts about the user (contextual memory — use naturally when relevant, do not recite):\n${facts.map((m) => `- (${m.kind}) ${m.content}`).join("\n")}`
           : "";
 
         const gateway = createLovableAiGatewayProvider(key);
@@ -563,7 +568,7 @@ export const Route = createFileRoute("/api/chat")({
 
         const result = streamText({
           model,
-          system: SYSTEM_PROMPT + memoryBlock,
+          system: SYSTEM_PROMPT + stackBlock + memoryBlock,
           messages: await convertToModelMessages(messages),
           tools: {
             getWeather: weatherTool,
