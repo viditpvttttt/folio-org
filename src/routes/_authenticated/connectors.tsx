@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Check, ExternalLink, LogOut, Mail, KeyRound, Zap, Sparkles, MousePointer2, BookOpenText, Link2Off, ArrowRight, Calendar, Music2, ListTodo, GitBranch, Github, MessageSquare, Trello, Figma, Cloud, HardDrive, Video, Clock } from "lucide-react";
+import { Check, ExternalLink, LogOut, Mail, KeyRound, Zap, Sparkles, MousePointer2, BookOpenText, Link2Off, ArrowRight, Calendar, Music2, ListTodo, GitBranch, MessageSquare, Cloud, HardDrive, Video, Clock, Code2, Palette } from "lucide-react";
 import { AmbientScene } from "@/components/chat/AmbientScene";
 import { CursorGlow } from "@/components/chat/CursorGlow";
 import { OrbStatus } from "@/components/chat/OrbStatus";
