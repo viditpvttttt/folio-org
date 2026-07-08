@@ -15,9 +15,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiWorkbenchChatRouteImport } from './routes/api/workbench-chat'
 import { Route as ApiTranscribeRouteImport } from './routes/api/transcribe'
 import { Route as ApiSpeakRouteImport } from './routes/api/speak'
+import { Route as ApiExplainRouteImport } from './routes/api/explain'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedWorkbenchRouteImport } from './routes/_authenticated/workbench'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedExplainRouteImport } from './routes/_authenticated/explain'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedConnectorsRouteImport } from './routes/_authenticated/connectors'
 import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat.index'
@@ -54,6 +56,11 @@ const ApiSpeakRoute = ApiSpeakRouteImport.update({
   path: '/api/speak',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiExplainRoute = ApiExplainRouteImport.update({
+  id: '/api/explain',
+  path: '/api/explain',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
@@ -67,6 +74,11 @@ const AuthenticatedWorkbenchRoute = AuthenticatedWorkbenchRouteImport.update({
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedExplainRoute = AuthenticatedExplainRouteImport.update({
+  id: '/explain',
+  path: '/explain',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -108,9 +120,11 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/connectors': typeof AuthenticatedConnectorsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/explain': typeof AuthenticatedExplainRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/workbench': typeof AuthenticatedWorkbenchRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/explain': typeof ApiExplainRoute
   '/api/speak': typeof ApiSpeakRoute
   '/api/transcribe': typeof ApiTranscribeRoute
   '/api/workbench-chat': typeof ApiWorkbenchChatRoute
@@ -124,9 +138,11 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/connectors': typeof AuthenticatedConnectorsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/explain': typeof AuthenticatedExplainRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/workbench': typeof AuthenticatedWorkbenchRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/explain': typeof ApiExplainRoute
   '/api/speak': typeof ApiSpeakRoute
   '/api/transcribe': typeof ApiTranscribeRoute
   '/api/workbench-chat': typeof ApiWorkbenchChatRoute
@@ -142,9 +158,11 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_authenticated/connectors': typeof AuthenticatedConnectorsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/explain': typeof AuthenticatedExplainRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/workbench': typeof AuthenticatedWorkbenchRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/explain': typeof ApiExplainRoute
   '/api/speak': typeof ApiSpeakRoute
   '/api/transcribe': typeof ApiTranscribeRoute
   '/api/workbench-chat': typeof ApiWorkbenchChatRoute
@@ -160,9 +178,11 @@ export interface FileRouteTypes {
     | '/login'
     | '/connectors'
     | '/dashboard'
+    | '/explain'
     | '/settings'
     | '/workbench'
     | '/api/chat'
+    | '/api/explain'
     | '/api/speak'
     | '/api/transcribe'
     | '/api/workbench-chat'
@@ -176,9 +196,11 @@ export interface FileRouteTypes {
     | '/login'
     | '/connectors'
     | '/dashboard'
+    | '/explain'
     | '/settings'
     | '/workbench'
     | '/api/chat'
+    | '/api/explain'
     | '/api/speak'
     | '/api/transcribe'
     | '/api/workbench-chat'
@@ -193,9 +215,11 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authenticated/connectors'
     | '/_authenticated/dashboard'
+    | '/_authenticated/explain'
     | '/_authenticated/settings'
     | '/_authenticated/workbench'
     | '/api/chat'
+    | '/api/explain'
     | '/api/speak'
     | '/api/transcribe'
     | '/api/workbench-chat'
@@ -210,6 +234,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiExplainRoute: typeof ApiExplainRoute
   ApiSpeakRoute: typeof ApiSpeakRoute
   ApiTranscribeRoute: typeof ApiTranscribeRoute
   ApiWorkbenchChatRoute: typeof ApiWorkbenchChatRoute
@@ -261,6 +286,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSpeakRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/explain': {
+      id: '/api/explain'
+      path: '/api/explain'
+      fullPath: '/api/explain'
+      preLoaderRoute: typeof ApiExplainRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/chat': {
       id: '/api/chat'
       path: '/api/chat'
@@ -280,6 +312,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/explain': {
+      id: '/_authenticated/explain'
+      path: '/explain'
+      fullPath: '/explain'
+      preLoaderRoute: typeof AuthenticatedExplainRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/dashboard': {
@@ -330,6 +369,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteChildren {
   AuthenticatedConnectorsRoute: typeof AuthenticatedConnectorsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedExplainRoute: typeof AuthenticatedExplainRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedWorkbenchRoute: typeof AuthenticatedWorkbenchRoute
   AuthenticatedChatThreadIdRoute: typeof AuthenticatedChatThreadIdRoute
@@ -339,6 +379,7 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedConnectorsRoute: AuthenticatedConnectorsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedExplainRoute: AuthenticatedExplainRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedWorkbenchRoute: AuthenticatedWorkbenchRoute,
   AuthenticatedChatThreadIdRoute: AuthenticatedChatThreadIdRoute,
@@ -354,6 +395,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiExplainRoute: ApiExplainRoute,
   ApiSpeakRoute: ApiSpeakRoute,
   ApiTranscribeRoute: ApiTranscribeRoute,
   ApiWorkbenchChatRoute: ApiWorkbenchChatRoute,
@@ -363,13 +405,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

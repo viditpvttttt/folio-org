@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Check, ExternalLink, LogOut, Mail, KeyRound, Zap, Sparkles, MousePointer2, BookOpenText, Link2Off, ArrowRight } from "lucide-react";
+import { Check, ExternalLink, LogOut, Mail, KeyRound, Zap, Sparkles, MousePointer2, BookOpenText, Link2Off, ArrowRight, Calendar, Music2, ListTodo, GitBranch, MessageSquare, Cloud, HardDrive, Video, Clock, Code2, Palette } from "lucide-react";
 import { AmbientScene } from "@/components/chat/AmbientScene";
 import { CursorGlow } from "@/components/chat/CursorGlow";
 import { OrbStatus } from "@/components/chat/OrbStatus";
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/connectors")({
   head: () => ({
     meta: [
       { title: "Connectors · Folio" },
-      { name: "description", content: "Connect Gmail, Notion, Vercel and Cursor so Folio can act on your behalf." },
+      { name: "description", content: "Connect Gmail, Calendar, Spotify, Slack, GitHub and more so Folio can act on your behalf." },
     ],
   }),
 });
@@ -31,10 +31,11 @@ type ProviderCard = {
   tagline: string;
   icon: React.ComponentType<{ className?: string }>;
   hue: string;
-  kind: "oauth" | "token";
+  kind: "oauth" | "token" | "soon";
   tokenHelp?: string;
   tokenUrl?: string;
 };
+
 
 const PROVIDERS: ProviderCard[] = [
   {
@@ -58,6 +59,21 @@ const PROVIDERS: ProviderCard[] = [
     tokenUrl: "https://cursor.com/settings",
   },
 ];
+
+const COMING_SOON: ProviderCard[] = [
+  { id: "gcal",     name: "Google Calendar", tagline: "See your day, book focus blocks, RSVP",  icon: Calendar,      hue: "from-sky-500/25 to-blue-500/10",       kind: "soon" },
+  { id: "spotify",  name: "Spotify",         tagline: "Play focus playlists, set the mood",     icon: Music2,        hue: "from-emerald-500/25 to-green-500/10",  kind: "soon" },
+  { id: "todoist",  name: "Todoist",         tagline: "Capture, list and complete tasks",       icon: ListTodo,      hue: "from-red-500/25 to-rose-500/10",       kind: "soon" },
+  { id: "linear",   name: "Linear",          tagline: "Triage issues, plan cycles",             icon: GitBranch,     hue: "from-violet-500/25 to-indigo-500/10",  kind: "soon" },
+  { id: "slack",    name: "Slack",           tagline: "Read channels, send messages",           icon: MessageSquare, hue: "from-fuchsia-500/25 to-pink-500/10",   kind: "soon" },
+  { id: "github",   name: "GitHub",          tagline: "PRs, issues, repo search",               icon: Code2,         hue: "from-zinc-500/25 to-slate-500/10",     kind: "soon" },
+  { id: "gdrive",   name: "Google Drive",    tagline: "Find and summarise your docs",           icon: HardDrive,     hue: "from-yellow-500/25 to-amber-500/10",   kind: "soon" },
+  { id: "dropbox",  name: "Dropbox",         tagline: "Search files and folders",               icon: Cloud,         hue: "from-blue-500/25 to-cyan-500/10",      kind: "soon" },
+  { id: "zoom",     name: "Zoom",            tagline: "Meetings, recordings, transcripts",      icon: Video,         hue: "from-sky-500/25 to-indigo-500/10",     kind: "soon" },
+  { id: "toggl",    name: "Toggl",           tagline: "Start/stop timers from chat",            icon: Clock,         hue: "from-pink-500/25 to-rose-500/10",      kind: "soon" },
+  { id: "figma",    name: "Figma",           tagline: "Pull frames, list your files",           icon: Palette,       hue: "from-orange-500/25 to-red-500/10",     kind: "soon" },
+];
+
 
 function ConnectorsPage() {
   const { user, signOut } = useAuth();
@@ -151,6 +167,8 @@ function ConnectorsPage() {
         <nav className="ml-6 hidden md:flex items-center gap-1 text-sm">
           <Link to="/dashboard" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Dashboard</Link>
           <Link to="/chat" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Chat</Link>
+          <Link to="/explain" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Explain</Link>
+
           <Link to="/connectors" className="px-3 py-1.5 rounded-full bg-foreground/10 font-medium">Connectors</Link>
           <Link to="/settings" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Settings</Link>
         </nav>
@@ -234,10 +252,57 @@ function ConnectorsPage() {
           })}
         </div>
 
-        <p className="text-xs text-muted-foreground mt-8 max-w-xl">
+        <div className="mt-14">
+          <div className="flex items-baseline justify-between mb-4">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Coming soon</p>
+              <h2 className="font-serif text-2xl mt-1">More of your stack.</h2>
+            </div>
+            <p className="text-xs text-muted-foreground max-w-sm hidden sm:block">
+              These are ready to wire up. Tap <em>Notify me</em> and Folio will surface it first as soon as OAuth lands.
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
+            {COMING_SOON.map((p) => {
+              const Icon = p.icon;
+              return (
+                <div key={p.id} className={`relative rounded-2xl border border-border/50 bg-gradient-to-br ${p.hue} bg-card/40 backdrop-blur-xl p-4 overflow-hidden`}>
+                  <div className="absolute -top-6 -right-6 h-20 w-20 rounded-full bg-white/10 blur-2xl" />
+                  <div className="flex items-start gap-3">
+                    <div className="h-10 w-10 rounded-xl border border-border/60 bg-background/60 grid place-items-center">
+                      <Icon className="h-4.5 w-4.5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <div className="font-serif text-base">{p.name}</div>
+                        <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-foreground/10 text-foreground/70">
+                          Soon
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">{p.tagline}</p>
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 text-[11px]"
+                      onClick={() => toast.success(`We'll notify you when ${p.name} is ready.`)}
+                    >
+                      <Sparkles className="h-3 w-3" /> Notify me
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <p className="text-xs text-muted-foreground mt-10 max-w-xl">
           Tokens are stored per-user with row-level security in your backend. Folio only uses them inside your own chat, on the server, never in the browser.
         </p>
       </main>
+
 
       <Dialog open={!!tokenOpen} onOpenChange={(o) => { if (!o) { setTokenOpen(null); setTokenValue(""); } }}>
         <DialogContent>

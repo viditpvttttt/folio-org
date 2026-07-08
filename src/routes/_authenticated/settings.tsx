@@ -69,6 +69,8 @@ function SettingsPage() {
         <nav className="ml-6 hidden md:flex items-center gap-1 text-sm">
           <Link to="/dashboard" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70 inline-flex items-center gap-1.5"><LayoutDashboard className="h-3.5 w-3.5" />Dashboard</Link>
           <Link to="/chat" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70 inline-flex items-center gap-1.5"><MessageCircle className="h-3.5 w-3.5" />Chat</Link>
+          <Link to="/explain" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Explain</Link>
+
           <Link to="/settings" className="px-3 py-1.5 rounded-full bg-foreground/10 font-medium inline-flex items-center gap-1.5"><SettingsIcon className="h-3.5 w-3.5" />Settings</Link>
         </nav>
         <button onClick={signOut} title="Sign out" aria-label="Sign out" className="ml-auto text-foreground/60 hover:text-foreground">
