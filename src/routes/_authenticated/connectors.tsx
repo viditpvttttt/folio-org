@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Check, ExternalLink, LogOut, Mail, KeyRound, Zap, Sparkles, MousePointer2, BookOpenText, Link2Off, ArrowRight } from "lucide-react";
+import { Check, ExternalLink, LogOut, Mail, KeyRound, Zap, Sparkles, MousePointer2, BookOpenText, Link2Off, ArrowRight, Calendar, Music2, ListTodo, GitBranch, Github, MessageSquare, Trello, Figma, Cloud, HardDrive, Video, Clock } from "lucide-react";
 import { AmbientScene } from "@/components/chat/AmbientScene";
 import { CursorGlow } from "@/components/chat/CursorGlow";
 import { OrbStatus } from "@/components/chat/OrbStatus";
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/connectors")({
   head: () => ({
     meta: [
       { title: "Connectors · Folio" },
-      { name: "description", content: "Connect Gmail, Notion, Vercel and Cursor so Folio can act on your behalf." },
+      { name: "description", content: "Connect Gmail, Calendar, Spotify, Slack, GitHub and more so Folio can act on your behalf." },
     ],
   }),
 });
@@ -31,10 +31,11 @@ type ProviderCard = {
   tagline: string;
   icon: React.ComponentType<{ className?: string }>;
   hue: string;
-  kind: "oauth" | "token";
+  kind: "oauth" | "token" | "soon";
   tokenHelp?: string;
   tokenUrl?: string;
 };
+
 
 const PROVIDERS: ProviderCard[] = [
   {
