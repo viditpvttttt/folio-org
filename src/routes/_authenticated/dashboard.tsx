@@ -129,7 +129,9 @@ function DashboardPage() {
         <nav className="ml-6 hidden md:flex items-center gap-1 text-sm">
           <Link to="/dashboard" className="px-3 py-1.5 rounded-full bg-foreground/10 font-medium">Dashboard</Link>
           <Link to="/chat" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Chat</Link>
+          <Link to="/explain" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Explain</Link>
           <Link to="/workbench" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Workbench</Link>
+
           <Link to="/connectors" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Connectors</Link>
           <Link to="/settings" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Settings</Link>
         </nav>
