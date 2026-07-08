@@ -60,6 +60,21 @@ const PROVIDERS: ProviderCard[] = [
   },
 ];
 
+const COMING_SOON: ProviderCard[] = [
+  { id: "gcal",     name: "Google Calendar", tagline: "See your day, book focus blocks, RSVP",  icon: Calendar,      hue: "from-sky-500/25 to-blue-500/10",       kind: "soon" },
+  { id: "spotify",  name: "Spotify",         tagline: "Play focus playlists, set the mood",     icon: Music2,        hue: "from-emerald-500/25 to-green-500/10",  kind: "soon" },
+  { id: "todoist",  name: "Todoist",         tagline: "Capture, list and complete tasks",       icon: ListTodo,      hue: "from-red-500/25 to-rose-500/10",       kind: "soon" },
+  { id: "linear",   name: "Linear",          tagline: "Triage issues, plan cycles",             icon: GitBranch,     hue: "from-violet-500/25 to-indigo-500/10",  kind: "soon" },
+  { id: "slack",    name: "Slack",           tagline: "Read channels, send messages",           icon: MessageSquare, hue: "from-fuchsia-500/25 to-pink-500/10",   kind: "soon" },
+  { id: "github",   name: "GitHub",          tagline: "PRs, issues, repo search",               icon: Code2,         hue: "from-zinc-500/25 to-slate-500/10",     kind: "soon" },
+  { id: "gdrive",   name: "Google Drive",    tagline: "Find and summarise your docs",           icon: HardDrive,     hue: "from-yellow-500/25 to-amber-500/10",   kind: "soon" },
+  { id: "dropbox",  name: "Dropbox",         tagline: "Search files and folders",               icon: Cloud,         hue: "from-blue-500/25 to-cyan-500/10",      kind: "soon" },
+  { id: "zoom",     name: "Zoom",            tagline: "Meetings, recordings, transcripts",      icon: Video,         hue: "from-sky-500/25 to-indigo-500/10",     kind: "soon" },
+  { id: "toggl",    name: "Toggl",           tagline: "Start/stop timers from chat",            icon: Clock,         hue: "from-pink-500/25 to-rose-500/10",      kind: "soon" },
+  { id: "figma",    name: "Figma",           tagline: "Pull frames, list your files",           icon: Palette,       hue: "from-orange-500/25 to-red-500/10",     kind: "soon" },
+];
+
+
 function ConnectorsPage() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
