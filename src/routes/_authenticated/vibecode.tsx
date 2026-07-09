@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import * as React from "react";
 import { useMemo, useRef, useState } from "react";
 import { LiveProvider, LiveError, LivePreview } from "react-live";
 import { toast } from "sonner";
@@ -220,7 +221,7 @@ function VibecodePage() {
             )}
           </div>
 
-          <LiveProvider code={code} noInline scope={{ React: (globalThis as unknown as { React?: unknown }).React }}>
+          <LiveProvider code={code} noInline scope={{ React }}>
             {tab === "preview" ? (
               <div className="rounded-2xl border border-border/60 bg-white p-6 md:p-10 min-h-[320px] shadow-lg flex items-center justify-center">
                 <div className="w-full max-w-2xl">

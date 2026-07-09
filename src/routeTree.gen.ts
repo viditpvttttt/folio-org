@@ -21,6 +21,8 @@ import { Route as ApiNewsRouteImport } from './routes/api/news'
 import { Route as ApiExplainRouteImport } from './routes/api/explain'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedWorkbenchRouteImport } from './routes/_authenticated/workbench'
+import { Route as AuthenticatedWorkRouteImport } from './routes/_authenticated/work'
+import { Route as AuthenticatedVibecodeRouteImport } from './routes/_authenticated/vibecode'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedExplainRouteImport } from './routes/_authenticated/explain'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -89,6 +91,16 @@ const AuthenticatedWorkbenchRoute = AuthenticatedWorkbenchRouteImport.update({
   path: '/workbench',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedWorkRoute = AuthenticatedWorkRouteImport.update({
+  id: '/work',
+  path: '/work',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedVibecodeRoute = AuthenticatedVibecodeRouteImport.update({
+  id: '/vibecode',
+  path: '/vibecode',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -140,6 +152,8 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/explain': typeof AuthenticatedExplainRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/vibecode': typeof AuthenticatedVibecodeRoute
+  '/work': typeof AuthenticatedWorkRoute
   '/workbench': typeof AuthenticatedWorkbenchRoute
   '/api/chat': typeof ApiChatRoute
   '/api/explain': typeof ApiExplainRoute
@@ -161,6 +175,8 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/explain': typeof AuthenticatedExplainRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/vibecode': typeof AuthenticatedVibecodeRoute
+  '/work': typeof AuthenticatedWorkRoute
   '/workbench': typeof AuthenticatedWorkbenchRoute
   '/api/chat': typeof ApiChatRoute
   '/api/explain': typeof ApiExplainRoute
@@ -184,6 +200,8 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/explain': typeof AuthenticatedExplainRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/vibecode': typeof AuthenticatedVibecodeRoute
+  '/_authenticated/work': typeof AuthenticatedWorkRoute
   '/_authenticated/workbench': typeof AuthenticatedWorkbenchRoute
   '/api/chat': typeof ApiChatRoute
   '/api/explain': typeof ApiExplainRoute
@@ -207,6 +225,8 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/explain'
     | '/settings'
+    | '/vibecode'
+    | '/work'
     | '/workbench'
     | '/api/chat'
     | '/api/explain'
@@ -228,6 +248,8 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/explain'
     | '/settings'
+    | '/vibecode'
+    | '/work'
     | '/workbench'
     | '/api/chat'
     | '/api/explain'
@@ -250,6 +272,8 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/explain'
     | '/_authenticated/settings'
+    | '/_authenticated/vibecode'
+    | '/_authenticated/work'
     | '/_authenticated/workbench'
     | '/api/chat'
     | '/api/explain'
@@ -367,6 +391,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWorkbenchRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/work': {
+      id: '/_authenticated/work'
+      path: '/work'
+      fullPath: '/work'
+      preLoaderRoute: typeof AuthenticatedWorkRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/vibecode': {
+      id: '/_authenticated/vibecode'
+      path: '/vibecode'
+      fullPath: '/vibecode'
+      preLoaderRoute: typeof AuthenticatedVibecodeRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
@@ -431,6 +469,8 @@ interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedExplainRoute: typeof AuthenticatedExplainRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedVibecodeRoute: typeof AuthenticatedVibecodeRoute
+  AuthenticatedWorkRoute: typeof AuthenticatedWorkRoute
   AuthenticatedWorkbenchRoute: typeof AuthenticatedWorkbenchRoute
   AuthenticatedChatThreadIdRoute: typeof AuthenticatedChatThreadIdRoute
   AuthenticatedChatIndexRoute: typeof AuthenticatedChatIndexRoute
@@ -441,6 +481,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedExplainRoute: AuthenticatedExplainRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedVibecodeRoute: AuthenticatedVibecodeRoute,
+  AuthenticatedWorkRoute: AuthenticatedWorkRoute,
   AuthenticatedWorkbenchRoute: AuthenticatedWorkbenchRoute,
   AuthenticatedChatThreadIdRoute: AuthenticatedChatThreadIdRoute,
   AuthenticatedChatIndexRoute: AuthenticatedChatIndexRoute,
