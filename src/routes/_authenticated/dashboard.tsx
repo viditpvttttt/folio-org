@@ -297,13 +297,14 @@ function DashboardPage() {
           </TiltCard>
 
           <TiltCard max={4}>
-            <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl overflow-hidden h-full">
+            <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl overflow-hidden h-full flex flex-col">
               <div className="px-5 py-3 border-b border-border/40 flex items-center gap-2">
                 <Cloud className="h-4 w-4" />
-                <span className="font-serif text-lg">Local weather</span>
+                <span className="font-serif text-lg">Local weather & news</span>
               </div>
               <div className="p-2">
                 <WeatherWidget />
+                <NewsWidget />
               </div>
             </div>
           </TiltCard>
