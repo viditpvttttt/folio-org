@@ -14,6 +14,7 @@ import { CursorGlow } from "@/components/chat/CursorGlow";
 import { OrbStatus } from "@/components/chat/OrbStatus";
 import { TiltCard } from "@/components/chat/TiltCard";
 import { WeatherWidget } from "@/components/chat/WeatherWidget";
+import { NewsWidget } from "@/components/chat/NewsWidget";
 import { useAuth } from "@/hooks/use-auth";
 import { createThread, listThreads } from "@/lib/threads.functions";
 import { addMemory, deleteMemory, listMemories } from "@/lib/memories.functions";
@@ -130,6 +131,8 @@ function DashboardPage() {
           <Link to="/dashboard" className="px-3 py-1.5 rounded-full bg-foreground/10 font-medium">Dashboard</Link>
           <Link to="/chat" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Chat</Link>
           <Link to="/explain" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Explain</Link>
+          <Link to="/vibecode" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Vibecode</Link>
+          <Link to="/work" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Work</Link>
           <Link to="/workbench" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Workbench</Link>
 
           <Link to="/connectors" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Connectors</Link>
@@ -294,13 +297,14 @@ function DashboardPage() {
           </TiltCard>
 
           <TiltCard max={4}>
-            <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl overflow-hidden h-full">
+            <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl overflow-hidden h-full flex flex-col">
               <div className="px-5 py-3 border-b border-border/40 flex items-center gap-2">
                 <Cloud className="h-4 w-4" />
-                <span className="font-serif text-lg">Local weather</span>
+                <span className="font-serif text-lg">Local weather & news</span>
               </div>
               <div className="p-2">
                 <WeatherWidget />
+                <NewsWidget />
               </div>
             </div>
           </TiltCard>
