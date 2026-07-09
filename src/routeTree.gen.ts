@@ -13,8 +13,11 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiWorkbenchChatRouteImport } from './routes/api/workbench-chat'
+import { Route as ApiWorkRouteImport } from './routes/api/work'
+import { Route as ApiVibecodeRouteImport } from './routes/api/vibecode'
 import { Route as ApiTranscribeRouteImport } from './routes/api/transcribe'
 import { Route as ApiSpeakRouteImport } from './routes/api/speak'
+import { Route as ApiNewsRouteImport } from './routes/api/news'
 import { Route as ApiExplainRouteImport } from './routes/api/explain'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedWorkbenchRouteImport } from './routes/_authenticated/workbench'
@@ -46,6 +49,16 @@ const ApiWorkbenchChatRoute = ApiWorkbenchChatRouteImport.update({
   path: '/api/workbench-chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiWorkRoute = ApiWorkRouteImport.update({
+  id: '/api/work',
+  path: '/api/work',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiVibecodeRoute = ApiVibecodeRouteImport.update({
+  id: '/api/vibecode',
+  path: '/api/vibecode',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiTranscribeRoute = ApiTranscribeRouteImport.update({
   id: '/api/transcribe',
   path: '/api/transcribe',
@@ -54,6 +67,11 @@ const ApiTranscribeRoute = ApiTranscribeRouteImport.update({
 const ApiSpeakRoute = ApiSpeakRouteImport.update({
   id: '/api/speak',
   path: '/api/speak',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiNewsRoute = ApiNewsRouteImport.update({
+  id: '/api/news',
+  path: '/api/news',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiExplainRoute = ApiExplainRouteImport.update({
@@ -125,8 +143,11 @@ export interface FileRoutesByFullPath {
   '/workbench': typeof AuthenticatedWorkbenchRoute
   '/api/chat': typeof ApiChatRoute
   '/api/explain': typeof ApiExplainRoute
+  '/api/news': typeof ApiNewsRoute
   '/api/speak': typeof ApiSpeakRoute
   '/api/transcribe': typeof ApiTranscribeRoute
+  '/api/vibecode': typeof ApiVibecodeRoute
+  '/api/work': typeof ApiWorkRoute
   '/api/workbench-chat': typeof ApiWorkbenchChatRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/chat/': typeof AuthenticatedChatIndexRoute
@@ -143,8 +164,11 @@ export interface FileRoutesByTo {
   '/workbench': typeof AuthenticatedWorkbenchRoute
   '/api/chat': typeof ApiChatRoute
   '/api/explain': typeof ApiExplainRoute
+  '/api/news': typeof ApiNewsRoute
   '/api/speak': typeof ApiSpeakRoute
   '/api/transcribe': typeof ApiTranscribeRoute
+  '/api/vibecode': typeof ApiVibecodeRoute
+  '/api/work': typeof ApiWorkRoute
   '/api/workbench-chat': typeof ApiWorkbenchChatRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/chat': typeof AuthenticatedChatIndexRoute
@@ -163,8 +187,11 @@ export interface FileRoutesById {
   '/_authenticated/workbench': typeof AuthenticatedWorkbenchRoute
   '/api/chat': typeof ApiChatRoute
   '/api/explain': typeof ApiExplainRoute
+  '/api/news': typeof ApiNewsRoute
   '/api/speak': typeof ApiSpeakRoute
   '/api/transcribe': typeof ApiTranscribeRoute
+  '/api/vibecode': typeof ApiVibecodeRoute
+  '/api/work': typeof ApiWorkRoute
   '/api/workbench-chat': typeof ApiWorkbenchChatRoute
   '/_authenticated/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
@@ -183,8 +210,11 @@ export interface FileRouteTypes {
     | '/workbench'
     | '/api/chat'
     | '/api/explain'
+    | '/api/news'
     | '/api/speak'
     | '/api/transcribe'
+    | '/api/vibecode'
+    | '/api/work'
     | '/api/workbench-chat'
     | '/chat/$threadId'
     | '/chat/'
@@ -201,8 +231,11 @@ export interface FileRouteTypes {
     | '/workbench'
     | '/api/chat'
     | '/api/explain'
+    | '/api/news'
     | '/api/speak'
     | '/api/transcribe'
+    | '/api/vibecode'
+    | '/api/work'
     | '/api/workbench-chat'
     | '/chat/$threadId'
     | '/chat'
@@ -220,8 +253,11 @@ export interface FileRouteTypes {
     | '/_authenticated/workbench'
     | '/api/chat'
     | '/api/explain'
+    | '/api/news'
     | '/api/speak'
     | '/api/transcribe'
+    | '/api/vibecode'
+    | '/api/work'
     | '/api/workbench-chat'
     | '/_authenticated/chat/$threadId'
     | '/_authenticated/chat/'
@@ -235,8 +271,11 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiExplainRoute: typeof ApiExplainRoute
+  ApiNewsRoute: typeof ApiNewsRoute
   ApiSpeakRoute: typeof ApiSpeakRoute
   ApiTranscribeRoute: typeof ApiTranscribeRoute
+  ApiVibecodeRoute: typeof ApiVibecodeRoute
+  ApiWorkRoute: typeof ApiWorkRoute
   ApiWorkbenchChatRoute: typeof ApiWorkbenchChatRoute
   ApiPublicOauthProviderCallbackRoute: typeof ApiPublicOauthProviderCallbackRoute
   ApiPublicOauthProviderStartRoute: typeof ApiPublicOauthProviderStartRoute
@@ -272,6 +311,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiWorkbenchChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/work': {
+      id: '/api/work'
+      path: '/api/work'
+      fullPath: '/api/work'
+      preLoaderRoute: typeof ApiWorkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/vibecode': {
+      id: '/api/vibecode'
+      path: '/api/vibecode'
+      fullPath: '/api/vibecode'
+      preLoaderRoute: typeof ApiVibecodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/transcribe': {
       id: '/api/transcribe'
       path: '/api/transcribe'
@@ -284,6 +337,13 @@ declare module '@tanstack/react-router' {
       path: '/api/speak'
       fullPath: '/api/speak'
       preLoaderRoute: typeof ApiSpeakRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/news': {
+      id: '/api/news'
+      path: '/api/news'
+      fullPath: '/api/news'
+      preLoaderRoute: typeof ApiNewsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/explain': {
@@ -396,8 +456,11 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ApiChatRoute: ApiChatRoute,
   ApiExplainRoute: ApiExplainRoute,
+  ApiNewsRoute: ApiNewsRoute,
   ApiSpeakRoute: ApiSpeakRoute,
   ApiTranscribeRoute: ApiTranscribeRoute,
+  ApiVibecodeRoute: ApiVibecodeRoute,
+  ApiWorkRoute: ApiWorkRoute,
   ApiWorkbenchChatRoute: ApiWorkbenchChatRoute,
   ApiPublicOauthProviderCallbackRoute: ApiPublicOauthProviderCallbackRoute,
   ApiPublicOauthProviderStartRoute: ApiPublicOauthProviderStartRoute,
