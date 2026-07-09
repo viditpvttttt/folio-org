@@ -213,8 +213,17 @@ export function OrbStatus({
   className?: string;
 }) {
   const state: State = listening ? "listening" : speaking ? "speaking" : active ? "thinking" : "idle";
+  const glow =
+    state === "listening" ? "shadow-[0_0_60px_-8px_rgba(157,123,255,0.55),0_0_120px_-20px_rgba(255,209,236,0.4)]"
+    : state === "speaking" ? "shadow-[0_0_60px_-8px_rgba(167,139,255,0.55),0_0_120px_-20px_rgba(255,230,245,0.4)]"
+    : state === "thinking" ? "shadow-[0_0_50px_-8px_rgba(143,120,255,0.5),0_0_100px_-20px_rgba(217,200,255,0.35)]"
+    : "shadow-[0_0_40px_-10px_rgba(184,156,255,0.4)]";
   return (
-    <div className={`${className} shrink-0`}>
+    <div className={`${className} shrink-0 relative`}>
+      <div aria-hidden className={`absolute inset-0 rounded-full ${glow} transition-shadow duration-500 pointer-events-none`} />
+      <div aria-hidden className="absolute inset-[-8%] rounded-full pointer-events-none opacity-70 mix-blend-screen"
+        style={{ background: "conic-gradient(from 0deg, rgba(184,156,255,0.0), rgba(230,212,255,0.35), rgba(184,156,255,0.0))", filter: "blur(8px)", animation: "spin 12s linear infinite" }}
+      />
       <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 3.2], fov: 38 }} gl={{ alpha: true, antialias: true, premultipliedAlpha: false }}>
         <SilkOrb state={state} amplitude={amplitude} fluidity={fluidity} damping={damping} distort={distort} />
       </Canvas>
