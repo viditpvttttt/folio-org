@@ -1,3 +1,5 @@
+import { AntigravityField } from "@/components/fx/AntigravityField";
+import { OrbStatus } from "@/components/chat/OrbStatus";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,21 +55,27 @@ function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen grid md:grid-cols-2 bg-background paper-grain">
-      <div className="hidden md:flex flex-col justify-between p-12 bg-primary text-primary-foreground">
-        <Link to="/" className="font-serif text-2xl">Folio</Link>
-        <div>
+    <div className="relative min-h-screen grid md:grid-cols-2 bg-background paper-grain overflow-hidden">
+      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
+        <AntigravityField density={0.8} />
+      </div>
+
+      <div className="relative hidden md:flex flex-col justify-between p-12 bg-primary text-primary-foreground overflow-hidden">
+        <div aria-hidden className="pointer-events-none absolute -bottom-24 -left-24 h-[420px] w-[420px] rounded-full rgb-blob opacity-40 blur-3xl" />
+        <Link to="/" className="relative font-serif text-2xl">Folio</Link>
+        <div className="relative">
+          <div className="mb-8"><OrbStatus active className="h-28 w-28" /></div>
           <h2 className="font-serif text-5xl leading-tight">
             A quiet place<br/><em className="italic">to think.</em>
           </h2>
           <p className="mt-4 text-sm opacity-70 max-w-sm">
-            Sign in and your pages will be waiting — exactly where you left them in the room.
+            Sign in and your day picks up exactly where you left it — memories, threads and all.
           </p>
         </div>
-        <div className="text-xs opacity-60">© Folio</div>
+        <div className="relative text-xs opacity-60">© Folio</div>
       </div>
 
-      <div className="flex items-center justify-center p-8">
+      <div className="relative flex items-center justify-center p-8">
         <div className="w-full max-w-sm">
           <h1 className="font-serif text-3xl mb-1">
             {mode === "signin" ? "Welcome back" : "Create your room"}

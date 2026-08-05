@@ -1,14 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import {
-  Briefcase, LogOut, Loader2, Wand2, RefreshCw, Copy,
+  Briefcase, Loader2, Wand2, RefreshCw, Copy,
   Users, Mail, FileText, ClipboardList, FileSignature, Presentation,
 } from "lucide-react";
-import { AmbientScene } from "@/components/chat/AmbientScene";
-import { CursorGlow } from "@/components/chat/CursorGlow";
-import { OrbStatus } from "@/components/chat/OrbStatus";
-import { useAuth } from "@/hooks/use-auth";
+import { AppShell, PageHeading } from "@/components/shell/AppShell";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MessageResponse } from "@/components/ai-elements/message";
@@ -85,7 +82,6 @@ const TOOLS: Array<{
 ];
 
 function WorkPage() {
-  const { user, signOut } = useAuth();
   const [mode, setMode] = useState<Mode>("meeting");
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
@@ -135,44 +131,14 @@ function WorkPage() {
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-x-hidden bg-background text-foreground">
-      <AmbientScene />
-      <CursorGlow />
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-40 -left-32 h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle_at_center,#60a5fa_0%,transparent_65%)] opacity-25 blur-3xl" />
-        <div className="absolute top-40 -right-32 h-[560px] w-[560px] rounded-full bg-[radial-gradient(circle_at_center,#c084fc_0%,transparent_65%)] opacity-25 blur-3xl" />
-      </div>
-      <div className="absolute inset-0 bg-background/40 backdrop-blur-[2px] -z-10" />
-
-      <header className="relative z-10 px-6 py-4 flex items-center gap-4 border-b border-border/40 backdrop-blur-xl bg-background/30">
-        <OrbStatus active className="h-9 w-9" />
-        <span className="font-serif text-2xl">Folio</span>
-        <nav className="ml-6 hidden md:flex items-center gap-1 text-sm">
-          <Link to="/dashboard" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Dashboard</Link>
-          <Link to="/chat" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Chat</Link>
-          <Link to="/explain" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Explain</Link>
-          <Link to="/vibecode" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Vibecode</Link>
-          <Link to="/work" className="px-3 py-1.5 rounded-full bg-foreground/10 font-medium">Work</Link>
-          <Link to="/workbench" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Workbench</Link>
-          <Link to="/settings" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Settings</Link>
-        </nav>
-        <div className="ml-auto flex items-center gap-3">
-          {user && (
-            <button onClick={signOut} title="Sign out" className="text-foreground/60 hover:text-foreground">
-              <LogOut className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-      </header>
-
-      <main className="relative z-10 mx-auto max-w-6xl px-6 py-8">
-        <div className="mb-6 flex items-center gap-3">
-          <Briefcase className="h-6 w-6 text-foreground/70" />
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">For work</p>
-            <h1 className="font-serif text-4xl md:text-5xl">The corporate co-pilot.</h1>
-          </div>
-        </div>
+    <AppShell>
+      <main className="relative z-10 mx-auto max-w-6xl px-6 py-10">
+        <PageHeading
+          eyebrow="For work"
+          icon={Briefcase}
+          title={<>The corporate <em className="italic">co-pilot.</em></>}
+          subtitle="Meeting prep, standups, one-pagers, slide outlines and email drafts — written in your voice, ready to send."
+        />
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mb-6">
           {TOOLS.map((t) => {
@@ -249,6 +215,6 @@ function WorkPage() {
           </article>
         )}
       </main>
-    </div>
+    </AppShell>
   );
 }

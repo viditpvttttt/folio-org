@@ -9,7 +9,7 @@ import {
   FileText, FilePlus, Trash2, Save, Loader2, MessageSquare, ArrowLeft,
   Terminal, Wand2, ImageIcon, FolderOpen, Plus, Send, Sparkles,
 } from "lucide-react";
-import { AmbientScene } from "@/components/chat/AmbientScene";
+import { AppBackdrop } from "@/components/shell/AppShell";
 import { CursorGlow } from "@/components/chat/CursorGlow";
 import { OrbStatus } from "@/components/chat/OrbStatus";
 import { Message, MessageContent, MessageResponse } from "@/components/ai-elements/message";
@@ -175,13 +175,8 @@ function WorkbenchPage() {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-background text-foreground">
-      <AmbientScene />
+      <AppBackdrop density={0.6} />
       <CursorGlow />
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-40 -left-32 h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle_at_center,#ff4d8d_0%,transparent_65%)] opacity-25 blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 h-[380px] w-[380px] rounded-full bg-[radial-gradient(circle_at_center,#4d9bff_0%,transparent_65%)] opacity-25 blur-3xl" />
-      </div>
-      <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] -z-10" />
 
       {/* Header */}
       <header className="relative z-10 h-14 flex items-center gap-3 px-4 border-b border-border/40 bg-background/40 backdrop-blur-xl">

@@ -82,6 +82,107 @@ const fragmentShader = /* glsl */ `
   }
 `;
 
+/**
+ * Antigravity orbit — a shell of particles held in tilted orbits around the
+ * core. They lift outward with amplitude (the "antigravity" push) and settle
+ * back with damping, plus a thin luminous equator ring.
+ */
+function OrbitField({ state, amp }: { state: State; amp: React.RefObject<number> }) {
+  const points = useRef<THREE.Points>(null);
+  const ring = useRef<THREE.Mesh>(null);
+  const ring2 = useRef<THREE.Mesh>(null);
+  const lift = useRef(0);
+
+  const { positions, radii, speeds, phases, tilts } = useMemo(() => {
+    const N = 420;
+    const positions = new Float32Array(N * 3);
+    const radii = new Float32Array(N);
+    const speeds = new Float32Array(N);
+    const phases = new Float32Array(N);
+    const tilts = new Float32Array(N);
+    for (let i = 0; i < N; i++) {
+      radii[i] = 1.35 + Math.random() * 0.75;
+      speeds[i] = 0.12 + Math.random() * 0.5;
+      phases[i] = Math.random() * Math.PI * 2;
+      tilts[i] = (Math.random() - 0.5) * 1.5;
+    }
+    return { positions, radii, speeds, phases, tilts };
+  }, []);
+
+  useFrame((s, dt) => {
+    const t = s.clock.elapsedTime;
+    const a = amp.current ?? 0;
+    const target = (state === "idle" ? 0.06 : 0.2) + a * 0.9;
+    lift.current += (target - lift.current) * Math.min(1, dt * 3.2);
+
+    const geo = points.current?.geometry as THREE.BufferGeometry | undefined;
+    if (geo) {
+      const arr = geo.attributes.position.array as Float32Array;
+      for (let i = 0; i < radii.length; i++) {
+        const r = radii[i] * (1 + lift.current * 0.42);
+        const ang = phases[i] + t * speeds[i] * (state === "thinking" ? 1.5 : 1);
+        const x = Math.cos(ang) * r;
+        const z = Math.sin(ang) * r;
+        const y = Math.sin(ang * 0.5 + phases[i]) * tilts[i] * r * 0.55;
+        arr[i * 3] = x;
+        arr[i * 3 + 1] = y;
+        arr[i * 3 + 2] = z;
+      }
+      geo.attributes.position.needsUpdate = true;
+    }
+
+    if (points.current) {
+      points.current.rotation.z = Math.sin(t * 0.18) * 0.22;
+      const m = points.current.material as THREE.PointsMaterial;
+      m.opacity = 0.35 + lift.current * 0.5;
+      m.size = 0.018 + lift.current * 0.02;
+    }
+    if (ring.current) {
+      ring.current.rotation.x = Math.PI / 2 + Math.sin(t * 0.3) * 0.25;
+      ring.current.rotation.z = t * 0.15;
+      ring.current.scale.setScalar(1 + lift.current * 0.3);
+    }
+    if (ring2.current) {
+      ring2.current.rotation.x = Math.PI / 2.6 + Math.cos(t * 0.24) * 0.3;
+      ring2.current.rotation.y = -t * 0.12;
+      ring2.current.scale.setScalar(1.14 + lift.current * 0.34);
+    }
+  });
+
+  const color =
+    state === "listening" ? "#ffd1ec"
+    : state === "speaking" ? "#ffe6f5"
+    : state === "thinking" ? "#d9c8ff"
+    : "#e6d4ff";
+
+  return (
+    <group>
+      <points ref={points}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        </bufferGeometry>
+        <pointsMaterial
+          transparent
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+          color={color}
+          size={0.02}
+          sizeAttenuation
+          opacity={0.5}
+        />
+      </points>
+      <mesh ref={ring}>
+        <torusGeometry args={[1.5, 0.006, 8, 160]} />
+        <meshBasicMaterial color={color} transparent opacity={0.5} blending={THREE.AdditiveBlending} depthWrite={false} />
+      </mesh>
+      <mesh ref={ring2}>
+        <torusGeometry args={[1.5, 0.004, 8, 160]} />
+        <meshBasicMaterial color="#b89cff" transparent opacity={0.35} blending={THREE.AdditiveBlending} depthWrite={false} />
+      </mesh>
+    </group>
+  );
+}
+
 function SilkOrb({
   state,
   amplitude,
@@ -189,6 +290,8 @@ function SilkOrb({
           fragmentShader={fragmentShader}
         />
       </mesh>
+
+      <OrbitField state={state} amp={ampRef} />
     </group>
   );
 }
@@ -224,7 +327,7 @@ export function OrbStatus({
       <div aria-hidden className="absolute inset-[-8%] rounded-full pointer-events-none opacity-70 mix-blend-screen"
         style={{ background: "conic-gradient(from 0deg, rgba(184,156,255,0.0), rgba(230,212,255,0.35), rgba(184,156,255,0.0))", filter: "blur(8px)", animation: "spin 12s linear infinite" }}
       />
-      <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 3.2], fov: 38 }} gl={{ alpha: true, antialias: true, premultipliedAlpha: false }}>
+      <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 4.2], fov: 38 }} gl={{ alpha: true, antialias: true, premultipliedAlpha: false }}>
         <SilkOrb state={state} amplitude={amplitude} fluidity={fluidity} damping={damping} distort={distort} />
       </Canvas>
     </div>

@@ -6,6 +6,8 @@ import {
 } from "lucide-react";
 import { AmbientScene } from "@/components/chat/AmbientScene";
 import { CursorGlow } from "@/components/chat/CursorGlow";
+import { OrbStatus } from "@/components/chat/OrbStatus";
+import { AntigravityField } from "@/components/fx/AntigravityField";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 
@@ -17,12 +19,12 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Folio is a 3D, voice-ready AI assistant for everyday life — weather, news, research, drafting, vibecoding and work, in one beautifully quiet workspace.",
+          "Folio is a 3D, voice-ready AI assistant for everyday life — weather, news, research, drafting, research and work, in one beautifully quiet workspace.",
       },
       { property: "og:title", content: "Folio — the assistant that lives in one calm place" },
       {
         property: "og:description",
-        content: "Weather, news, research, drafting, vibecoding and work — one calm, 3D AI assistant.",
+        content: "Weather, news, research, drafting, research and work — one calm, 3D AI assistant.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -98,7 +100,7 @@ const CAPABILITIES = [
   { icon: CloudSun, title: "Weather, properly", body: "Live conditions for anywhere, rendered as a card you actually want to look at — not a paragraph of numbers." },
   { icon: Newspaper, title: "News you choose", body: "Pick your own topics — from “world” to “formula 1” — and Folio keeps a quiet, self-refreshing feed." },
   { icon: Brain, title: "Memory that sticks", body: "Tell it once. Folio remembers your city, your tone, your stack, and quietly uses it forever." },
-  { icon: Code2, title: "Vibecode", body: "Describe an interface. Watch a real React component render, live, in a device frame — then refine it in plain English." },
+  { icon: Code2, title: "Workbench", body: "A real editor, your files, and an AI pair-programmer that reads and writes them while you talk to it." },
   { icon: Briefcase, title: "Work mode", body: "Meeting prep, standups, one-pagers, slide outlines and email drafts, tuned for people with calendars." },
   { icon: Compass, title: "Deep research", body: "It browses, reads and synthesises — with sources — instead of guessing from last year's training data." },
 ];
@@ -166,6 +168,7 @@ function Landing() {
         </div>
         <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[620px] w-[900px] rounded-full opacity-60 blur-3xl rgb-blob -z-10" />
         <div className="pointer-events-none absolute inset-0 -z-10 bg-background/45 backdrop-blur-[2px]" />
+        <div className="pointer-events-none absolute inset-0 -z-10"><AntigravityField density={1.15} /></div>
 
         <div className="mx-auto max-w-5xl px-6 py-24 text-center">
           <Reveal>
@@ -174,10 +177,16 @@ function Landing() {
             </p>
           </Reveal>
           <Reveal delay={80}>
-            <h1 className="font-serif text-[clamp(3rem,9vw,7.5rem)] leading-[0.92] tracking-tight">
-              One assistant for<br />
-              <em className="italic">your whole day.</em>
-            </h1>
+            <div className="relative">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[420px] w-[820px] max-w-[110vw] -translate-x-1/2 -translate-y-1/2 rounded-full rgb-blob opacity-45 blur-[90px]"
+              />
+              <h1 className="relative font-serif text-[clamp(3rem,9vw,7.5rem)] leading-[0.92] tracking-tight">
+                One assistant for<br />
+                <em className="italic">your whole day.</em>
+              </h1>
+            </div>
           </Reveal>
           <Reveal delay={160}>
             <p className="mx-auto mt-8 max-w-xl text-lg text-muted-foreground leading-relaxed">
@@ -317,17 +326,20 @@ function Landing() {
             </div>
           </Reveal>
           <Reveal delay={140}>
-            <div className="relative aspect-square max-w-md mx-auto w-full rounded-3xl border border-border/60 bg-card/30 backdrop-blur-xl overflow-hidden">
-              <AmbientScene />
+            <div className="relative aspect-square max-w-md mx-auto w-full rounded-3xl border border-border/60 bg-card/20 backdrop-blur-xl overflow-hidden">
+              <AntigravityField density={1.3} />
+              <div aria-hidden className="pointer-events-none absolute inset-0 grid place-items-center">
+                <div className="h-56 w-56 rounded-full rgb-blob opacity-30 blur-3xl" />
+              </div>
               <div className="absolute inset-0 grid place-items-center">
-                <div className="h-40 w-40 rounded-full rgb-blob blur-xl opacity-80 animate-pulse" />
+                <OrbStatus active className="h-56 w-56" />
               </div>
             </div>
           </Reveal>
         </div>
       </section>
 
-      {/* ---------- vibecode strip ---------- */}
+      {/* ---------- workbench strip ---------- */}
       <section className="border-t border-border/60 bg-paper-dim/30">
         <div className="mx-auto max-w-6xl px-6 py-24 md:py-32 grid gap-14 md:grid-cols-2 items-center">
           <Reveal className="order-2 md:order-1">
@@ -337,26 +349,22 @@ function Landing() {
                 <span className="h-2.5 w-2.5 rounded-full bg-amber-400/70" />
                 <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/70" />
               </div>
-              <pre className="whitespace-pre-wrap">{`function Pricing() {
-  return (
-    <div className="grid gap-4 md:grid-cols-3">
-      {tiers.map(t => <Card key={t.name} {...t} />)}
-    </div>
-  );
-}
-render(<Pricing />)`}</pre>
+              <pre className="whitespace-pre-wrap">{`> read src/pricing.tsx
+> "add a yearly toggle, keep the spacing"
+
+✓ wrote src/pricing.tsx (+34 −6)
+✓ ran tests — 12 passing`}</pre>
             </div>
           </Reveal>
           <Reveal delay={120} className="order-1 md:order-2">
             <div>
-              <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Vibecode</p>
+              <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Workbench</p>
               <h2 className="font-serif text-4xl md:text-6xl mt-3 tracking-tight leading-[1.02]">
-                Describe it.<br /><em className="italic">It renders.</em>
+                Say it.<br /><em className="italic">It edits.</em>
               </h2>
               <p className="mt-6 max-w-md text-muted-foreground leading-relaxed">
-                A prompt becomes a real, running React component — previewed in phone, tablet or
-                desktop frames. Say “make the header sticky” and it edits itself. Keep every version,
-                copy or download the code.
+                Your projects and files live in Folio with a real editor beside an AI pair-programmer
+                that can read, write and run them — no copy-pasting between tabs.
               </p>
             </div>
           </Reveal>
