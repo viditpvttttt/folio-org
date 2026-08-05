@@ -327,7 +327,7 @@ function Landing() {
         </div>
       </section>
 
-      {/* ---------- vibecode strip ---------- */}
+      {/* ---------- workbench strip ---------- */}
       <section className="border-t border-border/60 bg-paper-dim/30">
         <div className="mx-auto max-w-6xl px-6 py-24 md:py-32 grid gap-14 md:grid-cols-2 items-center">
           <Reveal className="order-2 md:order-1">
@@ -337,26 +337,22 @@ function Landing() {
                 <span className="h-2.5 w-2.5 rounded-full bg-amber-400/70" />
                 <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/70" />
               </div>
-              <pre className="whitespace-pre-wrap">{`function Pricing() {
-  return (
-    <div className="grid gap-4 md:grid-cols-3">
-      {tiers.map(t => <Card key={t.name} {...t} />)}
-    </div>
-  );
-}
-render(<Pricing />)`}</pre>
+              <pre className="whitespace-pre-wrap">{`> read src/pricing.tsx
+> "add a yearly toggle, keep the spacing"
+
+✓ wrote src/pricing.tsx (+34 −6)
+✓ ran tests — 12 passing`}</pre>
             </div>
           </Reveal>
           <Reveal delay={120} className="order-1 md:order-2">
             <div>
-              <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Vibecode</p>
+              <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Workbench</p>
               <h2 className="font-serif text-4xl md:text-6xl mt-3 tracking-tight leading-[1.02]">
-                Describe it.<br /><em className="italic">It renders.</em>
+                Say it.<br /><em className="italic">It edits.</em>
               </h2>
               <p className="mt-6 max-w-md text-muted-foreground leading-relaxed">
-                A prompt becomes a real, running React component — previewed in phone, tablet or
-                desktop frames. Say “make the header sticky” and it edits itself. Keep every version,
-                copy or download the code.
+                Your projects and files live in Folio with a real editor beside an AI pair-programmer
+                that can read, write and run them — no copy-pasting between tabs.
               </p>
             </div>
           </Reveal>
