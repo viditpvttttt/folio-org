@@ -95,6 +95,15 @@ export function AntigravityField({
 
     let t = 0;
     const RADIUS = 150;
+    // Light "paper" backgrounds need deeper, denser particles to read at all.
+    const isDark = () => document.documentElement.classList.contains("dark");
+    let lum = isDark() ? 66 : 48;
+    let boost = isDark() ? 1 : 1.5;
+    const themeObserver = new MutationObserver(() => {
+      lum = isDark() ? 66 : 48;
+      boost = isDark() ? 1 : 1.5;
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 
     const frame = () => {
       t += 0.006;
@@ -135,17 +144,17 @@ export function AntigravityField({
         if (p.x < -12) p.x = w + 12;
         if (p.x > w + 12) p.x = -12;
 
-        const alpha = 0.18 + p.depth * 0.42;
+        const alpha = (0.18 + p.depth * 0.42) * boost;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${p.hue} 90% 66% / ${alpha})`;
+        ctx.fillStyle = `hsla(${p.hue} 88% ${lum}% / ${alpha})`;
         ctx.fill();
 
         // soft bloom on the nearest layer
         if (p.depth > 0.72) {
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.r * 4.5, 0, Math.PI * 2);
-          ctx.fillStyle = `hsla(${p.hue} 95% 70% / 0.05)`;
+          ctx.fillStyle = `hsla(${p.hue} 95% ${lum + 6}% / ${0.05 * boost})`;
           ctx.fill();
         }
       }
@@ -159,8 +168,8 @@ export function AntigravityField({
             const dx = a.x - b.x, dy = a.y - b.y;
             const d2 = dx * dx + dy * dy;
             if (d2 < 8100) {
-              const o = (1 - Math.sqrt(d2) / 90) * 0.16;
-              ctx.strokeStyle = `hsla(${a.hue} 85% 68% / ${o})`;
+              const o = (1 - Math.sqrt(d2) / 90) * 0.16 * boost;
+              ctx.strokeStyle = `hsla(${a.hue} 85% ${lum + 4}% / ${o})`;
               ctx.beginPath();
               ctx.moveTo(a.x, a.y);
               ctx.lineTo(b.x, b.y);
@@ -188,6 +197,7 @@ export function AntigravityField({
 
     return () => {
       cancelAnimationFrame(raf);
+      themeObserver.disconnect();
       window.removeEventListener("resize", onResize);
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerleave", onLeave);
