@@ -1,14 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import {
-  Briefcase, LogOut, Loader2, Wand2, RefreshCw, Copy,
+  Briefcase, Loader2, Wand2, RefreshCw, Copy,
   Users, Mail, FileText, ClipboardList, FileSignature, Presentation,
 } from "lucide-react";
-import { AmbientScene } from "@/components/chat/AmbientScene";
-import { CursorGlow } from "@/components/chat/CursorGlow";
-import { OrbStatus } from "@/components/chat/OrbStatus";
-import { useAuth } from "@/hooks/use-auth";
+import { AppShell, PageHeading } from "@/components/shell/AppShell";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MessageResponse } from "@/components/ai-elements/message";
@@ -85,7 +82,6 @@ const TOOLS: Array<{
 ];
 
 function WorkPage() {
-  const { user, signOut } = useAuth();
   const [mode, setMode] = useState<Mode>("meeting");
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
@@ -219,6 +215,6 @@ function WorkPage() {
           </article>
         )}
       </main>
-    </div>
+    </AppShell>
   );
 }
