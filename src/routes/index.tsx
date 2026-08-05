@@ -19,12 +19,12 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Folio is a 3D, voice-ready AI assistant for everyday life — weather, news, research, drafting, vibecoding and work, in one beautifully quiet workspace.",
+          "Folio is a 3D, voice-ready AI assistant for everyday life — weather, news, research, drafting, research and work, in one beautifully quiet workspace.",
       },
       { property: "og:title", content: "Folio — the assistant that lives in one calm place" },
       {
         property: "og:description",
-        content: "Weather, news, research, drafting, vibecoding and work — one calm, 3D AI assistant.",
+        content: "Weather, news, research, drafting, research and work — one calm, 3D AI assistant.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
