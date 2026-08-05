@@ -20,7 +20,7 @@ import {
   usePromptInputAttachments,
 } from "@/components/ai-elements/prompt-input";
 import { Shimmer } from "@/components/ai-elements/shimmer";
-import { AmbientScene } from "./AmbientScene";
+import { AppBackdrop } from "@/components/shell/AppShell";
 import { OrbStatus } from "./OrbStatus";
 import { OrbControls, DEFAULT_PHYSICS, type OrbPhysics } from "./OrbControls";
 import { Link } from "@tanstack/react-router";
@@ -605,9 +605,8 @@ export function ChatRoom({ threadId }: { threadId: string }) {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-background text-foreground">
-      <AmbientScene />
+      <AppBackdrop density={0.7} />
       <CursorGlow />
-      <div className="absolute inset-0 bg-background/55 backdrop-blur-[2px] -z-10" />
 
       <div className="flex h-full">
         {/* Sidebar */}
