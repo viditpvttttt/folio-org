@@ -98,7 +98,7 @@ const CAPABILITIES = [
   { icon: CloudSun, title: "Weather, properly", body: "Live conditions for anywhere, rendered as a card you actually want to look at — not a paragraph of numbers." },
   { icon: Newspaper, title: "News you choose", body: "Pick your own topics — from “world” to “formula 1” — and Folio keeps a quiet, self-refreshing feed." },
   { icon: Brain, title: "Memory that sticks", body: "Tell it once. Folio remembers your city, your tone, your stack, and quietly uses it forever." },
-  { icon: Code2, title: "Vibecode", body: "Describe an interface. Watch a real React component render, live, in a device frame — then refine it in plain English." },
+  { icon: Code2, title: "Workbench", body: "A real editor, your files, and an AI pair-programmer that reads and writes them while you talk to it." },
   { icon: Briefcase, title: "Work mode", body: "Meeting prep, standups, one-pagers, slide outlines and email drafts, tuned for people with calendars." },
   { icon: Compass, title: "Deep research", body: "It browses, reads and synthesises — with sources — instead of guessing from last year's training data." },
 ];
