@@ -4,13 +4,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
-  MessageCircle, Plus, LogOut, Cloud, Calculator, Ruler, Coins,
+  MessageCircle, Plus, Cloud, Calculator, Ruler, Coins,
   BookOpen, Dices, CalendarClock, Sparkles, Clock, ArrowRight,
   Brain, Trash2, Newspaper, Languages, KeyRound, QrCode, ChefHat, Palette, Link2,
   Code2, ImageIcon, Terminal,
 } from "lucide-react";
-import { AmbientScene } from "@/components/chat/AmbientScene";
-import { CursorGlow } from "@/components/chat/CursorGlow";
+import { AppShell } from "@/components/shell/AppShell";
 import { OrbStatus } from "@/components/chat/OrbStatus";
 import { TiltCard } from "@/components/chat/TiltCard";
 import { WeatherWidget } from "@/components/chat/WeatherWidget";
