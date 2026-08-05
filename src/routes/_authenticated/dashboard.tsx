@@ -51,7 +51,7 @@ const PROMPTS = [
 ];
 
 function DashboardPage() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const list = useServerFn(listThreads);
