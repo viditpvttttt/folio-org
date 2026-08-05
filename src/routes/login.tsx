@@ -1,3 +1,5 @@
+import { AntigravityField } from "@/components/fx/AntigravityField";
+import { OrbStatus } from "@/components/chat/OrbStatus";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
