@@ -174,10 +174,16 @@ function Landing() {
             </p>
           </Reveal>
           <Reveal delay={80}>
-            <h1 className="font-serif text-[clamp(3rem,9vw,7.5rem)] leading-[0.92] tracking-tight">
-              One assistant for<br />
-              <em className="italic">your whole day.</em>
-            </h1>
+            <div className="relative">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[420px] w-[820px] max-w-[110vw] -translate-x-1/2 -translate-y-1/2 rounded-full rgb-blob opacity-45 blur-[90px]"
+              />
+              <h1 className="relative font-serif text-[clamp(3rem,9vw,7.5rem)] leading-[0.92] tracking-tight">
+                One assistant for<br />
+                <em className="italic">your whole day.</em>
+              </h1>
+            </div>
           </Reveal>
           <Reveal delay={160}>
             <p className="mx-auto mt-8 max-w-xl text-lg text-muted-foreground leading-relaxed">
