@@ -57,7 +57,7 @@ export function PageHeading({
   eyebrow: string;
   title: React.ReactNode;
   subtitle?: string;
-  icon?: React.ElementType;
+  icon?: React.ComponentType<{ className?: string }>;
   actions?: React.ReactNode;
 }) {
   return (
