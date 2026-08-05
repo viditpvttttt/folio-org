@@ -323,10 +323,13 @@ function Landing() {
             </div>
           </Reveal>
           <Reveal delay={140}>
-            <div className="relative aspect-square max-w-md mx-auto w-full rounded-3xl border border-border/60 bg-card/30 backdrop-blur-xl overflow-hidden">
-              <AmbientScene />
+            <div className="relative aspect-square max-w-md mx-auto w-full rounded-3xl border border-border/60 bg-card/20 backdrop-blur-xl overflow-hidden">
+              <AntigravityField density={1.3} />
+              <div aria-hidden className="pointer-events-none absolute inset-0 grid place-items-center">
+                <div className="h-56 w-56 rounded-full rgb-blob opacity-30 blur-3xl" />
+              </div>
               <div className="absolute inset-0 grid place-items-center">
-                <div className="h-40 w-40 rounded-full rgb-blob blur-xl opacity-80 animate-pulse" />
+                <OrbStatus active className="h-56 w-56" />
               </div>
             </div>
           </Reveal>
