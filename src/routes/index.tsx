@@ -6,6 +6,8 @@ import {
 } from "lucide-react";
 import { AmbientScene } from "@/components/chat/AmbientScene";
 import { CursorGlow } from "@/components/chat/CursorGlow";
+import { OrbStatus } from "@/components/chat/OrbStatus";
+import { AntigravityField } from "@/components/fx/AntigravityField";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 
