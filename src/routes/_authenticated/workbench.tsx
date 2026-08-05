@@ -9,8 +9,7 @@ import {
   FileText, FilePlus, Trash2, Save, Loader2, MessageSquare, ArrowLeft,
   Terminal, Wand2, ImageIcon, FolderOpen, Plus, Send, Sparkles,
 } from "lucide-react";
-import { AmbientScene } from "@/components/chat/AmbientScene";
-import { CursorGlow } from "@/components/chat/CursorGlow";
+import { AppShell, PageHeading } from "@/components/shell/AppShell";
 import { OrbStatus } from "@/components/chat/OrbStatus";
 import { Message, MessageContent, MessageResponse } from "@/components/ai-elements/message";
 import { Conversation, ConversationContent, ConversationScrollButton } from "@/components/ai-elements/conversation";
@@ -336,7 +335,7 @@ function WorkbenchPage() {
           />
         )}
       </div>
-    </div>
+    </AppShell>
   );
 }
 

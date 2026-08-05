@@ -3,8 +3,7 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { LogOut, MessageCircle, LayoutDashboard, Settings as SettingsIcon, Sun, Moon, Monitor, Plus, Trash2, Layers } from "lucide-react";
-import { AmbientScene } from "@/components/chat/AmbientScene";
-import { CursorGlow } from "@/components/chat/CursorGlow";
+import { AppShell, PageHeading } from "@/components/shell/AppShell";
 import { OrbStatus } from "@/components/chat/OrbStatus";
 import { TiltCard } from "@/components/chat/TiltCard";
 import { Slider } from "@/components/ui/slider";
@@ -58,25 +57,7 @@ function SettingsPage() {
   }, [physics]);
 
   return (
-    <div className="relative min-h-screen w-full overflow-x-hidden bg-background text-foreground">
-      <AmbientScene />
-      <CursorGlow />
-      <div className="absolute inset-0 bg-background/55 backdrop-blur-[2px] -z-10" />
-
-      <header className="relative z-10 px-6 py-4 flex items-center gap-4 border-b border-border/40 backdrop-blur-xl bg-background/30">
-        <OrbStatus active className="h-9 w-9" {...physics} />
-        <span className="font-serif text-2xl">Folio</span>
-        <nav className="ml-6 hidden md:flex items-center gap-1 text-sm">
-          <Link to="/dashboard" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70 inline-flex items-center gap-1.5"><LayoutDashboard className="h-3.5 w-3.5" />Dashboard</Link>
-          <Link to="/chat" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70 inline-flex items-center gap-1.5"><MessageCircle className="h-3.5 w-3.5" />Chat</Link>
-          <Link to="/explain" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Explain</Link>
-
-          <Link to="/settings" className="px-3 py-1.5 rounded-full bg-foreground/10 font-medium inline-flex items-center gap-1.5"><SettingsIcon className="h-3.5 w-3.5" />Settings</Link>
-        </nav>
-        <button onClick={signOut} title="Sign out" aria-label="Sign out" className="ml-auto text-foreground/60 hover:text-foreground">
-          <LogOut className="h-4 w-4" />
-        </button>
-      </header>
+    <AppShell>
 
       <main className="relative z-10 mx-auto max-w-4xl px-6 py-10 space-y-6">
         <div>
@@ -175,7 +156,7 @@ function SettingsPage() {
           </section>
         </TiltCard>
       </main>
-    </div>
+    </AppShell>
   );
 }
 

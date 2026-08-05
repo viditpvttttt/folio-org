@@ -2,8 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { Sparkles, LogOut, Wand2, Loader2, RefreshCw } from "lucide-react";
-import { AmbientScene } from "@/components/chat/AmbientScene";
-import { CursorGlow } from "@/components/chat/CursorGlow";
+import { AppShell, PageHeading } from "@/components/shell/AppShell";
 import { OrbStatus } from "@/components/chat/OrbStatus";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -71,36 +70,7 @@ function ExplainPage() {
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-x-hidden bg-background text-foreground">
-      <AmbientScene />
-      <CursorGlow />
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-40 -left-32 h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle_at_center,#7dd3fc_0%,transparent_65%)] opacity-30 blur-3xl" />
-        <div className="absolute top-40 -right-32 h-[560px] w-[560px] rounded-full bg-[radial-gradient(circle_at_center,#c4b5fd_0%,transparent_65%)] opacity-30 blur-3xl" />
-        <div className="absolute bottom-0 left-1/3 h-[460px] w-[460px] rounded-full bg-[radial-gradient(circle_at_center,#fca5a5_0%,transparent_65%)] opacity-25 blur-3xl" />
-      </div>
-      <div className="absolute inset-0 bg-background/40 backdrop-blur-[2px] -z-10" />
-
-      <header className="relative z-10 px-6 py-4 flex items-center gap-4 border-b border-border/40 backdrop-blur-xl bg-background/30">
-        <OrbStatus active className="h-9 w-9" />
-        <span className="font-serif text-2xl">Folio</span>
-        <nav className="ml-6 hidden md:flex items-center gap-1 text-sm">
-          <Link to="/dashboard" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Dashboard</Link>
-          <Link to="/chat" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Chat</Link>
-          <Link to="/explain" className="px-3 py-1.5 rounded-full bg-foreground/10 font-medium">Explain</Link>
-          <Link to="/workbench" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Workbench</Link>
-          <Link to="/connectors" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Connectors</Link>
-          <Link to="/settings" className="px-3 py-1.5 rounded-full hover:bg-foreground/5 text-foreground/70">Settings</Link>
-        </nav>
-        <div className="ml-auto flex items-center gap-3">
-          <button onClick={() => navigate({ to: "/chat" })} className="text-xs px-3 py-1.5 rounded-full border border-border/60 hover:bg-foreground/5">Open chat</button>
-          {user && (
-            <button onClick={signOut} title="Sign out" className="text-foreground/60 hover:text-foreground">
-              <LogOut className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-      </header>
+    <AppShell>
 
       <main className="relative z-10 mx-auto max-w-4xl px-6 py-10">
         <div className="mb-8">
@@ -168,6 +138,6 @@ function ExplainPage() {
           </article>
         )}
       </main>
-    </div>
+    </AppShell>
   );
 }
