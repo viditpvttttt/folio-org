@@ -168,6 +168,7 @@ function Landing() {
         </div>
         <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[620px] w-[900px] rounded-full opacity-60 blur-3xl rgb-blob -z-10" />
         <div className="pointer-events-none absolute inset-0 -z-10 bg-background/45 backdrop-blur-[2px]" />
+        <div className="pointer-events-none absolute inset-0 -z-10"><AntigravityField density={1.15} /></div>
 
         <div className="mx-auto max-w-5xl px-6 py-24 text-center">
           <Reveal>
