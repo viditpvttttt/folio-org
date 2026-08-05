@@ -309,6 +309,6 @@ function DashboardPage() {
           </TiltCard>
         </section>
       </main>
-    </div>
+    </AppShell>
   );
 }
