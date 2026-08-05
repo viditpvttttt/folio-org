@@ -327,7 +327,7 @@ export function OrbStatus({
       <div aria-hidden className="absolute inset-[-8%] rounded-full pointer-events-none opacity-70 mix-blend-screen"
         style={{ background: "conic-gradient(from 0deg, rgba(184,156,255,0.0), rgba(230,212,255,0.35), rgba(184,156,255,0.0))", filter: "blur(8px)", animation: "spin 12s linear infinite" }}
       />
-      <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 4.8], fov: 38 }} gl={{ alpha: true, antialias: true, premultipliedAlpha: false }}>
+      <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 4.2], fov: 38 }} gl={{ alpha: true, antialias: true, premultipliedAlpha: false }}>
         <SilkOrb state={state} amplitude={amplitude} fluidity={fluidity} damping={damping} distort={distort} />
       </Canvas>
     </div>
