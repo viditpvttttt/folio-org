@@ -290,6 +290,8 @@ function SilkOrb({
           fragmentShader={fragmentShader}
         />
       </mesh>
+
+      <OrbitField state={state} amp={ampRef} />
     </group>
   );
 }
