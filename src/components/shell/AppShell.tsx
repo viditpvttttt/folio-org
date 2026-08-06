@@ -7,23 +7,19 @@ import { cn } from "@/lib/utils";
 /** Ambient 3D + RGB + antigravity particle backdrop shared by every app section. */
 export function AppBackdrop({ scene = true, density = 1 }: { scene?: boolean; density?: number }) {
   return (
-    <>
+    <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
       {scene && (
-        <div aria-hidden className="pointer-events-none fixed inset-0 -z-20 opacity-70">
+        <div className="absolute inset-0 opacity-70">
           <AmbientScene />
         </div>
       )}
-      <div aria-hidden className="pointer-events-none fixed inset-0 -z-20 overflow-hidden">
-        <div className="absolute -top-40 -left-32 h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle_at_center,#ff4d8d_0%,transparent_65%)] opacity-35 blur-3xl" />
-        <div className="absolute top-32 -right-40 h-[560px] w-[560px] rounded-full bg-[radial-gradient(circle_at_center,#4d9bff_0%,transparent_65%)] opacity-35 blur-3xl" />
-        <div className="absolute bottom-0 left-1/3 h-[460px] w-[460px] rounded-full bg-[radial-gradient(circle_at_center,#b66dff_0%,transparent_65%)] opacity-30 blur-3xl" />
-        <div className="absolute bottom-10 right-1/4 h-[380px] w-[380px] rounded-full bg-[radial-gradient(circle_at_center,#7dffb4_0%,transparent_65%)] opacity-25 blur-3xl" />
-      </div>
-      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 bg-background/55 backdrop-blur-[2px]" />
-      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
-        <AntigravityField density={density} />
-      </div>
-    </>
+      <div className="absolute -top-40 -left-32 h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle_at_center,#ff4d8d_0%,transparent_65%)] opacity-35 blur-3xl" />
+      <div className="absolute top-32 -right-40 h-[560px] w-[560px] rounded-full bg-[radial-gradient(circle_at_center,#4d9bff_0%,transparent_65%)] opacity-35 blur-3xl" />
+      <div className="absolute bottom-0 left-1/3 h-[460px] w-[460px] rounded-full bg-[radial-gradient(circle_at_center,#b66dff_0%,transparent_65%)] opacity-30 blur-3xl" />
+      <div className="absolute bottom-10 right-1/4 h-[380px] w-[380px] rounded-full bg-[radial-gradient(circle_at_center,#7dffb4_0%,transparent_65%)] opacity-25 blur-3xl" />
+      <div className="absolute inset-0 bg-background/55 backdrop-blur-[2px]" />
+      <AntigravityField density={density} />
+    </div>
   );
 }
 
@@ -44,11 +40,14 @@ export function AppShell({
     <div className={cn("relative min-h-screen w-full overflow-x-hidden bg-background text-foreground paper-grain", className)}>
       <AppBackdrop scene={scene} density={density} />
       <CursorGlow />
-      <AppNav right={right} />
-      {children}
+      <div className="relative z-10">
+        <AppNav right={right} />
+        {children}
+      </div>
     </div>
   );
 }
+
 
 /** Page title block matching the landing page's editorial rhythm. */
 export function PageHeading({
