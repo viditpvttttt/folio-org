@@ -597,7 +597,7 @@ export function ChatRoom({ threadId }: { threadId: string }) {
       <AppBackdrop density={0.7} />
       <CursorGlow />
 
-      <div className="flex h-full">
+      <div className="relative z-10 flex h-full">
         {/* Sidebar */}
         <aside
           className={cn(
