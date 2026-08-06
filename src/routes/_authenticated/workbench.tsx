@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { AppBackdrop } from "@/components/shell/AppShell";
 import { CursorGlow } from "@/components/chat/CursorGlow";
-import { OrbStatus } from "@/components/chat/OrbStatus";
+import { FolioMark } from "@/components/brand/FolioMark";
 import { Message, MessageContent, MessageResponse } from "@/components/ai-elements/message";
 import { Conversation, ConversationContent, ConversationScrollButton } from "@/components/ai-elements/conversation";
 import { Shimmer } from "@/components/ai-elements/shimmer";
@@ -187,7 +187,7 @@ function WorkbenchPage() {
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
-        <OrbStatus active className="h-7 w-7" />
+        <FolioMark className="h-7 w-7" />
         <span className="font-serif text-lg">Workbench</span>
         <span className="text-muted-foreground/60 hidden sm:inline">·</span>
         <button

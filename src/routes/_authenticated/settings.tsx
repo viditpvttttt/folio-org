@@ -4,26 +4,22 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { LogOut, MessageCircle, LayoutDashboard, Settings as SettingsIcon, Sun, Moon, Monitor, Plus, Trash2, Layers } from "lucide-react";
 import { AppShell, PageHeading } from "@/components/shell/AppShell";
-import { OrbStatus } from "@/components/chat/OrbStatus";
+import { FolioMark } from "@/components/brand/FolioMark";
 import { TiltCard } from "@/components/chat/TiltCard";
-import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/use-auth";
 import { useAccessibility, type FontScale, type Theme } from "@/hooks/use-accessibility";
-import { DEFAULT_PHYSICS, type OrbPhysics } from "@/components/chat/OrbControls";
 import { listMemories, addMemory, deleteMemory } from "@/lib/memories.functions";
 import { toast } from "sonner";
-
-const PHYSICS_KEY = "folio.orb-physics";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
   head: () => ({
     meta: [
       { title: "Settings · Folio" },
-      { name: "description", content: "Tune Folio's appearance, accessibility, orb physics, and remembered project stacks." },
+      { name: "description", content: "Tune Folio's appearance, accessibility, the mark, and remembered project stacks." },
     ],
   }),
 });
@@ -44,17 +40,6 @@ const THEMES: { value: Theme; label: string; icon: typeof Sun }[] = [
 function SettingsPage() {
   const { user, signOut } = useAuth();
   const a11y = useAccessibility();
-  const [physics, setPhysics] = useState<OrbPhysics>(DEFAULT_PHYSICS);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(PHYSICS_KEY);
-      if (raw) setPhysics({ ...DEFAULT_PHYSICS, ...JSON.parse(raw) });
-    } catch { /* ignore */ }
-  }, []);
-  useEffect(() => {
-    try { localStorage.setItem(PHYSICS_KEY, JSON.stringify(physics)); } catch { /* ignore */ }
-  }, [physics]);
 
   return (
     <AppShell>
@@ -122,39 +107,20 @@ function SettingsPage() {
           <StacksSection />
         </TiltCard>
 
-        {/* ===== Orb physics ===== */}
+        {/* ===== Identity ===== */}
         <TiltCard max={3}>
-          <section className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl p-6">
-            <div className="flex items-center gap-5 mb-6">
-              <OrbStatus active amplitude={0.45} listening className="h-24 w-24" {...physics} />
-              <div>
-                <h2 className="font-serif text-2xl">Orb physics</h2>
-                <p className="text-sm text-muted-foreground">Adjust how the voice orb moves and reacts.</p>
-              </div>
+          <section className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl p-6 flex items-center gap-6">
+            <FolioMark className="h-24 w-24 shrink-0" />
+            <div className="min-w-0">
+              <h2 className="font-serif text-2xl">The mark</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Folio's two pages lift while you speak, sweep while it thinks, and breathe while it answers.
+                Motion follows your accessibility settings above.
+              </p>
             </div>
-
-            {(
-              [
-                { key: "fluidity", label: "Fluidity", hint: "How much it sways with sound" },
-                { key: "damping", label: "Responsiveness", hint: "Higher = snappier reactions" },
-                { key: "distort", label: "Distortion", hint: "Surface turbulence" },
-              ] as const
-            ).map(({ key, label, hint }) => (
-              <div key={key} className="mb-5">
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="font-medium">{label}</span>
-                  <span className="font-mono tabular-nums text-muted-foreground">{physics[key].toFixed(2)}</span>
-                </div>
-                <Slider min={0} max={1} step={0.01} value={[physics[key]]} onValueChange={([v]) => setPhysics({ ...physics, [key]: v })} />
-                <p className="text-xs text-muted-foreground mt-1">{hint}</p>
-              </div>
-            ))}
-
-            <button onClick={() => setPhysics(DEFAULT_PHYSICS)} className="text-xs px-3 py-1.5 rounded-md border border-border/60 hover:bg-foreground/5">
-              Reset to default
-            </button>
           </section>
         </TiltCard>
+
       </main>
     </AppShell>
   );

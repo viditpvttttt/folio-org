@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
-import { OrbStatus } from "@/components/chat/OrbStatus";
+import { FolioMark } from "@/components/brand/FolioMark";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 
@@ -22,7 +22,7 @@ export function AppNav({ right }: { right?: React.ReactNode }) {
     <header className="sticky top-0 z-40 border-b border-border/40 bg-background/50 backdrop-blur-xl">
       <div className="flex items-center gap-4 px-5 py-3">
         <Link to="/dashboard" className="flex items-center gap-3 shrink-0 group">
-          <OrbStatus active className="h-8 w-8 transition-transform duration-500 group-hover:scale-110" />
+          <FolioMark className="h-8 w-8 transition-transform duration-500 group-hover:scale-110" />
           <span className="font-serif text-xl tracking-tight">Folio</span>
         </Link>
 

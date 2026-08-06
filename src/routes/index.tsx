@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { AmbientScene } from "@/components/chat/AmbientScene";
 import { CursorGlow } from "@/components/chat/CursorGlow";
-import { OrbStatus } from "@/components/chat/OrbStatus";
+import { FolioMark } from "@/components/brand/FolioMark";
 import { AntigravityField } from "@/components/fx/AntigravityField";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
@@ -332,7 +332,7 @@ function Landing() {
                 <div className="h-56 w-56 rounded-full rgb-blob opacity-30 blur-3xl" />
               </div>
               <div className="absolute inset-0 grid place-items-center">
-                <OrbStatus active className="h-56 w-56" />
+                <FolioMark className="h-56 w-56" />
               </div>
             </div>
           </Reveal>

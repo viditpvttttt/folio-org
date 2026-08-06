@@ -1,5 +1,5 @@
 import { AntigravityField } from "@/components/fx/AntigravityField";
-import { OrbStatus } from "@/components/chat/OrbStatus";
+import { FolioMark } from "@/components/brand/FolioMark";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,7 +64,7 @@ function LoginPage() {
         <div aria-hidden className="pointer-events-none absolute -bottom-24 -left-24 h-[420px] w-[420px] rounded-full rgb-blob opacity-40 blur-3xl" />
         <Link to="/" className="relative font-serif text-2xl">Folio</Link>
         <div className="relative">
-          <div className="mb-8"><OrbStatus active className="h-28 w-28" /></div>
+          <div className="mb-8"><FolioMark className="h-28 w-28" /></div>
           <h2 className="font-serif text-5xl leading-tight">
             A quiet place<br/><em className="italic">to think.</em>
           </h2>

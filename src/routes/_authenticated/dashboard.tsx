@@ -5,13 +5,14 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   MessageCircle, Plus, Cloud, Calculator, Ruler, Coins,
-  BookOpen, Dices, CalendarClock, Sparkles, Clock, ArrowRight,
+  BookOpen, Dices, CalendarClock, Sparkles, ArrowRight,
   Brain, Trash2, Newspaper, Languages, KeyRound, QrCode, ChefHat, Palette, Link2,
-  Code2, ImageIcon, Terminal,
+  Code2, ImageIcon, Terminal, Briefcase, Compass,
 } from "lucide-react";
-import { AppShell } from "@/components/shell/AppShell";
-import { OrbStatus } from "@/components/chat/OrbStatus";
-import { TiltCard } from "@/components/chat/TiltCard";
+import { AppShell, GlassCard } from "@/components/shell/AppShell";
+import { FolioMark } from "@/components/brand/FolioMark";
+import { Reveal } from "@/components/fx/Reveal";
+import { AntigravityField } from "@/components/fx/AntigravityField";
 import { WeatherWidget } from "@/components/chat/WeatherWidget";
 import { NewsWidget } from "@/components/chat/NewsWidget";
 import { useAuth } from "@/hooks/use-auth";
@@ -23,7 +24,11 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
       { title: "Dashboard · Folio" },
-      { name: "description", content: "Your everyday command center — quick tools, recent chats, and Folio's orb." },
+      { name: "description", content: "Your quiet command center — quick tools, live weather and news, memory and recent conversations." },
+      { property: "og:title", content: "Dashboard · Folio" },
+      { property: "og:description", content: "Quick tools, live weather and news, memory and recent conversations in one calm place." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
 });
@@ -49,6 +54,28 @@ const PROMPTS = [
   { icon: Dices, label: "Pick for me", q: "Flip a coin three times" },
   { icon: Sparkles, label: "Draft a message", q: "Draft a polite email asking for a project deadline extension" },
 ];
+
+const SKILLS = [
+  { icon: Cloud, label: "Weather", q: "What's the weather where I am right now?" },
+  { icon: Newspaper, label: "News", q: "Top tech headlines today" },
+  { icon: Languages, label: "Translate", q: "Translate 'good morning' to Japanese" },
+  { icon: Coins, label: "Currency", q: "Convert 250 USD to EUR" },
+  { icon: BookOpen, label: "Dictionary", q: "Define 'serendipity'" },
+  { icon: ChefHat, label: "Recipes", q: "Give me a random dinner recipe" },
+  { icon: Palette, label: "Palettes", q: "Palette from #6c5ce7" },
+  { icon: KeyRound, label: "Passwords", q: "Generate a 24-char password" },
+  { icon: QrCode, label: "QR codes", q: "Make a QR code for https://folio.app" },
+  { icon: Link2, label: "Web reader", q: "Summarize https://news.ycombinator.com" },
+  { icon: Compass, label: "Deep research", q: "Research the state of solid-state batteries in 2026" },
+  { icon: Briefcase, label: "Work mode", q: "Prep me for a 30-minute client kickoff call" },
+];
+
+function greeting(h: number) {
+  if (h < 5) return "Still up";
+  if (h < 12) return "Good morning";
+  if (h < 18) return "Good afternoon";
+  return "Good evening";
+}
 
 function DashboardPage() {
   const { user } = useAuth();
@@ -96,216 +123,259 @@ function DashboardPage() {
     qc.invalidateQueries({ queryKey: ["memories"] });
   };
 
-  const CONNECTORS = [
-    { icon: Cloud, label: "Weather", q: "What's the weather where I am right now?", hue: "from-sky-500/25 to-cyan-500/10" },
-    { icon: Newspaper, label: "News", q: "Top tech headlines today", hue: "from-orange-500/25 to-red-500/10" },
-    { icon: Languages, label: "Translate", q: "Translate 'good morning' to Japanese", hue: "from-emerald-500/25 to-teal-500/10" },
-    { icon: Coins, label: "Currency", q: "Convert 250 USD to EUR", hue: "from-amber-500/25 to-yellow-500/10" },
-    { icon: BookOpen, label: "Dictionary", q: "Define 'serendipity'", hue: "from-indigo-500/25 to-violet-500/10" },
-    { icon: ChefHat, label: "Recipes", q: "Give me a random dinner recipe", hue: "from-rose-500/25 to-pink-500/10" },
-    { icon: Palette, label: "Palettes", q: "Palette from #6c5ce7", hue: "from-fuchsia-500/25 to-purple-500/10" },
-    { icon: KeyRound, label: "Passwords", q: "Generate a 24-char password", hue: "from-slate-500/25 to-zinc-500/10" },
-    { icon: QrCode, label: "QR codes", q: "Make a QR code for https://folio.app", hue: "from-lime-500/25 to-green-500/10" },
-    { icon: Link2, label: "Web reader", q: "Summarize https://news.ycombinator.com", hue: "from-blue-500/25 to-sky-500/10" },
-  ];
+  const name = user?.email?.split("@")[0] ?? "friend";
 
   return (
     <AppShell
       right={
         <button
           onClick={newChat}
-          className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-3 py-1.5 text-xs text-background transition hover:opacity-90"
+          className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-3.5 py-1.5 text-xs text-background transition hover:opacity-90"
         >
           <Plus className="h-3.5 w-3.5" /> New chat
         </button>
       }
     >
-
-      <main className="relative z-10 mx-auto max-w-6xl px-6 py-10">
-        {/* Hero */}
-        <section className="grid lg:grid-cols-[1.4fr,1fr] gap-6 mb-10">
-          <TiltCard max={4}>
-            <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl p-8 h-full">
-              <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+      <main className="relative z-10">
+        {/* ---------- hero ---------- */}
+        <section className="relative">
+          <div className="mx-auto max-w-6xl px-6 pb-20 pt-16 md:pt-24">
+            <Reveal>
+              <p className="text-[11px] uppercase tracking-[0.35em] text-muted-foreground">
                 {now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
+                {" · "}
+                {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
               </p>
-              <h1 className="font-serif text-5xl md:text-6xl mt-3 leading-[0.95]">
-                Good to see you,<br />
-                <em className="italic text-foreground/80">
-                  {user?.email?.split("@")[0] ?? "friend"}.
-                </em>
-              </h1>
-              <p className="mt-5 text-muted-foreground max-w-md">
-                Folio is ready when you are. Pick a quick tool, jump into a recent chat, or just say hi.
+            </Reveal>
+
+            <Reveal delay={80}>
+              <div className="relative mt-6">
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute -left-24 top-1/2 -z-10 h-[360px] w-[720px] max-w-[110vw] -translate-y-1/2 rounded-full rgb-blob opacity-40 blur-[90px]"
+                />
+                <h1 className="relative font-serif text-[clamp(2.75rem,7.5vw,6rem)] leading-[0.94] tracking-tight">
+                  {greeting(now.getHours())},<br />
+                  <em className="italic">{name}.</em>
+                </h1>
+              </div>
+            </Reveal>
+
+            <Reveal delay={160}>
+              <p className="mt-8 max-w-xl text-lg leading-relaxed text-muted-foreground">
+                Everything Folio knows, does and remembers — one calm surface. Start where you left
+                off, or just say what you need.
               </p>
-              <div className="mt-6 flex flex-wrap gap-3">
+            </Reveal>
+
+            <Reveal delay={220}>
+              <div className="mt-10 flex flex-wrap items-center gap-3">
                 <button
                   onClick={newChat}
-                  className="group inline-flex items-center gap-2 rounded-full bg-foreground text-background px-5 py-2.5 text-sm"
+                  className="group inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm text-background transition hover:opacity-90"
                 >
-                  Start chatting <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+                  Start a conversation
+                  <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
                 </button>
                 <Link
+                  to="/explain"
+                  className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/50 px-5 py-2.5 text-sm backdrop-blur transition hover:bg-foreground/5"
+                >
+                  Explain something
+                </Link>
+                <Link
                   to="/settings"
-                  className="inline-flex items-center gap-2 rounded-full border border-border/60 px-5 py-2.5 text-sm hover:bg-foreground/5"
+                  className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/50 px-5 py-2.5 text-sm backdrop-blur transition hover:bg-foreground/5"
                 >
                   Customize
                 </Link>
               </div>
-            </div>
-          </TiltCard>
-
-          <TiltCard max={6}>
-            <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl p-6 h-full flex flex-col items-center justify-center">
-              <OrbStatus active className="h-48 w-48" />
-              <div className="mt-4 inline-flex items-center gap-2 text-xs text-muted-foreground">
-                <Clock className="h-3.5 w-3.5" />
-                {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
-              </div>
-            </div>
-          </TiltCard>
-        </section>
-
-        {/* Quick actions */}
-        <section className="mb-10">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-serif text-2xl">Quick actions</h2>
-            <span className="text-xs text-muted-foreground">Tap to start a chat</span>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {PROMPTS.map(({ icon: Icon, label, q }) => (
-              <TiltCard key={label} max={10}>
-                <button
-                  onClick={() => startWith(q)}
-                  className="w-full text-left rounded-xl border border-border/60 bg-card/60 backdrop-blur-xl p-4 hover:bg-card/80 transition group"
-                >
-                  <Icon className="h-5 w-5 mb-3 text-foreground/70 group-hover:text-foreground transition" />
-                  <div className="font-medium text-sm">{label}</div>
-                  <div className="mt-1 text-[11px] text-muted-foreground line-clamp-2">{q}</div>
-                </button>
-              </TiltCard>
-            ))}
+            </Reveal>
           </div>
         </section>
 
-        {/* Connectors */}
-        <section className="mb-10">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-serif text-2xl">Connectors</h2>
-            <span className="text-xs text-muted-foreground">Live APIs Folio can call for you</span>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            {CONNECTORS.map(({ icon: Icon, label, q, hue }) => (
-              <TiltCard key={label} max={12}>
-                <button
-                  onClick={() => startWith(q)}
-                  className={`relative w-full text-left rounded-xl border border-border/60 bg-gradient-to-br ${hue} backdrop-blur-xl p-4 hover:scale-[1.02] transition group overflow-hidden`}
-                >
-                  <div className="absolute -top-6 -right-6 h-20 w-20 rounded-full bg-white/10 blur-2xl opacity-70 group-hover:opacity-100 transition" />
-                  <Icon className="h-5 w-5 mb-2 text-foreground/80" />
-                  <div className="font-medium text-sm">{label}</div>
-                  <div className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground inline-flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    Connected
-                  </div>
-                </button>
-              </TiltCard>
-            ))}
-          </div>
-        </section>
-
-        {/* Memory + weather + threads */}
-        <section className="grid lg:grid-cols-3 gap-6">
-          <TiltCard max={4}>
-            <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl overflow-hidden h-full">
-              <div className="px-5 py-3 border-b border-border/40 flex items-center gap-2">
-                <Brain className="h-4 w-4" />
-                <span className="font-serif text-lg">Contextual memory</span>
-                <span className="ml-auto text-[10px] uppercase tracking-wider text-muted-foreground">
-                  {memsQ.data?.length ?? 0} saved
-                </span>
-              </div>
-              <div className="p-4 space-y-3">
-                <p className="text-xs text-muted-foreground">
-                  Facts Folio remembers about you across conversations. Add anything — name, city, dietary preferences, work.
-                </p>
-                <div className="flex gap-2">
-                  <input
-                    value={memInput}
-                    onChange={(e) => setMemInput(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") saveMemory(); }}
-                    placeholder="e.g. I live in Berlin"
-                    className="flex-1 h-9 rounded-md border border-border/60 bg-background/60 px-3 text-sm outline-none focus:ring-1 focus:ring-ring"
-                  />
-                  <button
-                    onClick={saveMemory}
-                    className="h-9 px-3 rounded-md bg-foreground text-background text-sm hover:opacity-90"
-                  >
-                    Save
-                  </button>
+        {/* ---------- quick actions ---------- */}
+        <section className="border-t border-border/60">
+          <div className="mx-auto max-w-6xl px-6 py-20 md:py-24">
+            <Reveal>
+              <div className="flex flex-wrap items-end justify-between gap-6">
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Quick actions</p>
+                  <h2 className="mt-3 font-serif text-4xl tracking-tight md:text-5xl">Start in one tap.</h2>
                 </div>
-                <ul className="space-y-1.5 max-h-60 overflow-y-auto">
-                  {(memsQ.data ?? []).map((m) => (
-                    <li key={m.id} className="group flex items-start gap-2 rounded-lg border border-border/40 bg-background/40 px-3 py-2 text-sm">
-                      <span className="text-[9px] uppercase tracking-wider text-muted-foreground mt-1 shrink-0">{m.kind}</span>
-                      <span className="flex-1">{m.content}</span>
-                      <button
-                        onClick={() => removeMemory(m.id)}
-                        className="opacity-0 group-hover:opacity-60 hover:opacity-100 transition"
-                        aria-label="Forget"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </li>
-                  ))}
-                  {memsQ.data && memsQ.data.length === 0 && (
-                    <li className="text-xs text-muted-foreground text-center py-4">Nothing remembered yet.</li>
-                  )}
-                </ul>
+                <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
+                  Each of these opens a fresh conversation, pre-loaded. You never pick a mode.
+                </p>
               </div>
-            </div>
-          </TiltCard>
+            </Reveal>
 
-          <TiltCard max={4}>
-            <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl overflow-hidden h-full flex flex-col">
-              <div className="px-5 py-3 border-b border-border/40 flex items-center gap-2">
-                <Cloud className="h-4 w-4" />
-                <span className="font-serif text-lg">Local weather & news</span>
-              </div>
-              <div className="p-2">
-                <WeatherWidget />
-                <NewsWidget />
-              </div>
+            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {PROMPTS.map(({ icon: Icon, label, q }, i) => (
+                <Reveal key={label} delay={i * 45}>
+                  <GlassCard>
+                    <button onClick={() => startWith(q)} className="h-full w-full p-6 text-left">
+                      <Icon className="mb-5 h-5 w-5" />
+                      <div className="font-serif text-xl">{label}</div>
+                      <div className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{q}</div>
+                    </button>
+                  </GlassCard>
+                </Reveal>
+              ))}
             </div>
-          </TiltCard>
+          </div>
+        </section>
 
-          <TiltCard max={4}>
-            <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl overflow-hidden h-full">
-              <div className="px-5 py-3 border-b border-border/40 flex items-center gap-2">
-                <MessageCircle className="h-4 w-4" />
-                <span className="font-serif text-lg">Recent conversations</span>
-              </div>
-              <ul className="divide-y divide-border/40 max-h-80 overflow-y-auto">
-                {(threadsQ.data ?? []).slice(0, 8).map((t) => (
-                  <li key={t.id}>
-                    <Link
-                      to="/chat/$threadId"
-                      params={{ threadId: t.id }}
-                      className="flex items-center gap-3 px-5 py-3 text-sm hover:bg-foreground/5 transition"
-                    >
-                      <span className="flex-1 truncate">{t.title || "New chat"}</span>
-                      <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
-                    </Link>
-                  </li>
+        {/* ---------- skills ---------- */}
+        <section className="border-t border-border/60 bg-paper-dim/30">
+          <div className="mx-auto max-w-6xl px-6 py-20 md:py-24">
+            <Reveal>
+              <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Skills</p>
+              <h2 className="mt-3 font-serif text-4xl tracking-tight md:text-5xl">It brought tools.</h2>
+            </Reveal>
+            <Reveal delay={100}>
+              <div className="mt-10 flex flex-wrap gap-2.5">
+                {SKILLS.map(({ icon: Icon, label, q }) => (
+                  <button
+                    key={label}
+                    onClick={() => startWith(q)}
+                    className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/60 px-4 py-2 text-sm text-foreground/80 transition hover:bg-foreground hover:text-background"
+                  >
+                    <Icon className="h-3.5 w-3.5" /> {label}
+                  </button>
                 ))}
-                {threadsQ.data && threadsQ.data.length === 0 && (
-                  <li className="px-5 py-6 text-center text-sm text-muted-foreground">
-                    No conversations yet. Tap “New chat” to start.
-                  </li>
-                )}
-              </ul>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* ---------- live surface ---------- */}
+        <section className="border-t border-border/60">
+          <div className="mx-auto max-w-6xl px-6 py-20 md:py-24">
+            <Reveal>
+              <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Right now</p>
+              <h2 className="mt-3 font-serif text-4xl tracking-tight md:text-5xl">Your day, at a glance.</h2>
+            </Reveal>
+
+            <div className="mt-12 grid gap-5 lg:grid-cols-3">
+              <Reveal>
+                <GlassCard className="lg:col-span-1">
+                  <div className="flex items-center gap-2 border-b border-border/40 px-6 py-4">
+                    <Cloud className="h-4 w-4" />
+                    <span className="font-serif text-lg">Weather & news</span>
+                  </div>
+                  <div className="p-3">
+                    <WeatherWidget />
+                    <NewsWidget />
+                  </div>
+                </GlassCard>
+              </Reveal>
+
+              <Reveal delay={90}>
+                <GlassCard>
+                  <div className="flex items-center gap-2 border-b border-border/40 px-6 py-4">
+                    <Brain className="h-4 w-4" />
+                    <span className="font-serif text-lg">Memory</span>
+                    <span className="ml-auto text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {memsQ.data?.length ?? 0} saved
+                    </span>
+                  </div>
+                  <div className="space-y-3 p-5">
+                    <p className="text-xs leading-relaxed text-muted-foreground">
+                      Facts Folio keeps across conversations — your city, your tone, your stack.
+                    </p>
+                    <div className="flex gap-2">
+                      <input
+                        value={memInput}
+                        onChange={(e) => setMemInput(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") saveMemory(); }}
+                        placeholder="e.g. I live in Berlin"
+                        className="h-9 min-w-0 flex-1 rounded-full border border-border/60 bg-background/60 px-4 text-sm outline-none focus:ring-1 focus:ring-ring"
+                      />
+                      <button
+                        onClick={saveMemory}
+                        className="h-9 shrink-0 rounded-full bg-foreground px-4 text-sm text-background hover:opacity-90"
+                      >
+                        Save
+                      </button>
+                    </div>
+                    <ul className="max-h-56 space-y-1.5 overflow-y-auto">
+                      {(memsQ.data ?? []).map((m) => (
+                        <li key={m.id} className="group/mem flex items-start gap-2 rounded-xl border border-border/40 bg-background/40 px-3 py-2 text-sm">
+                          <span className="mt-1 shrink-0 text-[9px] uppercase tracking-wider text-muted-foreground">{m.kind}</span>
+                          <span className="min-w-0 flex-1">{m.content}</span>
+                          <button
+                            onClick={() => removeMemory(m.id)}
+                            className="opacity-0 transition group-hover/mem:opacity-60 hover:opacity-100"
+                            aria-label="Forget"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </li>
+                      ))}
+                      {memsQ.data && memsQ.data.length === 0 && (
+                        <li className="py-4 text-center text-xs text-muted-foreground">Nothing remembered yet.</li>
+                      )}
+                    </ul>
+                  </div>
+                </GlassCard>
+              </Reveal>
+
+              <Reveal delay={180}>
+                <GlassCard>
+                  <div className="flex items-center gap-2 border-b border-border/40 px-6 py-4">
+                    <MessageCircle className="h-4 w-4" />
+                    <span className="font-serif text-lg">Recent</span>
+                  </div>
+                  <ul className="max-h-[19rem] divide-y divide-border/40 overflow-y-auto">
+                    {(threadsQ.data ?? []).slice(0, 8).map((t) => (
+                      <li key={t.id}>
+                        <Link
+                          to="/chat/$threadId"
+                          params={{ threadId: t.id }}
+                          className="group/row flex items-center gap-3 px-6 py-3.5 text-sm transition hover:bg-foreground/5"
+                        >
+                          <span className="min-w-0 flex-1 truncate">{t.title || "New chat"}</span>
+                          <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition group-hover/row:translate-x-0.5" />
+                        </Link>
+                      </li>
+                    ))}
+                    {threadsQ.data && threadsQ.data.length === 0 && (
+                      <li className="px-6 py-8 text-center text-sm text-muted-foreground">
+                        No conversations yet.
+                      </li>
+                    )}
+                  </ul>
+                </GlassCard>
+              </Reveal>
             </div>
-          </TiltCard>
+          </div>
+        </section>
+
+        {/* ---------- closing ---------- */}
+        <section className="relative overflow-hidden border-t border-border/60 bg-paper-dim/30">
+          <div aria-hidden className="pointer-events-none absolute inset-0">
+            <AntigravityField density={1.2} />
+          </div>
+          <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-6 py-24 md:grid-cols-[1fr_auto] md:py-32">
+            <Reveal>
+              <div>
+                <h2 className="font-serif text-4xl leading-[1.05] tracking-tight md:text-6xl">
+                  Ask it anything.<br /><em className="italic">It brings something back.</em>
+                </h2>
+                <button
+                  onClick={newChat}
+                  className="group mt-8 inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm text-background transition hover:opacity-90"
+                >
+                  Open Folio <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+                </button>
+              </div>
+            </Reveal>
+            <Reveal delay={120}>
+              <div className="group mx-auto">
+                <FolioMark className="h-40 w-40 md:h-56 md:w-56" />
+              </div>
+            </Reveal>
+          </div>
         </section>
       </main>
     </AppShell>

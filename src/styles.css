@@ -231,3 +231,43 @@ html[data-contrast="high"] * { border-color: var(--border) !important; }
   outline-offset: 2px;
 }
 
+
+/* ===== Folio mark (logo) motion ===== */
+.folio-mark .folio-page {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.folio-mark .folio-page--left { animation: folio-float 6s ease-in-out infinite; }
+.folio-mark .folio-page--right { animation: folio-float 6s ease-in-out infinite -3s; }
+.folio-mark .folio-sheen { opacity: 0; }
+
+@keyframes folio-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-3px) rotate(-1.2deg); }
+}
+@keyframes folio-sweep {
+  0% { transform: translateX(0); opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translateX(170px); opacity: 0; }
+}
+@keyframes folio-bounce {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  50% { transform: translateY(-4px) scaleY(1.06); }
+}
+
+[data-state="thinking"] .folio-sheen { animation: folio-sweep 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+[data-state="speaking"] .folio-page--left { animation: folio-bounce 0.7s ease-in-out infinite; }
+[data-state="speaking"] .folio-page--right { animation: folio-bounce 0.7s ease-in-out infinite -0.35s; }
+[data-state="listening"] .folio-page--left {
+  transform: translateY(calc(var(--amp, 0) * -6px)) scaleY(calc(1 + var(--amp, 0) * 0.1));
+  animation: none;
+}
+[data-state="listening"] .folio-page--right {
+  transform: translateY(calc(var(--amp, 0) * -9px)) scaleY(calc(1 + var(--amp, 0) * 0.14));
+  animation: none;
+}
+
+.group:hover .folio-mark .folio-page--left { transform: translate(-2px, -2px) rotate(-3deg); }
+.group:hover .folio-mark .folio-page--right { transform: translate(2px, -3px) rotate(3deg); }
