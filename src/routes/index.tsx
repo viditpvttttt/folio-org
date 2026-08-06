@@ -163,14 +163,17 @@ function Landing() {
 
       {/* ---------- hero ---------- */}
       <section className="relative min-h-[92vh] flex items-center">
-        <div className="absolute inset-0 -z-10">
-          <AmbientScene />
+        <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+          <div className="absolute inset-0">
+            <AmbientScene />
+          </div>
+          <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[620px] w-[900px] rounded-full opacity-60 blur-3xl rgb-blob" />
+          <div className="pointer-events-none absolute inset-0 bg-background/45 backdrop-blur-[2px]" />
+          <AntigravityField density={1.15} />
         </div>
-        <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[620px] w-[900px] rounded-full opacity-60 blur-3xl rgb-blob -z-10" />
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-background/45 backdrop-blur-[2px]" />
-        <div className="pointer-events-none absolute inset-0 -z-10"><AntigravityField density={1.15} /></div>
 
-        <div className="mx-auto max-w-5xl px-6 py-24 text-center">
+        <div className="relative z-10 mx-auto max-w-5xl px-6 py-24 text-center">
+
           <Reveal>
             <p className="text-[11px] uppercase tracking-[0.35em] text-muted-foreground mb-8">
               A calmer kind of AI assistant
