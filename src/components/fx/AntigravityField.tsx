@@ -11,11 +11,16 @@ import { cn } from "@/lib/utils";
  *    given a tangential swirl, then settle back with velocity damping
  *  - close particles link with hairline constellation strokes
  *  - particles wrap around the viewport, so the field never empties
+ *
+ * Polish pass: fixed-timestep integration (identical motion at any refresh
+ * rate), a smoothed pointer so the swirl never snaps, edge fade-in/out so
+ * particles are born and die softly, gentle twinkle, and a spatial hash for the
+ * constellation links so density can go up without the frame cost.
  */
 
 type P = {
   x: number; y: number; vx: number; vy: number;
-  r: number; depth: number; hue: number; seed: number;
+  r: number; depth: number; hue: number; seed: number; tw: number;
 };
 
 const HUES = [332, 275, 215, 152, 45]; // pink, violet, blue, mint, amber (Folio RGB)
@@ -50,7 +55,8 @@ export function AntigravityField({
     let w = 0, h = 0, dpr = 1;
     let particles: P[] = [];
     let raf = 0;
-    const mouse = { x: -9999, y: -9999, active: false };
+    // raw pointer + smoothed pointer (the well actually follows the smoothed one)
+    const ptr = { x: -9999, y: -9999, tx: -9999, ty: -9999, active: false, ease: 0 };
 
     const build = () => {
       const rect = canvas.getBoundingClientRect();
@@ -61,30 +67,34 @@ export function AntigravityField({
       canvas.height = Math.floor(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      const count = Math.round(Math.min(190, (w * h) / 11000) * density);
+      const count = Math.round(Math.min(220, (w * h) / 9500) * density);
       particles = Array.from({ length: count }, () => {
-        const depth = Math.random();
+        const depth = Math.random() ** 1.4; // more small far particles than near ones
         return {
           x: Math.random() * w,
           y: Math.random() * h,
-          vx: (Math.random() - 0.5) * 0.12,
-          vy: -0.08 - Math.random() * 0.22,
-          r: 0.6 + depth * 1.9,
+          vx: (Math.random() - 0.5) * 0.1,
+          vy: -0.06 - Math.random() * 0.2,
+          r: 0.5 + depth * 2.0,
           depth,
           hue: color ?? HUES[Math.floor(Math.random() * HUES.length)],
           seed: Math.random() * Math.PI * 2,
+          tw: 0.4 + Math.random() * 0.9,
         };
       });
+      // far particles first → natural depth stacking
+      particles.sort((a, b) => a.depth - b.depth);
     };
 
     const onResize = () => build();
     const onMove = (e: PointerEvent) => {
       const rect = canvas.getBoundingClientRect();
-      mouse.x = e.clientX - rect.left;
-      mouse.y = e.clientY - rect.top;
-      mouse.active = true;
+      ptr.tx = e.clientX - rect.left;
+      ptr.ty = e.clientY - rect.top;
+      if (!ptr.active) { ptr.x = ptr.tx; ptr.y = ptr.ty; }
+      ptr.active = true;
     };
-    const onLeave = () => { mouse.active = false; mouse.x = -9999; mouse.y = -9999; };
+    const onLeave = () => { ptr.active = false; };
 
     build();
     window.addEventListener("resize", onResize);
@@ -94,103 +104,146 @@ export function AntigravityField({
     }
 
     let t = 0;
-    const RADIUS = 150;
+    let last = performance.now();
+    let acc = 0;
+    const STEP = 1000 / 60;
+    const RADIUS = 165;
+    const LINK = 96;
+    const LINK2 = LINK * LINK;
+
     // Light "paper" backgrounds need deeper, denser particles to read at all.
     const isDark = () => document.documentElement.classList.contains("dark");
-    let lum = isDark() ? 66 : 48;
-    let boost = isDark() ? 1 : 1.5;
+    let lum = isDark() ? 68 : 40;
+    let boost = isDark() ? 1 : 2.6;
     const themeObserver = new MutationObserver(() => {
-      lum = isDark() ? 66 : 48;
-      boost = isDark() ? 1 : 1.5;
+      lum = isDark() ? 68 : 40;
+      boost = isDark() ? 1 : 2.6;
     });
     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 
-    const frame = () => {
+    const simulate = () => {
       t += 0.006;
-      ctx.clearRect(0, 0, w, h);
+
+      // smoothed pointer + eased influence ramp (no snap on enter/leave)
+      ptr.x += (ptr.tx - ptr.x) * 0.16;
+      ptr.y += (ptr.ty - ptr.y) * 0.16;
+      ptr.ease += ((ptr.active ? 1 : 0) - ptr.ease) * 0.08;
 
       for (const p of particles) {
         // buoyancy + brownian sway (the "antigravity" drift)
-        p.vy -= 0.0016 * (0.4 + p.depth);
-        p.vx += Math.sin(t * 1.6 + p.seed) * 0.0035;
+        p.vy -= 0.0014 * (0.35 + p.depth);
+        p.vx += Math.sin(t * 1.5 + p.seed) * 0.0032;
 
-        if (mouse.active) {
-          const dx = p.x - mouse.x;
-          const dy = p.y - mouse.y;
+        if (ptr.ease > 0.01) {
+          const dx = p.x - ptr.x;
+          const dy = p.y - ptr.y;
           const d2 = dx * dx + dy * dy;
           if (d2 < RADIUS * RADIUS && d2 > 0.001) {
             const d = Math.sqrt(d2);
-            const f = (1 - d / RADIUS) ** 2 * (0.9 + p.depth);
-            // radial push away from the pointer
-            p.vx += (dx / d) * f * 0.9;
-            p.vy += (dy / d) * f * 0.9;
+            // smoothstep falloff — much softer at the rim than the old squared ramp
+            const n = 1 - d / RADIUS;
+            const f = n * n * (3 - 2 * n) * (0.75 + p.depth * 0.6) * ptr.ease;
+            p.vx += (dx / d) * f * 0.8;
+            p.vy += (dy / d) * f * 0.8;
             // tangential swirl — the orbital signature of the field
-            p.vx += (-dy / d) * f * 0.45;
-            p.vy += (dx / d) * f * 0.45;
+            p.vx += (-dy / d) * f * 0.5;
+            p.vy += (dx / d) * f * 0.5;
           }
         }
 
         // damping keeps everything critically calm
-        p.vx *= 0.965;
-        p.vy *= 0.968;
-        p.vy = Math.max(p.vy, -1.6);
+        p.vx *= 0.962;
+        p.vy *= 0.966;
+        p.vy = Math.max(p.vy, -1.5);
+        p.vx = Math.max(-1.6, Math.min(1.6, p.vx));
 
         p.x += p.vx;
         p.y += p.vy;
 
         // wrap
-        if (p.y < -12) { p.y = h + 12; p.x = Math.random() * w; p.vy = -0.08; }
-        if (p.y > h + 12) p.y = -12;
-        if (p.x < -12) p.x = w + 12;
-        if (p.x > w + 12) p.x = -12;
-
-        const alpha = (0.18 + p.depth * 0.42) * boost;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${p.hue} 88% ${lum}% / ${alpha})`;
-        ctx.fill();
-
-        // soft bloom on the nearest layer
-        if (p.depth > 0.72) {
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.r * 4.5, 0, Math.PI * 2);
-          ctx.fillStyle = `hsla(${p.hue} 95% ${lum + 6}% / ${0.05 * boost})`;
-          ctx.fill();
-        }
+        if (p.y < -16) { p.y = h + 16; p.x = Math.random() * w; p.vy = -0.06; p.vx *= 0.2; }
+        if (p.y > h + 16) p.y = -16;
+        if (p.x < -16) p.x = w + 16;
+        if (p.x > w + 16) p.x = -16;
       }
+    };
+
+    const draw = () => {
+      ctx.clearRect(0, 0, w, h);
 
       if (links) {
-        ctx.lineWidth = 0.5;
-        for (let i = 0; i < particles.length; i++) {
-          const a = particles[i];
-          for (let j = i + 1; j < particles.length; j++) {
-            const b = particles[j];
-            const dx = a.x - b.x, dy = a.y - b.y;
-            const d2 = dx * dx + dy * dy;
-            if (d2 < 8100) {
-              const o = (1 - Math.sqrt(d2) / 90) * 0.16 * boost;
-              ctx.strokeStyle = `hsla(${a.hue} 85% ${lum + 4}% / ${o})`;
-              ctx.beginPath();
-              ctx.moveTo(a.x, a.y);
-              ctx.lineTo(b.x, b.y);
-              ctx.stroke();
+        // spatial hash so link lookup is local instead of O(n²)
+        const cell = LINK;
+        const cols = Math.max(1, Math.ceil(w / cell) + 2);
+        const grid = new Map<number, P[]>();
+        for (const p of particles) {
+          const key = (Math.floor(p.y / cell) + 1) * cols + (Math.floor(p.x / cell) + 1);
+          const bucket = grid.get(key);
+          if (bucket) bucket.push(p); else grid.set(key, [p]);
+        }
+        ctx.lineWidth = 0.55;
+        for (const p of particles) {
+          const cx = Math.floor(p.x / cell) + 1;
+          const cy = Math.floor(p.y / cell) + 1;
+          for (let oy = 0; oy <= 1; oy++) {
+            for (let ox = oy === 0 ? 0 : -1; ox <= 1; ox++) {
+              const bucket = grid.get((cy + oy) * cols + (cx + ox));
+              if (!bucket) continue;
+              for (const q of bucket) {
+                if (q === p) continue;
+                if (oy === 0 && ox === 0 && q.x < p.x) continue; // dedupe within cell
+                const dx = p.x - q.x, dy = p.y - q.y;
+                const d2 = dx * dx + dy * dy;
+                if (d2 >= LINK2) continue;
+                const o = (1 - Math.sqrt(d2) / LINK) ** 1.6 * 0.19 * boost;
+                if (o < 0.008) continue;
+                ctx.strokeStyle = `hsla(${p.hue} 85% ${lum + 4}% / ${o})`;
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(q.x, q.y);
+                ctx.stroke();
+              }
             }
           }
         }
       }
 
+      for (const p of particles) {
+        // soft birth/death at the vertical edges so nothing ever pops
+        const edge = Math.min(1, Math.min(p.y + 16, h + 16 - p.y) / 60);
+        const twinkle = 0.85 + Math.sin(t * 3.1 * p.tw + p.seed) * 0.15;
+        const alpha = (0.14 + p.depth * 0.44) * boost * edge * twinkle;
+        if (alpha <= 0.004) continue;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${p.hue} 90% ${lum}% / ${alpha})`;
+        ctx.fill();
+
+        // soft bloom on the nearest layer
+        if (p.depth > 0.7) {
+          const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 6);
+          g.addColorStop(0, `hsla(${p.hue} 95% ${lum + 8}% / ${0.1 * boost * edge})`);
+          g.addColorStop(1, `hsla(${p.hue} 95% ${lum + 8}% / 0)`);
+          ctx.fillStyle = g;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r * 6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    };
+
+    const frame = (now: number) => {
+      // fixed timestep — identical motion on 60Hz and 144Hz, no jumps after a tab stall
+      acc = Math.min(acc + (now - last), 100);
+      last = now;
+      while (acc >= STEP) { simulate(); acc -= STEP; }
+      draw();
       raf = requestAnimationFrame(frame);
     };
 
     if (reduced) {
-      // static single paint
-      ctx.clearRect(0, 0, w, h);
-      for (const p of particles) {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${p.hue} 90% 66% / ${0.18 + p.depth * 0.3})`;
-        ctx.fill();
-      }
+      draw();
     } else {
       raf = requestAnimationFrame(frame);
     }

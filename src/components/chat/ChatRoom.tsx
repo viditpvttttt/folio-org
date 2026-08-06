@@ -21,8 +21,7 @@ import {
 } from "@/components/ai-elements/prompt-input";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { AppBackdrop } from "@/components/shell/AppShell";
-import { OrbStatus } from "./OrbStatus";
-import { OrbControls, DEFAULT_PHYSICS, type OrbPhysics } from "./OrbControls";
+import { FolioMark } from "@/components/brand/FolioMark";
 import { Link } from "@tanstack/react-router";
 import { LayoutDashboard, MessageCircle, Settings as SettingsIcon } from "lucide-react";
 import { WeatherCard, type WeatherData } from "./WeatherCard";
@@ -486,16 +485,6 @@ export function ChatRoom({ threadId }: { threadId: string }) {
   const [speaking, setSpeaking] = useState(false);
   const speakCancelRef = useRef<(() => void) | null>(null);
   const lastSpokenIdRef = useRef<string | null>(null);
-  const [physics, setPhysics] = useState<OrbPhysics>(() => {
-    if (typeof window === "undefined") return DEFAULT_PHYSICS;
-    try {
-      const raw = window.localStorage.getItem("folio.orb-physics");
-      return raw ? { ...DEFAULT_PHYSICS, ...JSON.parse(raw) } : DEFAULT_PHYSICS;
-    } catch { return DEFAULT_PHYSICS; }
-  });
-  useEffect(() => {
-    try { window.localStorage.setItem("folio.orb-physics", JSON.stringify(physics)); } catch { /* ignore */ }
-  }, [physics]);
 
 
   useEffect(() => {
@@ -608,7 +597,7 @@ export function ChatRoom({ threadId }: { threadId: string }) {
       <AppBackdrop density={0.7} />
       <CursorGlow />
 
-      <div className="flex h-full">
+      <div className="relative z-10 flex h-full">
         {/* Sidebar */}
         <aside
           className={cn(
@@ -672,7 +661,7 @@ export function ChatRoom({ threadId }: { threadId: string }) {
             >
               <Menu className="h-4 w-4" />
             </button>
-            <OrbStatus active={isLoading} amplitude={voiceAmp} listening={listening} speaking={speaking} {...physics} />
+            <FolioMark active={isLoading} amplitude={voiceAmp} listening={listening} speaking={speaking} />
             <span className="font-serif text-lg">Folio</span>
             <nav className="ml-3 hidden md:flex items-center gap-1 text-xs">
               <Link to="/dashboard" className="px-2.5 py-1 rounded-full hover:bg-foreground/5 text-foreground/70 inline-flex items-center gap-1">
@@ -689,7 +678,6 @@ export function ChatRoom({ threadId }: { threadId: string }) {
               </Link>
             </nav>
             <div className="ml-auto flex items-center gap-2">
-              <OrbControls value={physics} onChange={setPhysics} />
               <button
                 onClick={() => {
                   if (voiceOn) { speakCancelRef.current?.(); speakCancelRef.current = null; }
@@ -714,14 +702,27 @@ export function ChatRoom({ threadId }: { threadId: string }) {
           <Conversation className="flex-1">
             <ConversationContent className="mx-auto w-full max-w-3xl px-4 py-8">
               {messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <OrbStatus active={true} amplitude={voiceAmp} listening={listening} speaking={speaking} {...physics} className="h-32 w-32 mb-4" />
-                  <h2 className="font-serif text-4xl mb-2">Good to see you.</h2>
-
-                  <p className="text-muted-foreground mb-8 max-w-md">
-                    Weather, news, translation, recipes, QR codes, palettes, passwords, math, conversions, planning — Folio is a calm one-stop assistant for the day.
+                <div className="relative flex flex-col items-center justify-center py-14 text-center">
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute left-1/2 top-24 -z-10 h-[280px] w-[560px] max-w-[110vw] -translate-x-1/2 -translate-y-1/2 rounded-full rgb-blob opacity-35 blur-[80px]"
+                  />
+                  <FolioMark
+                    active={isLoading}
+                    amplitude={voiceAmp}
+                    listening={listening}
+                    speaking={speaking}
+                    className="mb-6 h-28 w-28"
+                  />
+                  <p className="text-[11px] uppercase tracking-[0.35em] text-muted-foreground">A calm place to think</p>
+                  <h2 className="mt-4 font-serif text-[clamp(2.25rem,6vw,3.75rem)] leading-[0.96] tracking-tight">
+                    What are we<br /><em className="italic">doing today?</em>
+                  </h2>
+                  <p className="mt-6 mb-10 max-w-md leading-relaxed text-muted-foreground">
+                    Weather, news, translation, research, drafting, code, images — ask in plain words
+                    and Folio picks the tool.
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-2xl">
+                  <div className="grid w-full max-w-2xl grid-cols-1 gap-2.5 sm:grid-cols-2">
                     {[
                       "Draw a serene mountain lake at sunrise, watercolor",
                       "Write a Python function that flattens a nested list",
@@ -735,14 +736,19 @@ export function ChatRoom({ threadId }: { threadId: string }) {
                       <button
                         key={s}
                         onClick={() => sendMessage({ text: s })}
-                        className="text-left text-sm rounded-xl border border-border/60 bg-card/60 backdrop-blur px-3 py-2.5 hover:bg-card/90 hover:scale-[1.02] transition"
+                        className="group relative overflow-hidden rounded-xl border border-border/60 bg-card/50 px-4 py-3 text-left text-sm backdrop-blur-xl transition-all duration-500 hover:-translate-y-0.5 hover:border-border"
                       >
-                        {s}
+                        <span
+                          aria-hidden
+                          className="pointer-events-none absolute -right-12 -top-12 h-28 w-28 rounded-full rgb-blob opacity-0 blur-2xl transition-opacity duration-700 group-hover:opacity-30"
+                        />
+                        <span className="relative">{s}</span>
                       </button>
                     ))}
                   </div>
                 </div>
               ) : (
+
                 messages.map((m) => (
                   <div key={m.id} className="bubble-in">
                     <Message from={m.role === "user" ? "user" : "assistant"}>

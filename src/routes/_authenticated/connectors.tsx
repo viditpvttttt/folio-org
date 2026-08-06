@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Check, ExternalLink, LogOut, Mail, KeyRound, Zap, Sparkles, MousePointer2, BookOpenText, Link2Off, ArrowRight, Calendar, Music2, ListTodo, GitBranch, MessageSquare, Cloud, HardDrive, Video, Clock, Code2, Palette } from "lucide-react";
 import { AppShell, PageHeading } from "@/components/shell/AppShell";
-import { OrbStatus } from "@/components/chat/OrbStatus";
+import { FolioMark } from "@/components/brand/FolioMark";
 import { TiltCard } from "@/components/chat/TiltCard";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
