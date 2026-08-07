@@ -11,7 +11,7 @@ import {
   ConversationContent,
   ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
-import { Message, MessageContent, MessageResponse } from "@/components/ai-elements/message";
+import { MessageResponse } from "@/components/ai-elements/message";
 import {
   PromptInput,
   PromptInputTextarea,
@@ -788,7 +788,7 @@ export function ChatRoom({ threadId }: { threadId: string }) {
                             "leading-relaxed",
                             isUser
                               ? "rounded-2xl rounded-tl-sm border border-border/60 bg-foreground/[0.05] px-4 py-3 text-[0.95rem] text-foreground"
-                              : "prose-folio text-[1.02rem]",
+                              : "text-[1.02rem] text-foreground/90",
                           )}
                         >
                           {m.parts.map((p, i) => {
