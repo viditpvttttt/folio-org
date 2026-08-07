@@ -1,6 +1,5 @@
 import { AmbientScene } from "@/components/chat/AmbientScene";
 import { CursorGlow } from "@/components/chat/CursorGlow";
-import { AntigravityField } from "@/components/fx/AntigravityField";
 import { AppNav } from "@/components/shell/AppNav";
 import { cn } from "@/lib/utils";
 
@@ -18,7 +17,6 @@ export function AppBackdrop({ scene = true, density = 1 }: { scene?: boolean; de
       <div className="absolute bottom-0 left-1/3 h-[460px] w-[460px] rounded-full bg-[radial-gradient(circle_at_center,#b66dff_0%,transparent_65%)] opacity-30 blur-3xl" />
       <div className="absolute bottom-10 right-1/4 h-[380px] w-[380px] rounded-full bg-[radial-gradient(circle_at_center,#7dffb4_0%,transparent_65%)] opacity-25 blur-3xl" />
       <div className="absolute inset-0 bg-background/55 backdrop-blur-[2px]" />
-      <AntigravityField density={density} />
     </div>
   );
 }

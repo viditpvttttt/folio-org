@@ -12,7 +12,6 @@ import {
 import { AppShell, GlassCard } from "@/components/shell/AppShell";
 import { FolioMark } from "@/components/brand/FolioMark";
 import { Reveal } from "@/components/fx/Reveal";
-import { AntigravityField } from "@/components/fx/AntigravityField";
 import { WeatherWidget } from "@/components/chat/WeatherWidget";
 import { NewsWidget } from "@/components/chat/NewsWidget";
 import { useAuth } from "@/hooks/use-auth";
@@ -354,7 +353,6 @@ function DashboardPage() {
         {/* ---------- closing ---------- */}
         <section className="relative overflow-hidden border-t border-border/60 bg-paper-dim/30">
           <div aria-hidden className="pointer-events-none absolute inset-0">
-            <AntigravityField density={1.2} />
           </div>
           <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-6 py-24 md:grid-cols-[1fr_auto] md:py-32">
             <Reveal>
