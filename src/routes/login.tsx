@@ -1,4 +1,3 @@
-import { AntigravityField } from "@/components/fx/AntigravityField";
 import { FolioMark } from "@/components/brand/FolioMark";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
@@ -57,7 +56,6 @@ function LoginPage() {
   return (
     <div className="relative min-h-screen grid md:grid-cols-2 bg-background paper-grain overflow-hidden">
       <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
-        <AntigravityField density={0.8} />
       </div>
 
       <div className="relative hidden md:flex flex-col justify-between p-12 bg-primary text-primary-foreground overflow-hidden">
