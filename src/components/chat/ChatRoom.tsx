@@ -593,90 +593,119 @@ export function ChatRoom({ threadId }: { threadId: string }) {
   const isLoading = status === "submitted" || status === "streaming";
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-background text-foreground">
+    <div className="relative h-screen w-screen overflow-hidden bg-background text-foreground paper-grain">
       <AppBackdrop density={0.7} />
       <CursorGlow />
 
       <div className="relative z-10 flex h-full">
-        {/* Sidebar */}
+        {/* ---------- Sidebar: the index of the folio ---------- */}
         <aside
           className={cn(
-            "transition-all duration-300 border-r border-border/60 bg-card/40 backdrop-blur-xl flex flex-col",
-            sidebarOpen ? "w-72" : "w-0 overflow-hidden",
+            "flex flex-col border-r border-border/50 bg-card/35 backdrop-blur-2xl transition-all duration-500",
+            sidebarOpen ? "w-[17.5rem]" : "w-0 overflow-hidden",
           )}
         >
-          <div className="px-4 pt-5 pb-3 flex items-center justify-between">
-            <span className="font-serif text-2xl">Folio</span>
-            <button
-              onClick={handleNewChat}
-              className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-full bg-foreground text-background hover:opacity-90 transition"
-            >
-              <Plus className="h-3.5 w-3.5" /> New
-            </button>
-          </div>
-          <WeatherWidget />
-          <div className="px-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground py-2">
-            Conversations
+          <div className="flex items-baseline justify-between px-5 pb-4 pt-6">
+            <Link to="/dashboard" className="font-serif text-2xl leading-none tracking-tight">Folio</Link>
+            <span className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">Chat</span>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-2 pb-3 space-y-1">
-            {threadsQ.data?.map((t) => (
-              <div
-                key={t.id}
-                className={cn(
-                  "group flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm cursor-pointer transition",
-                  t.id === threadId ? "bg-foreground/10" : "hover:bg-foreground/5",
-                )}
-                onClick={() => navigate({ to: "/chat/$threadId", params: { threadId: t.id } })}
-              >
-                <span className="flex-1 truncate">{t.title || "New chat"}</span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(t.id);
-                  }}
-                  className="opacity-0 group-hover:opacity-60 hover:opacity-100 transition"
-                  aria-label="Delete chat"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            ))}
+          <div className="px-4">
+            <button
+              onClick={handleNewChat}
+              className="group flex w-full items-center gap-2 rounded-xl border border-border/60 bg-background/40 px-3.5 py-2.5 text-sm transition hover:-translate-y-0.5 hover:border-border"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span className="flex-1 text-left">New conversation</span>
+              <span className="font-mono text-[10px] text-muted-foreground">⌘K</span>
+            </button>
           </div>
-          <div className="border-t border-border/60 p-3 flex items-center justify-between text-xs text-muted-foreground">
-            <span className="truncate">{user?.email}</span>
-            <button onClick={signOut} title="Sign out" className="hover:text-foreground">
+
+          <div className="px-4 pt-4">
+            <WeatherWidget />
+          </div>
+
+          <div className="px-5 pb-2 pt-5 text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
+            Recent
+          </div>
+
+          <div className="flex-1 space-y-0.5 overflow-y-auto px-3 pb-3">
+            {threadsQ.data?.map((t) => {
+              const activeThread = t.id === threadId;
+              return (
+                <div
+                  key={t.id}
+                  onClick={() => navigate({ to: "/chat/$threadId", params: { threadId: t.id } })}
+                  className={cn(
+                    "group relative flex cursor-pointer items-center gap-2 rounded-lg py-2 pl-4 pr-2 text-sm transition",
+                    activeThread ? "bg-foreground/[0.07]" : "hover:bg-foreground/5",
+                  )}
+                >
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "absolute left-1 top-1/2 h-4 w-px -translate-y-1/2 rounded-full transition-all",
+                      activeThread ? "bg-foreground/70" : "bg-transparent group-hover:bg-border",
+                    )}
+                  />
+                  <span className={cn("flex-1 truncate", !activeThread && "text-foreground/80")}>
+                    {t.title || "Untitled"}
+                  </span>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleDelete(t.id); }}
+                    className="opacity-0 transition group-hover:opacity-50 hover:!opacity-100"
+                    aria-label="Delete chat"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              );
+            })}
+            {threadsQ.data?.length === 0 && (
+              <p className="px-4 py-6 text-xs italic text-muted-foreground">Nothing written yet.</p>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 border-t border-border/50 px-4 py-3 text-xs text-muted-foreground">
+            <Link to="/settings" className="truncate transition hover:text-foreground">{user?.email}</Link>
+            <button onClick={signOut} title="Sign out" className="ml-auto transition hover:text-foreground">
               <LogOut className="h-4 w-4" />
             </button>
           </div>
         </aside>
 
-        {/* Main */}
-        <main className="flex-1 flex flex-col min-w-0">
-          <header className="px-4 py-3 flex items-center gap-3 border-b border-border/40">
+        {/* ---------- Main ---------- */}
+        <main className="flex min-w-0 flex-1 flex-col">
+          <header className="flex items-center gap-3 border-b border-border/40 px-4 py-3 backdrop-blur-xl">
             <button
               onClick={() => setSidebarOpen((s) => !s)}
-              className="p-2 rounded-md hover:bg-foreground/5"
+              className="rounded-md p-2 transition hover:bg-foreground/5"
               aria-label="Toggle sidebar"
             >
               <Menu className="h-4 w-4" />
             </button>
             <FolioMark active={isLoading} amplitude={voiceAmp} listening={listening} speaking={speaking} />
-            <span className="font-serif text-lg">Folio</span>
-            <nav className="ml-3 hidden md:flex items-center gap-1 text-xs">
-              <Link to="/dashboard" className="px-2.5 py-1 rounded-full hover:bg-foreground/5 text-foreground/70 inline-flex items-center gap-1">
+            <div className="min-w-0">
+              <div className="truncate font-serif text-lg leading-tight">
+                {threadsQ.data?.find((t) => t.id === threadId)?.title || "New conversation"}
+              </div>
+              <div className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
+                {isLoading ? "Writing" : listening ? "Listening" : speaking ? "Speaking" : "Ready"}
+              </div>
+            </div>
+
+            <nav className="ml-4 hidden items-center gap-1 text-xs md:flex">
+              <Link to="/dashboard" className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-foreground/60 transition hover:bg-foreground/5 hover:text-foreground">
                 <LayoutDashboard className="h-3 w-3" /> Dashboard
               </Link>
-              <Link to="/chat" className="px-2.5 py-1 rounded-full bg-foreground/10 inline-flex items-center gap-1">
-                <MessageCircle className="h-3 w-3" /> Chat
-              </Link>
-              <Link to="/workbench" className="px-2.5 py-1 rounded-full hover:bg-foreground/5 text-foreground/70 inline-flex items-center gap-1">
+              <Link to="/workbench" className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-foreground/60 transition hover:bg-foreground/5 hover:text-foreground">
                 <Terminal className="h-3 w-3" /> Workbench
               </Link>
-              <Link to="/settings" className="px-2.5 py-1 rounded-full hover:bg-foreground/5 text-foreground/70 inline-flex items-center gap-1">
+              <Link to="/settings" className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-foreground/60 transition hover:bg-foreground/5 hover:text-foreground">
                 <SettingsIcon className="h-3 w-3" /> Settings
               </Link>
             </nav>
+
             <div className="ml-auto flex items-center gap-2">
               <button
                 onClick={() => {
@@ -684,8 +713,8 @@ export function ChatRoom({ threadId }: { threadId: string }) {
                   setVoiceOn((v) => !v);
                 }}
                 className={cn(
-                  "inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full transition",
-                  voiceOn ? "bg-foreground text-background" : "bg-foreground/5 hover:bg-foreground/10 text-foreground/70",
+                  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs transition",
+                  voiceOn ? "bg-foreground text-background" : "bg-foreground/5 text-foreground/70 hover:bg-foreground/10",
                 )}
                 aria-label="Toggle voice replies"
                 title={voiceOn ? "Voice replies on" : "Voice replies off"}
@@ -694,147 +723,159 @@ export function ChatRoom({ threadId }: { threadId: string }) {
                 <span className="hidden sm:inline">Voice</span>
               </button>
             </div>
-
           </header>
 
-
-
           <Conversation className="flex-1">
-            <ConversationContent className="mx-auto w-full max-w-3xl px-4 py-8">
+            <ConversationContent className="mx-auto w-full max-w-3xl px-6 py-10">
               {messages.length === 0 ? (
-                <div className="relative flex flex-col items-center justify-center py-14 text-center">
+                <div className="relative flex flex-col items-center py-12 text-center">
                   <div
                     aria-hidden
-                    className="pointer-events-none absolute left-1/2 top-24 -z-10 h-[280px] w-[560px] max-w-[110vw] -translate-x-1/2 -translate-y-1/2 rounded-full rgb-blob opacity-35 blur-[80px]"
+                    className="pointer-events-none absolute left-1/2 top-28 -z-10 h-[300px] w-[600px] max-w-[110vw] -translate-x-1/2 -translate-y-1/2 rounded-full rgb-blob opacity-30 blur-[90px]"
                   />
                   <FolioMark
                     active={isLoading}
                     amplitude={voiceAmp}
                     listening={listening}
                     speaking={speaking}
-                    className="mb-6 h-28 w-28"
+                    className="mb-7 h-24 w-24"
                   />
                   <p className="text-[11px] uppercase tracking-[0.35em] text-muted-foreground">A calm place to think</p>
-                  <h2 className="mt-4 font-serif text-[clamp(2.25rem,6vw,3.75rem)] leading-[0.96] tracking-tight">
+                  <h2 className="mt-4 font-serif text-[clamp(2.25rem,6vw,3.5rem)] leading-[0.96] tracking-tight">
                     What are we<br /><em className="italic">doing today?</em>
                   </h2>
-                  <p className="mt-6 mb-10 max-w-md leading-relaxed text-muted-foreground">
-                    Weather, news, translation, research, drafting, code, images — ask in plain words
-                    and Folio picks the tool.
+                  <p className="mt-5 max-w-md leading-relaxed text-muted-foreground">
+                    Ask in plain words. Folio picks the tool — weather, news, research, drafting,
+                    translation, code, images.
                   </p>
-                  <div className="grid w-full max-w-2xl grid-cols-1 gap-2.5 sm:grid-cols-2">
+
+                  <div className="mt-10 w-full max-w-2xl divide-y divide-border/40 border-y border-border/40 text-left">
                     {[
-                      "Draw a serene mountain lake at sunrise, watercolor",
-                      "Write a Python function that flattens a nested list",
-                      "Run: [1,2,3,4].reduce((a,b)=>a+b,0)",
-                      "Top tech headlines today",
-                      "Generate a 24-char password",
-                      "Make a QR code for https://folio.app",
-                      "Palette from #6c5ce7",
-                      "What's the weather in Tokyo?",
-                    ].map((s) => (
+                      { k: "Today", v: "What's the weather in Tokyo, and should I take a jacket?" },
+                      { k: "Read", v: "Summarise the top tech headlines from this morning" },
+                      { k: "Write", v: "Draft a warm follow-up email after a client call" },
+                      { k: "Make", v: "Draw a serene mountain lake at sunrise, watercolor" },
+                      { k: "Build", v: "Write a Python function that flattens a nested list" },
+                    ].map(({ k, v }) => (
                       <button
-                        key={s}
-                        onClick={() => sendMessage({ text: s })}
-                        className="group relative overflow-hidden rounded-xl border border-border/60 bg-card/50 px-4 py-3 text-left text-sm backdrop-blur-xl transition-all duration-500 hover:-translate-y-0.5 hover:border-border"
+                        key={v}
+                        onClick={() => sendMessage({ text: v })}
+                        className="group flex w-full items-baseline gap-5 py-3.5 text-left transition hover:bg-foreground/[0.04]"
                       >
-                        <span
-                          aria-hidden
-                          className="pointer-events-none absolute -right-12 -top-12 h-28 w-28 rounded-full rgb-blob opacity-0 blur-2xl transition-opacity duration-700 group-hover:opacity-30"
-                        />
-                        <span className="relative">{s}</span>
+                        <span className="w-14 shrink-0 pl-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                          {k}
+                        </span>
+                        <span className="flex-1 text-sm text-foreground/85 transition group-hover:text-foreground">{v}</span>
+                        <span className="pr-2 text-muted-foreground opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-70">→</span>
                       </button>
                     ))}
                   </div>
                 </div>
               ) : (
-
-                messages.map((m) => (
-                  <div key={m.id} className="bubble-in">
-                    <Message from={m.role === "user" ? "user" : "assistant"}>
-                      <MessageContent
-                        className={cn(
-                          m.role === "user"
-                            ? "bg-foreground text-background"
-                            : "bg-transparent p-0",
+                <div className="space-y-8">
+                  {messages.map((m) => {
+                    const isUser = m.role === "user";
+                    return (
+                      <article key={m.id} className="bubble-in group/msg">
+                        <div className="mb-2 flex items-center gap-2">
+                          <span className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
+                            {isUser ? "You" : "Folio"}
+                          </span>
+                          <span aria-hidden className="h-px flex-1 bg-border/50" />
+                        </div>
+                        <div
+                          className={cn(
+                            "leading-relaxed",
+                            isUser
+                              ? "rounded-2xl rounded-tl-sm border border-border/60 bg-foreground/[0.05] px-4 py-3 text-[0.95rem] text-foreground"
+                              : "prose-folio text-[1.02rem]",
+                          )}
+                        >
+                          {m.parts.map((p, i) => {
+                            if (p.type === "text") {
+                              return isUser ? (
+                                <span key={i} className="whitespace-pre-wrap">{p.text}</span>
+                              ) : (
+                                <MessageResponse key={i}>{p.text}</MessageResponse>
+                              );
+                            }
+                            if (p.type === "file") {
+                              const fp = p as unknown as { url: string; mediaType?: string; filename?: string };
+                              const isImg = fp.mediaType?.startsWith("image/");
+                              return isImg ? (
+                                <img key={i} src={fp.url} alt={fp.filename ?? "attachment"} className="my-2 max-h-72 rounded-xl border border-border/60" />
+                              ) : (
+                                <a key={i} href={fp.url} target="_blank" rel="noreferrer" className="my-1 inline-flex items-center gap-2 rounded-lg border border-border/60 bg-card/60 px-3 py-2 text-xs backdrop-blur transition hover:bg-card/80">
+                                  <FileText className="h-4 w-4" />
+                                  <span className="max-w-[220px] truncate">{fp.filename ?? "Attachment"}</span>
+                                </a>
+                              );
+                            }
+                            if (typeof p.type === "string" && p.type.startsWith("tool-")) {
+                              return <ToolPart key={i} part={p as unknown as { type: string; state?: string; output?: unknown; input?: unknown }} />;
+                            }
+                            return null;
+                          })}
+                        </div>
+                        {!isUser && (
+                          <div className="mt-2 flex items-center gap-3 opacity-0 transition group-hover/msg:opacity-100">
+                            <button
+                              onClick={() => {
+                                const text = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("").trim();
+                                navigator.clipboard.writeText(text);
+                                toast.success("Copied");
+                              }}
+                              className="inline-flex items-center gap-1 text-[11px] text-muted-foreground transition hover:text-foreground"
+                            >
+                              <Copy className="h-3 w-3" /> Copy
+                            </button>
+                          </div>
                         )}
-                      >
-                        {m.parts.map((p, i) => {
-                          if (p.type === "text") {
-                            return m.role === "assistant" ? (
-                              <MessageResponse key={i}>{p.text}</MessageResponse>
-                            ) : (
-                              <span key={i}>{p.text}</span>
-                            );
-                          }
-                          if (p.type === "file") {
-                            const fp = p as unknown as { url: string; mediaType?: string; filename?: string };
-                            const isImg = fp.mediaType?.startsWith("image/");
-                            return isImg ? (
-                              <img key={i} src={fp.url} alt={fp.filename ?? "attachment"} className="mt-1 mb-1 max-h-72 rounded-lg border border-border/60" />
-                            ) : (
-                              <a key={i} href={fp.url} target="_blank" rel="noreferrer" className="mt-1 mb-1 inline-flex items-center gap-2 rounded-lg border border-border/60 bg-card/60 px-3 py-2 text-xs backdrop-blur hover:bg-card/80">
-                                <FileText className="h-4 w-4" />
-                                <span className="truncate max-w-[220px]">{fp.filename ?? "Attachment"}</span>
-                              </a>
-                            );
-                          }
-                          if (typeof p.type === "string" && p.type.startsWith("tool-")) {
-                            return <ToolPart key={i} part={p as unknown as { type: string; state?: string; output?: unknown; input?: unknown }} />;
-                          }
-                          return null;
-                        })}
-                      </MessageContent>
-                    </Message>
-                  </div>
-                ))
-
+                      </article>
+                    );
+                  })}
+                </div>
               )}
+
               {status === "submitted" && (
-                <Message from="assistant">
-                  <MessageContent className="bg-transparent p-0">
-                    <Shimmer>Thinking…</Shimmer>
-                  </MessageContent>
-                </Message>
+                <div className="mt-8">
+                  <div className="mb-2 flex items-center gap-2">
+                    <span className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">Folio</span>
+                    <span aria-hidden className="h-px flex-1 bg-border/50" />
+                  </div>
+                  <Shimmer>Thinking…</Shimmer>
+                </div>
               )}
             </ConversationContent>
             <ConversationScrollButton />
           </Conversation>
 
-          {/* Composer with glassmorphic RGB blur halo */}
-          <div className="px-4 pb-6 pt-2">
+          {/* ---------- Composer ---------- */}
+          <div className="px-6 pb-6 pt-2">
             <div className="mx-auto w-full max-w-3xl">
-              {/* Live caption while listening / transcribing */}
               {(listening || interim) && (
                 <div className="mb-3 flex justify-center">
-                  <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm text-foreground/90 backdrop-blur-xl shadow-[0_8px_40px_-12px_rgba(255,77,141,0.45)]">
+                  <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-border/60 bg-card/70 px-4 py-2 text-sm backdrop-blur-xl">
                     <span className="relative flex h-2 w-2">
                       <span className="absolute inset-0 animate-ping rounded-full bg-[#ff4d8d]/70" />
                       <span className="relative h-2 w-2 rounded-full bg-[#ff4d8d]" />
                     </span>
-                    <span className="font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                       {listening ? "Listening" : "Transcribing"}
                     </span>
-                    {interim && (
-                      <span className="ml-1 max-w-[60vw] truncate italic text-foreground/95">
-                        "{interim}"
-                      </span>
-                    )}
+                    {interim && <span className="ml-1 max-w-[60vw] truncate italic text-foreground/90">"{interim}"</span>}
                   </div>
                 </div>
               )}
 
-              <div className={cn("relative rgb-aurora rounded-2xl p-[2px]", (isLoading || listening) && "is-loud")}
-                style={{ filter: "blur(0px)" }}
-              >
-                {/* Outer blurred RGB halo */}
+              <div className={cn("relative rgb-aurora rounded-2xl p-px", (isLoading || listening) && "is-loud")}>
                 <div
                   aria-hidden
                   className={cn(
-                    "pointer-events-none absolute -inset-4 rounded-[28px] rgb-aurora opacity-60",
-                    (isLoading || listening) && "opacity-90 is-loud",
+                    "pointer-events-none absolute -inset-3 rounded-[26px] rgb-aurora opacity-30 transition-opacity duration-700",
+                    (isLoading || listening) && "opacity-70 is-loud",
                   )}
-                  style={{ filter: "blur(28px)" }}
+                  style={{ filter: "blur(24px)" }}
                 />
                 <PromptInput
                   onSubmit={handleSubmit}
@@ -843,11 +884,11 @@ export function ChatRoom({ threadId }: { threadId: string }) {
                   maxFiles={6}
                   maxFileSize={10 * 1024 * 1024}
                   onError={(e) => toast.error(e.message)}
-                  className="relative bg-background/40 backdrop-blur-2xl rounded-[14px] border border-white/15 shadow-[0_10px_50px_-12px_rgba(0,0,0,0.5)]"
+                  className="relative rounded-[15px] border border-border/60 bg-background/70 backdrop-blur-2xl"
                 >
                   <AttachPreview />
                   <PromptInputTextarea
-                    placeholder={listening ? "Listening…" : "Ask Folio anything — attach photos, PDFs, or tap the mic"}
+                    placeholder={listening ? "Listening…" : "Ask Folio anything…"}
                     autoFocus
                     disabled={isLoading}
                   />
@@ -867,13 +908,12 @@ export function ChatRoom({ threadId }: { threadId: string }) {
                         }}
                       />
                     </div>
-
                     <PromptInputSubmit status={status} disabled={isLoading} />
                   </PromptInputFooter>
                 </PromptInput>
               </div>
-              <p className="text-[11px] text-muted-foreground text-center mt-2">
-                Folio · hold the mic to talk · toggle voice replies in the header
+              <p className="mt-2.5 text-center text-[11px] text-muted-foreground">
+                Hold the mic to talk · voice replies toggle in the header
               </p>
             </div>
           </div>
@@ -882,4 +922,5 @@ export function ChatRoom({ threadId }: { threadId: string }) {
     </div>
   );
 }
+
 
