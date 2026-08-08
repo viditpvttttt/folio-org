@@ -15,8 +15,11 @@ import { Reveal } from "@/components/fx/Reveal";
 import { WeatherWidget } from "@/components/chat/WeatherWidget";
 import { NewsWidget } from "@/components/chat/NewsWidget";
 import { useAuth } from "@/hooks/use-auth";
+import { usePreferences } from "@/hooks/use-preferences";
+import { supabase } from "@/integrations/supabase/client";
 import { createThread, listThreads } from "@/lib/threads.functions";
 import { addMemory, deleteMemory, listMemories } from "@/lib/memories.functions";
+
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
