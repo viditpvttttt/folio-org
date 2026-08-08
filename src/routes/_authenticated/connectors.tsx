@@ -150,10 +150,12 @@ function ConnectorsPage() {
 
   const submitToken = async () => {
     if (!tokenOpen) return;
-    if (tokenOpen.id !== "vercel" && tokenOpen.id !== "cursor") return;
+    const provider = TOKEN_PROVIDERS.find((p) => p === tokenOpen.id);
+    if (!provider) return;
     setBusy(tokenOpen.id);
     try {
-      const res = await saveToken({ data: { provider: tokenOpen.id, token: tokenValue.trim() } });
+      const res = await saveToken({ data: { provider, token: tokenValue.trim() } });
+
       toast.success(`${tokenOpen.name} connected as ${res.label ?? "account"}`);
       qc.invalidateQueries({ queryKey: ["connections"] });
       setTokenOpen(null);
