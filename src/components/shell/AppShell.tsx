@@ -1,22 +1,18 @@
-import { AmbientScene } from "@/components/chat/AmbientScene";
-import { CursorGlow } from "@/components/chat/CursorGlow";
+import { useRef } from "react";
 import { AppNav } from "@/components/shell/AppNav";
 import { cn } from "@/lib/utils";
 
-/** Ambient 3D + RGB + antigravity particle backdrop shared by every app section. */
-export function AppBackdrop({ scene = true, density = 1 }: { scene?: boolean; density?: number }) {
+/**
+ * Ambient backdrop — flat aurora sheets and a fine engraving grid.
+ * Deliberately free of orbs, blobs and particles.
+ */
+export function AppBackdrop({ scene = true }: { scene?: boolean; density?: number }) {
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      {scene && (
-        <div className="absolute inset-0 opacity-70">
-          <AmbientScene />
-        </div>
-      )}
-      <div className="absolute -top-40 -left-32 h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle_at_center,#ff4d8d_0%,transparent_65%)] opacity-35 blur-3xl" />
-      <div className="absolute top-32 -right-40 h-[560px] w-[560px] rounded-full bg-[radial-gradient(circle_at_center,#4d9bff_0%,transparent_65%)] opacity-35 blur-3xl" />
-      <div className="absolute bottom-0 left-1/3 h-[460px] w-[460px] rounded-full bg-[radial-gradient(circle_at_center,#b66dff_0%,transparent_65%)] opacity-30 blur-3xl" />
-      <div className="absolute bottom-10 right-1/4 h-[380px] w-[380px] rounded-full bg-[radial-gradient(circle_at_center,#7dffb4_0%,transparent_65%)] opacity-25 blur-3xl" />
-      <div className="absolute inset-0 bg-background/55 backdrop-blur-[2px]" />
+      {scene && <div className="absolute inset-x-0 top-0 h-[46vh] aurora-sheet opacity-70" />}
+      <div className="absolute inset-x-0 bottom-0 h-[36vh] aurora-sheet-b opacity-50" />
+      <div className="absolute inset-0 grid-fine opacity-[0.55]" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent,var(--color-background))] opacity-60" />
     </div>
   );
 }
@@ -26,7 +22,6 @@ export function AppShell({
   right,
   className,
   scene = true,
-  density = 1,
 }: {
   children: React.ReactNode;
   right?: React.ReactNode;
@@ -36,8 +31,7 @@ export function AppShell({
 }) {
   return (
     <div className={cn("relative min-h-screen w-full overflow-x-hidden bg-background text-foreground paper-grain", className)}>
-      <AppBackdrop scene={scene} density={density} />
-      <CursorGlow />
+      <AppBackdrop scene={scene} />
       <div className="relative z-10">
         <AppNav right={right} />
         {children}
@@ -45,7 +39,6 @@ export function AppShell({
     </div>
   );
 }
-
 
 /** Page title block matching the landing page's editorial rhythm. */
 export function PageHeading({
@@ -59,7 +52,6 @@ export function PageHeading({
 }) {
   return (
     <div className="relative mb-10">
-      <div aria-hidden className="pointer-events-none absolute -left-10 -top-16 h-56 w-72 rounded-full rgb-blob opacity-25 blur-3xl" />
       <div className="relative grid grid-cols-[minmax(0,1fr)_auto] items-end gap-6">
         <div className="min-w-0">
           <p className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
@@ -70,28 +62,49 @@ export function PageHeading({
         </div>
         {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
       </div>
+      <div aria-hidden className="mt-8 h-px w-full rgb-line opacity-60" />
     </div>
   );
 }
 
-/** Glass card with an RGB hover bloom — the app-wide surface primitive. */
+/**
+ * Glass card with real depth: pointer-tracked 3D tilt, a light sheen that
+ * follows the cursor, and a lifted shadow. No blobs.
+ */
 export function GlassCard({
-  children, className, glow = true,
-}: { children: React.ReactNode; className?: string; glow?: boolean }) {
+  children, className, glow = true, tilt = 5,
+}: { children: React.ReactNode; className?: string; glow?: boolean; tilt?: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  const onMove = (e: React.MouseEvent) => {
+    const el = ref.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5;
+    const y = (e.clientY - r.top) / r.height - 0.5;
+    el.style.setProperty("--rx", `${-y * tilt}deg`);
+    el.style.setProperty("--ry", `${x * tilt}deg`);
+    el.style.setProperty("--mx", `${(x + 0.5) * 100}%`);
+    el.style.setProperty("--my", `${(y + 0.5) * 100}%`);
+  };
+  const onLeave = () => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.setProperty("--rx", "0deg");
+    el.style.setProperty("--ry", "0deg");
+  };
+
   return (
-    <div
-      className={cn(
-        "group relative h-full overflow-hidden rounded-2xl border border-border/60 bg-card/50 backdrop-blur-xl transition-all duration-500 hover:-translate-y-0.5 hover:border-border",
-        className,
-      )}
-    >
-      {glow && (
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full rgb-blob opacity-0 blur-2xl transition-opacity duration-700 group-hover:opacity-30"
-        />
-      )}
-      <div className="relative h-full">{children}</div>
+    <div className="h-full [perspective:1100px]">
+      <div
+        ref={ref}
+        onMouseMove={onMove}
+        onMouseLeave={onLeave}
+        className={cn("card-3d group relative h-full overflow-hidden rounded-2xl border border-border/60 bg-card/55 backdrop-blur-xl", className)}
+      >
+        {glow && <span aria-hidden className="card-sheen" />}
+        <div className="relative h-full [transform:translateZ(28px)]">{children}</div>
+      </div>
     </div>
   );
 }
