@@ -81,6 +81,8 @@ function greeting(h: number) {
 
 function DashboardPage() {
   const { user } = useAuth();
+  const prefs = usePreferences();
+
   const navigate = useNavigate();
   const qc = useQueryClient();
   const list = useServerFn(listThreads);
