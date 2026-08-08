@@ -37,31 +37,91 @@ export const disconnectProvider = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-/** For providers without OAuth: user pastes a personal API token (Vercel, Cursor). */
+export const TOKEN_PROVIDERS = [
+  "vercel",
+  "cursor",
+  "github",
+  "linear",
+  "figma",
+  "slack",
+  "todoist",
+  "openai",
+] as const;
+export type TokenProvider = (typeof TOKEN_PROVIDERS)[number];
+
+/** Verify a personal token and return a human label for the account. */
+async function verifyToken(provider: TokenProvider, token: string, fallback?: string): Promise<string> {
+  const bearer = { Authorization: `Bearer ${token}` };
+  switch (provider) {
+    case "vercel": {
+      const r = await fetch("https://api.vercel.com/v2/user", { headers: bearer });
+      if (!r.ok) throw new Error("Invalid Vercel token");
+      const j = (await r.json()) as { user?: { username?: string; email?: string } };
+      return j.user?.username ?? j.user?.email ?? "Vercel account";
+    }
+    case "github": {
+      const r = await fetch("https://api.github.com/user", {
+        headers: { ...bearer, Accept: "application/vnd.github+json", "User-Agent": "Folio" },
+      });
+      if (!r.ok) throw new Error("Invalid GitHub token");
+      const j = (await r.json()) as { login?: string; name?: string };
+      return j.login ?? j.name ?? "GitHub account";
+    }
+    case "linear": {
+      const r = await fetch("https://api.linear.app/graphql", {
+        method: "POST",
+        headers: { Authorization: token, "Content-Type": "application/json" },
+        body: JSON.stringify({ query: "{ viewer { name email } }" }),
+      });
+      const j = (await r.json()) as { data?: { viewer?: { name?: string; email?: string } } };
+      if (!r.ok || !j.data?.viewer) throw new Error("Invalid Linear API key");
+      return j.data.viewer.name ?? j.data.viewer.email ?? "Linear account";
+    }
+    case "figma": {
+      const r = await fetch("https://api.figma.com/v1/me", { headers: { "X-Figma-Token": token } });
+      if (!r.ok) throw new Error("Invalid Figma token");
+      const j = (await r.json()) as { handle?: string; email?: string };
+      return j.handle ?? j.email ?? "Figma account";
+    }
+    case "slack": {
+      const r = await fetch("https://slack.com/api/auth.test", { method: "POST", headers: bearer });
+      const j = (await r.json()) as { ok?: boolean; user?: string; team?: string; error?: string };
+      if (!j.ok) throw new Error(`Slack rejected the token${j.error ? `: ${j.error}` : ""}`);
+      return [j.user, j.team].filter(Boolean).join(" · ") || "Slack workspace";
+    }
+    case "todoist": {
+      const r = await fetch("https://api.todoist.com/rest/v2/projects", { headers: bearer });
+      if (!r.ok) throw new Error("Invalid Todoist token");
+      return fallback?.trim() || "Todoist account";
+    }
+    case "openai": {
+      const r = await fetch("https://api.openai.com/v1/models", { headers: bearer });
+      if (!r.ok) throw new Error("Invalid OpenAI key");
+      return fallback?.trim() || "OpenAI account";
+    }
+    default:
+      return fallback?.trim() || "Connected account";
+  }
+}
+
+/** For providers without OAuth: user pastes a personal API token. */
 export const saveApiToken = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z
       .object({
-        provider: z.enum(["vercel", "cursor"]),
+        provider: z.enum(TOKEN_PROVIDERS),
         token: z.string().min(8).max(500),
         label: z.string().max(120).optional(),
       })
       .parse(input),
   )
   .handler(async ({ context, data }) => {
-    // For Vercel we can verify + fetch username; Cursor tokens are opaque.
-    let label = data.label ?? null;
-    if (data.provider === "vercel") {
-      const r = await fetch("https://api.vercel.com/v2/user", {
-        headers: { Authorization: `Bearer ${data.token}` },
-      });
-      if (!r.ok) throw new Error("Invalid Vercel token");
-      const j = (await r.json()) as { user?: { username?: string; email?: string } };
-      label = j.user?.username ?? j.user?.email ?? "Vercel account";
-    } else if (data.provider === "cursor") {
-      label = data.label?.trim() || "Cursor account";
-    }
+    const label =
+      data.provider === "cursor"
+        ? data.label?.trim() || "Cursor account"
+        : await verifyToken(data.provider, data.token, data.label);
+
     const { error } = await context.supabase.from("user_connections").upsert(
       {
         user_id: context.userId,
@@ -77,3 +137,4 @@ export const saveApiToken = createServerFn({ method: "POST" })
     if (error) throw error;
     return { ok: true, label };
   });
+
