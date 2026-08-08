@@ -28,12 +28,13 @@ import { WeatherCard, type WeatherData } from "./WeatherCard";
 import { WeatherWidget } from "./WeatherWidget";
 import { TiltCard } from "./TiltCard";
 import { VoiceButton, speak } from "./VoiceButton";
-import { CursorGlow } from "./CursorGlow";
-import { Clock, CalendarClock, Loader2, Calculator, Ruler, Coins, BookOpen, Link2, Dices, Newspaper, Languages, KeyRound, QrCode, ChefHat, Palette, Smile, Copy, Wand2, ImageIcon, Terminal } from "lucide-react";
+import { Search, Clock, CalendarClock, Loader2, Calculator, Ruler, Coins, BookOpen, Link2, Dices, Newspaper, Languages, KeyRound, QrCode, ChefHat, Palette, Smile, Copy, Wand2, ImageIcon, Terminal } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { usePreferences } from "@/hooks/use-preferences";
 import { createThread, deleteThread, getThreadMessages, listThreads } from "@/lib/threads.functions";
 import { cn } from "@/lib/utils";
+
 
 
 type PlanBlock = { title: string; start: string; end: string; minutes: number };
