@@ -177,14 +177,11 @@ function DashboardPage() {
 
             <Reveal delay={80}>
               <div className="relative mt-6">
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute -left-24 top-1/2 -z-10 h-[360px] w-[720px] max-w-[110vw] -translate-y-1/2 rounded-full rgb-blob opacity-40 blur-[90px]"
-                />
                 <h1 className="relative font-serif text-[clamp(2.75rem,7.5vw,6rem)] leading-[0.94] tracking-tight">
                   {greeting(now.getHours())},<br />
-                  <em className="italic">{name}.</em>
+                  <em className="italic capitalize">{firstName}.</em>
                 </h1>
+                <div aria-hidden className="mt-7 h-px w-56 rgb-line opacity-70" />
               </div>
             </Reveal>
 
@@ -194,6 +191,18 @@ function DashboardPage() {
                 off, or just say what you need.
               </p>
             </Reveal>
+
+            <Reveal delay={190}>
+              <div className="mt-10 grid max-w-3xl grid-cols-2 gap-3 sm:grid-cols-4">
+                {stats.map((s) => (
+                  <div key={s.label} className="card-3d rounded-2xl border border-border/60 bg-card/50 px-4 py-3 backdrop-blur-xl">
+                    <div className="font-serif text-2xl tabular-nums">{s.value}</div>
+                    <div className="mt-0.5 text-[10px] uppercase tracking-[0.22em] text-muted-foreground">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            </Reveal>
+
 
             <Reveal delay={220}>
               <div className="mt-10 flex flex-wrap items-center gap-3">
