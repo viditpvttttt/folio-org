@@ -122,7 +122,30 @@ function DashboardPage() {
     qc.invalidateQueries({ queryKey: ["memories"] });
   };
 
-  const name = user?.email?.split("@")[0] ?? "friend";
+  const profileQ = useQuery({
+    queryKey: ["profile", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("display_name, avatar_url").eq("id", user!.id).maybeSingle();
+      return data;
+    },
+  });
+
+  const name =
+    prefs.nickname.trim() ||
+    profileQ.data?.display_name ||
+    (user?.user_metadata?.full_name as string | undefined) ||
+    user?.email?.split("@")[0] ||
+    "friend";
+  const firstName = name.split(" ")[0];
+
+  const stats = [
+    { label: "Conversations", value: threadsQ.data?.length ?? 0 },
+    { label: "Memories", value: memsQ.data?.length ?? 0 },
+    { label: "Skills ready", value: SKILLS.length },
+    { label: "Local time", value: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) },
+  ];
+
 
   return (
     <AppShell
