@@ -10,6 +10,8 @@ import { TiltCard } from "@/components/chat/TiltCard";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { listConnections, disconnectProvider, saveApiToken } from "@/lib/connections.functions";
+import { TOKEN_PROVIDERS } from "@/lib/token-providers";
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
