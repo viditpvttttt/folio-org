@@ -271,3 +271,62 @@ html[data-contrast="high"] * { border-color: var(--border) !important; }
 
 .group:hover .folio-mark .folio-page--left { transform: translate(-2px, -2px) rotate(-3deg); }
 .group:hover .folio-mark .folio-page--right { transform: translate(2px, -3px) rotate(3deg); }
+
+/* ===== Flat ambience (no orbs / blobs / particles) ===== */
+.aurora-sheet {
+  background:
+    linear-gradient(115deg,
+      color-mix(in oklab, #ff4d8d 14%, transparent) 0%,
+      color-mix(in oklab, #b66dff 12%, transparent) 28%,
+      color-mix(in oklab, #4d9bff 13%, transparent) 58%,
+      color-mix(in oklab, #7dffb4 10%, transparent) 82%,
+      transparent 100%);
+  filter: blur(40px);
+}
+.aurora-sheet-b {
+  background:
+    linear-gradient(295deg,
+      color-mix(in oklab, #4d9bff 12%, transparent) 0%,
+      color-mix(in oklab, #ffd24d 9%, transparent) 45%,
+      transparent 85%);
+  filter: blur(48px);
+}
+.grid-fine {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--color-foreground) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--color-foreground) 5%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(120% 90% at 50% 0%, #000 30%, transparent 85%);
+}
+.rgb-line {
+  background: linear-gradient(90deg, #ff4d8d, #b66dff, #4d9bff, #7dffb4, #ffd24d, #ff4d8d);
+  background-size: 300% 100%;
+  animation: rgb-slide 12s linear infinite;
+}
+@keyframes rgb-slide {
+  to { background-position: 300% 0; }
+}
+
+/* ===== 3D cards ===== */
+.card-3d {
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(0);
+  transform-style: preserve-3d;
+  transition: transform 260ms cubic-bezier(.2,.8,.2,1), box-shadow 320ms ease, border-color 320ms ease;
+  box-shadow: 0 1px 2px color-mix(in oklab, var(--color-foreground) 6%, transparent);
+}
+.card-3d:hover {
+  box-shadow:
+    0 18px 40px -22px color-mix(in oklab, var(--color-foreground) 45%, transparent),
+    0 2px 0 color-mix(in oklab, var(--color-foreground) 5%, transparent);
+  border-color: color-mix(in oklab, var(--color-foreground) 22%, transparent);
+}
+.card-sheen {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 400ms ease;
+  background: radial-gradient(340px circle at var(--mx, 50%) var(--my, 50%),
+    color-mix(in oklab, var(--color-foreground) 8%, transparent), transparent 65%);
+}
+.card-3d:hover .card-sheen { opacity: 1; }
