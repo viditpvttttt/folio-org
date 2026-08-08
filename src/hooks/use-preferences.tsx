@@ -2,6 +2,10 @@ import { useCallback, useEffect, useState } from "react";
 
 export type Tone = "warm" | "neutral" | "direct" | "playful";
 export type Length = "brief" | "balanced" | "thorough";
+export type Units = "metric" | "imperial";
+export type TimeFormat = "12h" | "24h";
+export type Density = "comfortable" | "compact";
+export type Landing = "dashboard" | "chat";
 
 export type Preferences = {
   /** How Folio should sound. */
@@ -22,6 +26,22 @@ export type Preferences = {
   shareLocation: boolean;
   /** Let Folio remember facts about you between conversations. */
   allowMemory: boolean;
+  /** Measurement system used in answers and widgets. */
+  units: Units;
+  /** Clock format across the app. */
+  timeFormat: TimeFormat;
+  /** Transcript spacing. */
+  density: Density;
+  /** Show a timestamp under each message. */
+  showTimestamps: boolean;
+  /** Default news topic for widgets. */
+  newsTopic: string;
+  /** Where Folio opens after sign-in. */
+  landing: Landing;
+  /** Show the weather + news rail in chat. */
+  showRail: boolean;
+  /** Preferred reply language ("auto" follows your message). */
+  language: string;
 };
 
 export const DEFAULT_PREFERENCES: Preferences = {
@@ -34,7 +54,16 @@ export const DEFAULT_PREFERENCES: Preferences = {
   showSuggestions: true,
   shareLocation: true,
   allowMemory: true,
+  units: "metric",
+  timeFormat: "12h",
+  density: "comfortable",
+  showTimestamps: false,
+  newsTopic: "technology",
+  landing: "dashboard",
+  showRail: true,
+  language: "auto",
 };
+
 
 const KEY = "folio.preferences";
 

@@ -15,8 +15,11 @@ import { Reveal } from "@/components/fx/Reveal";
 import { WeatherWidget } from "@/components/chat/WeatherWidget";
 import { NewsWidget } from "@/components/chat/NewsWidget";
 import { useAuth } from "@/hooks/use-auth";
+import { usePreferences } from "@/hooks/use-preferences";
+import { supabase } from "@/integrations/supabase/client";
 import { createThread, listThreads } from "@/lib/threads.functions";
 import { addMemory, deleteMemory, listMemories } from "@/lib/memories.functions";
+
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
@@ -78,6 +81,8 @@ function greeting(h: number) {
 
 function DashboardPage() {
   const { user } = useAuth();
+  const prefs = usePreferences();
+
   const navigate = useNavigate();
   const qc = useQueryClient();
   const list = useServerFn(listThreads);
@@ -122,7 +127,30 @@ function DashboardPage() {
     qc.invalidateQueries({ queryKey: ["memories"] });
   };
 
-  const name = user?.email?.split("@")[0] ?? "friend";
+  const profileQ = useQuery({
+    queryKey: ["profile", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("display_name, avatar_url").eq("id", user!.id).maybeSingle();
+      return data;
+    },
+  });
+
+  const name =
+    prefs.nickname.trim() ||
+    profileQ.data?.display_name ||
+    (user?.user_metadata?.full_name as string | undefined) ||
+    user?.email?.split("@")[0] ||
+    "friend";
+  const firstName = name.split(" ")[0];
+
+  const stats = [
+    { label: "Conversations", value: threadsQ.data?.length ?? 0 },
+    { label: "Memories", value: memsQ.data?.length ?? 0 },
+    { label: "Skills ready", value: SKILLS.length },
+    { label: "Local time", value: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) },
+  ];
+
 
   return (
     <AppShell
@@ -149,14 +177,11 @@ function DashboardPage() {
 
             <Reveal delay={80}>
               <div className="relative mt-6">
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute -left-24 top-1/2 -z-10 h-[360px] w-[720px] max-w-[110vw] -translate-y-1/2 rounded-full rgb-blob opacity-40 blur-[90px]"
-                />
                 <h1 className="relative font-serif text-[clamp(2.75rem,7.5vw,6rem)] leading-[0.94] tracking-tight">
                   {greeting(now.getHours())},<br />
-                  <em className="italic">{name}.</em>
+                  <em className="italic capitalize">{firstName}.</em>
                 </h1>
+                <div aria-hidden className="mt-7 h-px w-56 rgb-line opacity-70" />
               </div>
             </Reveal>
 
@@ -166,6 +191,18 @@ function DashboardPage() {
                 off, or just say what you need.
               </p>
             </Reveal>
+
+            <Reveal delay={190}>
+              <div className="mt-10 grid max-w-3xl grid-cols-2 gap-3 sm:grid-cols-4">
+                {stats.map((s) => (
+                  <div key={s.label} className="card-3d rounded-2xl border border-border/60 bg-card/50 px-4 py-3 backdrop-blur-xl">
+                    <div className="font-serif text-2xl tabular-nums">{s.value}</div>
+                    <div className="mt-0.5 text-[10px] uppercase tracking-[0.22em] text-muted-foreground">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            </Reveal>
+
 
             <Reveal delay={220}>
               <div className="mt-10 flex flex-wrap items-center gap-3">

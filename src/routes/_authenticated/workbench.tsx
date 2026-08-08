@@ -10,7 +10,6 @@ import {
   Terminal, Wand2, ImageIcon, FolderOpen, Plus, Send, Sparkles,
 } from "lucide-react";
 import { AppBackdrop } from "@/components/shell/AppShell";
-import { CursorGlow } from "@/components/chat/CursorGlow";
 import { FolioMark } from "@/components/brand/FolioMark";
 import { Message, MessageContent, MessageResponse } from "@/components/ai-elements/message";
 import { Conversation, ConversationContent, ConversationScrollButton } from "@/components/ai-elements/conversation";
@@ -176,7 +175,6 @@ function WorkbenchPage() {
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-background text-foreground">
       <AppBackdrop density={0.6} />
-      <CursorGlow />
 
       {/* Header */}
       <header className="relative z-10 h-14 flex items-center gap-3 px-4 border-b border-border/40 bg-background/40 backdrop-blur-xl">

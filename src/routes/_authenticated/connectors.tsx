@@ -10,6 +10,8 @@ import { TiltCard } from "@/components/chat/TiltCard";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { listConnections, disconnectProvider, saveApiToken } from "@/lib/connections.functions";
+import { TOKEN_PROVIDERS } from "@/lib/token-providers";
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,21 +59,53 @@ const PROVIDERS: ProviderCard[] = [
     tokenHelp: "Paste your API key from cursor.com/settings.",
     tokenUrl: "https://cursor.com/settings",
   },
+  {
+    id: "github", name: "GitHub", tagline: "Repos, issues and pull requests",
+    icon: Code2, hue: "from-zinc-500/25 to-slate-500/10", kind: "token",
+    tokenHelp: "Create a fine-grained personal access token with read access to your repositories.",
+    tokenUrl: "https://github.com/settings/tokens",
+  },
+  {
+    id: "linear", name: "Linear", tagline: "Triage issues and plan cycles",
+    icon: GitBranch, hue: "from-violet-500/25 to-indigo-500/10", kind: "token",
+    tokenHelp: "Linear → Settings → Security & access → Personal API keys.",
+    tokenUrl: "https://linear.app/settings/api",
+  },
+  {
+    id: "slack", name: "Slack", tagline: "Read channels, post messages",
+    icon: MessageSquare, hue: "from-fuchsia-500/25 to-pink-500/10", kind: "token",
+    tokenHelp: "Paste a user OAuth token (xoxp-…) from your Slack app's OAuth page.",
+    tokenUrl: "https://api.slack.com/apps",
+  },
+  {
+    id: "todoist", name: "Todoist", tagline: "Capture, list and complete tasks",
+    icon: ListTodo, hue: "from-red-500/25 to-rose-500/10", kind: "token",
+    tokenHelp: "Todoist → Settings → Integrations → Developer → API token.",
+    tokenUrl: "https://app.todoist.com/app/settings/integrations/developer",
+  },
+  {
+    id: "figma", name: "Figma", tagline: "Pull frames and list your files",
+    icon: Palette, hue: "from-orange-500/25 to-red-500/10", kind: "token",
+    tokenHelp: "Figma → Settings → Personal access tokens.",
+    tokenUrl: "https://www.figma.com/developers/api#access-tokens",
+  },
+  {
+    id: "openai", name: "OpenAI", tagline: "Use your own key for extra models",
+    icon: Sparkles, hue: "from-emerald-500/25 to-teal-500/10", kind: "token",
+    tokenHelp: "Create a secret key at platform.openai.com/api-keys.",
+    tokenUrl: "https://platform.openai.com/api-keys",
+  },
 ];
 
 const COMING_SOON: ProviderCard[] = [
   { id: "gcal",     name: "Google Calendar", tagline: "See your day, book focus blocks, RSVP",  icon: Calendar,      hue: "from-sky-500/25 to-blue-500/10",       kind: "soon" },
   { id: "spotify",  name: "Spotify",         tagline: "Play focus playlists, set the mood",     icon: Music2,        hue: "from-emerald-500/25 to-green-500/10",  kind: "soon" },
-  { id: "todoist",  name: "Todoist",         tagline: "Capture, list and complete tasks",       icon: ListTodo,      hue: "from-red-500/25 to-rose-500/10",       kind: "soon" },
-  { id: "linear",   name: "Linear",          tagline: "Triage issues, plan cycles",             icon: GitBranch,     hue: "from-violet-500/25 to-indigo-500/10",  kind: "soon" },
-  { id: "slack",    name: "Slack",           tagline: "Read channels, send messages",           icon: MessageSquare, hue: "from-fuchsia-500/25 to-pink-500/10",   kind: "soon" },
-  { id: "github",   name: "GitHub",          tagline: "PRs, issues, repo search",               icon: Code2,         hue: "from-zinc-500/25 to-slate-500/10",     kind: "soon" },
   { id: "gdrive",   name: "Google Drive",    tagline: "Find and summarise your docs",           icon: HardDrive,     hue: "from-yellow-500/25 to-amber-500/10",   kind: "soon" },
   { id: "dropbox",  name: "Dropbox",         tagline: "Search files and folders",               icon: Cloud,         hue: "from-blue-500/25 to-cyan-500/10",      kind: "soon" },
   { id: "zoom",     name: "Zoom",            tagline: "Meetings, recordings, transcripts",      icon: Video,         hue: "from-sky-500/25 to-indigo-500/10",     kind: "soon" },
   { id: "toggl",    name: "Toggl",           tagline: "Start/stop timers from chat",            icon: Clock,         hue: "from-pink-500/25 to-rose-500/10",      kind: "soon" },
-  { id: "figma",    name: "Figma",           tagline: "Pull frames, list your files",           icon: Palette,       hue: "from-orange-500/25 to-red-500/10",     kind: "soon" },
 ];
+
 
 
 function ConnectorsPage() {
@@ -118,10 +152,12 @@ function ConnectorsPage() {
 
   const submitToken = async () => {
     if (!tokenOpen) return;
-    if (tokenOpen.id !== "vercel" && tokenOpen.id !== "cursor") return;
+    const provider = TOKEN_PROVIDERS.find((p) => p === tokenOpen.id);
+    if (!provider) return;
     setBusy(tokenOpen.id);
     try {
-      const res = await saveToken({ data: { provider: tokenOpen.id, token: tokenValue.trim() } });
+      const res = await saveToken({ data: { provider, token: tokenValue.trim() } });
+
       toast.success(`${tokenOpen.name} connected as ${res.label ?? "account"}`);
       qc.invalidateQueries({ queryKey: ["connections"] });
       setTokenOpen(null);

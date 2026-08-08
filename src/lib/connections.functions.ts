@@ -1,6 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { TOKEN_PROVIDERS } from "@/lib/token-providers";
+import { verifyToken } from "@/lib/token-verify.server";
 import { z } from "zod";
+
 
 export type PublicConnection = {
   provider: string;
@@ -37,31 +40,25 @@ export const disconnectProvider = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-/** For providers without OAuth: user pastes a personal API token (Vercel, Cursor). */
+
+/** For providers without OAuth: user pastes a personal API token. */
 export const saveApiToken = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z
       .object({
-        provider: z.enum(["vercel", "cursor"]),
+        provider: z.enum(TOKEN_PROVIDERS),
         token: z.string().min(8).max(500),
         label: z.string().max(120).optional(),
       })
       .parse(input),
   )
   .handler(async ({ context, data }) => {
-    // For Vercel we can verify + fetch username; Cursor tokens are opaque.
-    let label = data.label ?? null;
-    if (data.provider === "vercel") {
-      const r = await fetch("https://api.vercel.com/v2/user", {
-        headers: { Authorization: `Bearer ${data.token}` },
-      });
-      if (!r.ok) throw new Error("Invalid Vercel token");
-      const j = (await r.json()) as { user?: { username?: string; email?: string } };
-      label = j.user?.username ?? j.user?.email ?? "Vercel account";
-    } else if (data.provider === "cursor") {
-      label = data.label?.trim() || "Cursor account";
-    }
+    const label =
+      data.provider === "cursor"
+        ? data.label?.trim() || "Cursor account"
+        : await verifyToken(data.provider, data.token, data.label);
+
     const { error } = await context.supabase.from("user_connections").upsert(
       {
         user_id: context.userId,
@@ -77,3 +74,4 @@ export const saveApiToken = createServerFn({ method: "POST" })
     if (error) throw error;
     return { ok: true, label };
   });
+
