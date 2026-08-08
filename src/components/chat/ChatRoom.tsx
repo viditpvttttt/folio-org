@@ -468,15 +468,26 @@ function AttachPreview() {
   );
 }
 
+const QUICK_CHIPS = [
+  { label: "Weather", q: "What's the weather where I am right now?" },
+  { label: "Headlines", q: "Top tech headlines today" },
+  { label: "Draft", q: "Draft a warm follow-up email after a client call" },
+  { label: "Research", q: "Research the state of solid-state batteries in 2026" },
+  { label: "Image", q: "Draw a serene mountain lake at sunrise, watercolor" },
+  { label: "Code", q: "Write a Python function that flattens a nested list" },
+];
+
 export function ChatRoom({ threadId }: { threadId: string }) {
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
+  const prefs = usePreferences();
   const qc = useQueryClient();
   const list = useServerFn(listThreads);
   const create = useServerFn(createThread);
   const remove = useServerFn(deleteThread);
   const getMsgs = useServerFn(getThreadMessages);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [query, setQuery] = useState("");
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [voiceAmp, setVoiceAmp] = useState(0);
   const [listening, setListening] = useState(false);
@@ -485,7 +496,6 @@ export function ChatRoom({ threadId }: { threadId: string }) {
   const [speaking, setSpeaking] = useState(false);
   const speakCancelRef = useRef<(() => void) | null>(null);
   const lastSpokenIdRef = useRef<string | null>(null);
-
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setAuthToken(data.session?.access_token ?? null));
@@ -509,8 +519,6 @@ export function ChatRoom({ threadId }: { threadId: string }) {
     id: threadId,
     transport: new DefaultChatTransport({
       api: "/api/chat",
-      // Fetch a fresh session on every request to avoid race conditions
-      // where the in-state token isn't ready yet (causing 401 Unauthorized).
       headers: async (): Promise<Record<string, string>> => {
         const { data } = await supabase.auth.getSession();
         const token = data.session?.access_token ?? authToken;
@@ -530,7 +538,6 @@ export function ChatRoom({ threadId }: { threadId: string }) {
           speak(text)
             .then((cancel) => {
               speakCancelRef.current = () => { cancel(); setSpeaking(false); };
-              // best-effort: clear speaking after estimated duration (~140 wpm)
               const ms = Math.max(1500, (text.split(/\s+/).length / 140) * 60_000);
               setTimeout(() => setSpeaking(false), ms);
             })
@@ -540,10 +547,13 @@ export function ChatRoom({ threadId }: { threadId: string }) {
     },
   });
 
-
   useEffect(() => {
     if (initialQ.data) setMessages(initialQ.data as unknown as UIMessage[]);
   }, [initialQ.data, setMessages]);
+
+  useEffect(() => {
+    if (prefs.autoSpeak) setVoiceOn(true);
+  }, [prefs.autoSpeak]);
 
   // Pickup an optional prefill prompt handed off from the Dashboard.
   useEffect(() => {
@@ -558,7 +568,6 @@ export function ChatRoom({ threadId }: { threadId: string }) {
     } catch { /* ignore */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [threadId, initialQ.isLoading]);
-
 
   const handleSubmit = async ({ text, files }: { text: string; files?: { url: string; mediaType?: string; filename?: string }[] }) => {
     const trimmed = text.trim();
@@ -591,53 +600,75 @@ export function ChatRoom({ threadId }: { threadId: string }) {
   };
 
   const isLoading = status === "submitted" || status === "streaming";
+  const compact = prefs.density === "compact";
+  const displayName =
+    prefs.nickname.trim() ||
+    (user?.user_metadata?.full_name as string | undefined) ||
+    user?.email?.split("@")[0] ||
+    "you";
+
+  const threads = (threadsQ.data ?? []).filter((t) =>
+    query.trim() ? (t.title ?? "").toLowerCase().includes(query.trim().toLowerCase()) : true,
+  );
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-background text-foreground paper-grain">
-      <AppBackdrop density={0.7} />
-      <CursorGlow />
+      <AppBackdrop />
 
       <div className="relative z-10 flex h-full">
-        {/* ---------- Sidebar: the index of the folio ---------- */}
+        {/* ---------- Sidebar ---------- */}
         <aside
           className={cn(
-            "flex flex-col border-r border-border/50 bg-card/35 backdrop-blur-2xl transition-all duration-500",
-            sidebarOpen ? "w-[17.5rem]" : "w-0 overflow-hidden",
+            "flex flex-col border-r border-border/50 bg-card/40 backdrop-blur-2xl transition-all duration-500",
+            sidebarOpen ? "w-[18.5rem]" : "w-0 overflow-hidden",
           )}
         >
-          <div className="flex items-baseline justify-between px-5 pb-4 pt-6">
-            <Link to="/dashboard" className="font-serif text-2xl leading-none tracking-tight">Folio</Link>
-            <span className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">Chat</span>
+          <div className="flex items-center gap-2.5 px-5 pb-4 pt-5">
+            <FolioMark className="h-7 w-7" />
+            <Link to="/dashboard" className="font-serif text-xl leading-none tracking-tight">Folio</Link>
+            <span className="ml-auto text-[10px] uppercase tracking-[0.28em] text-muted-foreground">Chat</span>
           </div>
 
           <div className="px-4">
             <button
               onClick={handleNewChat}
-              className="group flex w-full items-center gap-2 rounded-xl border border-border/60 bg-background/40 px-3.5 py-2.5 text-sm transition hover:-translate-y-0.5 hover:border-border"
+              className="group flex w-full items-center gap-2 rounded-xl border border-border/60 bg-background/50 px-3.5 py-2.5 text-sm shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/30 hover:shadow-lg"
             >
               <Plus className="h-3.5 w-3.5" />
               <span className="flex-1 text-left">New conversation</span>
-              <span className="font-mono text-[10px] text-muted-foreground">⌘K</span>
+              <span className="font-mono text-[10px] text-muted-foreground">↵</span>
             </button>
           </div>
 
-          <div className="px-4 pt-4">
-            <WeatherWidget />
+          <div className="px-4 pt-3">
+            <div className="flex items-center gap-2 rounded-xl border border-border/50 bg-background/40 px-3 py-2">
+              <Search className="h-3.5 w-3.5 text-muted-foreground" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search conversations"
+                className="w-full bg-transparent text-xs outline-none placeholder:text-muted-foreground"
+              />
+            </div>
           </div>
 
-          <div className="px-5 pb-2 pt-5 text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
-            Recent
-          </div>
+          {prefs.showRail && (
+            <div className="px-4 pt-4">
+              <WeatherWidget />
+            </div>
+          )}
+
+          <div className="px-5 pb-2 pt-5 text-[10px] uppercase tracking-[0.28em] text-muted-foreground">Recent</div>
 
           <div className="flex-1 space-y-0.5 overflow-y-auto px-3 pb-3">
-            {threadsQ.data?.map((t) => {
+            {threads.map((t) => {
               const activeThread = t.id === threadId;
               return (
                 <div
                   key={t.id}
                   onClick={() => navigate({ to: "/chat/$threadId", params: { threadId: t.id } })}
                   className={cn(
-                    "group relative flex cursor-pointer items-center gap-2 rounded-lg py-2 pl-4 pr-2 text-sm transition",
+                    "group relative flex cursor-pointer items-center gap-2 rounded-lg py-2 pl-4 pr-2 text-sm transition-all duration-300 hover:translate-x-0.5",
                     activeThread ? "bg-foreground/[0.07]" : "hover:bg-foreground/5",
                   )}
                 >
@@ -661,13 +692,15 @@ export function ChatRoom({ threadId }: { threadId: string }) {
                 </div>
               );
             })}
-            {threadsQ.data?.length === 0 && (
-              <p className="px-4 py-6 text-xs italic text-muted-foreground">Nothing written yet.</p>
+            {threads.length === 0 && (
+              <p className="px-4 py-6 text-xs italic text-muted-foreground">
+                {query ? "Nothing matches that." : "Nothing written yet."}
+              </p>
             )}
           </div>
 
           <div className="flex items-center gap-2 border-t border-border/50 px-4 py-3 text-xs text-muted-foreground">
-            <Link to="/settings" className="truncate transition hover:text-foreground">{user?.email}</Link>
+            <Link to="/settings" className="truncate capitalize transition hover:text-foreground">{displayName}</Link>
             <button onClick={signOut} title="Sign out" className="ml-auto transition hover:text-foreground">
               <LogOut className="h-4 w-4" />
             </button>
@@ -676,7 +709,7 @@ export function ChatRoom({ threadId }: { threadId: string }) {
 
         {/* ---------- Main ---------- */}
         <main className="flex min-w-0 flex-1 flex-col">
-          <header className="flex items-center gap-3 border-b border-border/40 px-4 py-3 backdrop-blur-xl">
+          <header className="flex items-center gap-3 border-b border-border/40 bg-background/40 px-4 py-3 backdrop-blur-xl">
             <button
               onClick={() => setSidebarOpen((s) => !s)}
               className="rounded-md p-2 transition hover:bg-foreground/5"
@@ -689,7 +722,8 @@ export function ChatRoom({ threadId }: { threadId: string }) {
               <div className="truncate font-serif text-lg leading-tight">
                 {threadsQ.data?.find((t) => t.id === threadId)?.title || "New conversation"}
               </div>
-              <div className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
+                <span className={cn("h-1.5 w-1.5 rounded-full", isLoading ? "bg-[#ff4d8d] animate-pulse" : "bg-emerald-500/70")} />
                 {isLoading ? "Writing" : listening ? "Listening" : speaking ? "Speaking" : "Ready"}
               </div>
             </div>
@@ -700,6 +734,9 @@ export function ChatRoom({ threadId }: { threadId: string }) {
               </Link>
               <Link to="/workbench" className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-foreground/60 transition hover:bg-foreground/5 hover:text-foreground">
                 <Terminal className="h-3 w-3" /> Workbench
+              </Link>
+              <Link to="/connectors" className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-foreground/60 transition hover:bg-foreground/5 hover:text-foreground">
+                <Link2 className="h-3 w-3" /> Connectors
               </Link>
               <Link to="/settings" className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-foreground/60 transition hover:bg-foreground/5 hover:text-foreground">
                 <SettingsIcon className="h-3 w-3" /> Settings
@@ -726,68 +763,69 @@ export function ChatRoom({ threadId }: { threadId: string }) {
           </header>
 
           <Conversation className="flex-1">
-            <ConversationContent className="mx-auto w-full max-w-3xl px-6 py-10">
+            <ConversationContent className={cn("mx-auto w-full max-w-3xl px-6", compact ? "py-6" : "py-10")}>
               {messages.length === 0 ? (
-                <div className="relative flex flex-col items-center py-12 text-center">
-                  <div
-                    aria-hidden
-                    className="pointer-events-none absolute left-1/2 top-28 -z-10 h-[300px] w-[600px] max-w-[110vw] -translate-x-1/2 -translate-y-1/2 rounded-full rgb-blob opacity-30 blur-[90px]"
-                  />
-                  <FolioMark
-                    active={isLoading}
-                    amplitude={voiceAmp}
-                    listening={listening}
-                    speaking={speaking}
-                    className="mb-7 h-24 w-24"
-                  />
+                <div className="relative flex flex-col items-center py-10 text-center">
+                  <div className="[perspective:1000px]">
+                    <FolioMark
+                      active={isLoading}
+                      amplitude={voiceAmp}
+                      listening={listening}
+                      speaking={speaking}
+                      className="mb-7 h-24 w-24 float-soft"
+                    />
+                  </div>
                   <p className="text-[11px] uppercase tracking-[0.35em] text-muted-foreground">A calm place to think</p>
                   <h2 className="mt-4 font-serif text-[clamp(2.25rem,6vw,3.5rem)] leading-[0.96] tracking-tight">
-                    What are we<br /><em className="italic">doing today?</em>
+                    Hello, <em className="italic capitalize">{displayName}.</em><br />What are we doing?
                   </h2>
                   <p className="mt-5 max-w-md leading-relaxed text-muted-foreground">
                     Ask in plain words. Folio picks the tool — weather, news, research, drafting,
                     translation, code, images.
                   </p>
 
-                  <div className="mt-10 w-full max-w-2xl divide-y divide-border/40 border-y border-border/40 text-left">
-                    {[
-                      { k: "Today", v: "What's the weather in Tokyo, and should I take a jacket?" },
-                      { k: "Read", v: "Summarise the top tech headlines from this morning" },
-                      { k: "Write", v: "Draft a warm follow-up email after a client call" },
-                      { k: "Make", v: "Draw a serene mountain lake at sunrise, watercolor" },
-                      { k: "Build", v: "Write a Python function that flattens a nested list" },
-                    ].map(({ k, v }) => (
-                      <button
-                        key={v}
-                        onClick={() => sendMessage({ text: v })}
-                        className="group flex w-full items-baseline gap-5 py-3.5 text-left transition hover:bg-foreground/[0.04]"
-                      >
-                        <span className="w-14 shrink-0 pl-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                          {k}
-                        </span>
-                        <span className="flex-1 text-sm text-foreground/85 transition group-hover:text-foreground">{v}</span>
-                        <span className="pr-2 text-muted-foreground opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-70">→</span>
-                      </button>
-                    ))}
-                  </div>
+                  {prefs.showSuggestions && (
+                    <div className="mt-10 grid w-full max-w-2xl gap-3 sm:grid-cols-2">
+                      {[
+                        { k: "Today", v: "What's the weather in Tokyo, and should I take a jacket?" },
+                        { k: "Read", v: "Summarise the top tech headlines from this morning" },
+                        { k: "Write", v: "Draft a warm follow-up email after a client call" },
+                        { k: "Make", v: "Draw a serene mountain lake at sunrise, watercolor" },
+                      ].map(({ k, v }) => (
+                        <button
+                          key={v}
+                          onClick={() => sendMessage({ text: v })}
+                          className="card-3d group rounded-2xl border border-border/60 bg-card/50 p-4 text-left backdrop-blur-xl"
+                        >
+                          <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground">{k}</span>
+                          <span className="mt-2 block text-sm leading-relaxed text-foreground/85">{v}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ) : (
-                <div className="space-y-8">
+                <div className={cn(compact ? "space-y-4" : "space-y-8")}>
                   {messages.map((m) => {
                     const isUser = m.role === "user";
                     return (
-                      <article key={m.id} className="bubble-in group/msg">
-                        <div className="mb-2 flex items-center gap-2">
+                      <article key={m.id} className={cn("bubble-in group/msg", isUser && "flex flex-col items-end")}>
+                        <div className={cn("mb-2 flex items-center gap-2", isUser && "flex-row-reverse")}>
                           <span className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
                             {isUser ? "You" : "Folio"}
                           </span>
-                          <span aria-hidden className="h-px flex-1 bg-border/50" />
+                          <span aria-hidden className="h-px w-10 bg-border/60" />
+                          {prefs.showTimestamps && (
+                            <span className="text-[10px] text-muted-foreground/70">
+                              {new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                          )}
                         </div>
                         <div
                           className={cn(
                             "leading-relaxed",
                             isUser
-                              ? "rounded-2xl rounded-tl-sm border border-border/60 bg-foreground/[0.05] px-4 py-3 text-[0.95rem] text-foreground"
+                              ? "max-w-[85%] rounded-2xl rounded-tr-sm border border-border/50 bg-foreground/[0.06] px-4 py-3 text-[0.95rem] text-foreground shadow-sm"
                               : "text-[1.02rem] text-foreground/90",
                           )}
                         >
@@ -829,6 +867,20 @@ export function ChatRoom({ threadId }: { threadId: string }) {
                             >
                               <Copy className="h-3 w-3" /> Copy
                             </button>
+                            <button
+                              onClick={() => {
+                                const text = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("").trim();
+                                if (!text) return;
+                                speakCancelRef.current?.();
+                                setSpeaking(true);
+                                speak(text)
+                                  .then((cancel) => { speakCancelRef.current = () => { cancel(); setSpeaking(false); }; })
+                                  .catch(() => setSpeaking(false));
+                              }}
+                              className="inline-flex items-center gap-1 text-[11px] text-muted-foreground transition hover:text-foreground"
+                            >
+                              <Volume2 className="h-3 w-3" /> Read aloud
+                            </button>
                           </div>
                         )}
                       </article>
@@ -868,52 +920,64 @@ export function ChatRoom({ threadId }: { threadId: string }) {
                 </div>
               )}
 
-              <div className={cn("relative rgb-aurora rounded-2xl p-px", (isLoading || listening) && "is-loud")}>
-                <div
-                  aria-hidden
-                  className={cn(
-                    "pointer-events-none absolute -inset-3 rounded-[26px] rgb-aurora opacity-30 transition-opacity duration-700",
-                    (isLoading || listening) && "opacity-70 is-loud",
-                  )}
-                  style={{ filter: "blur(24px)" }}
-                />
-                <PromptInput
-                  onSubmit={handleSubmit}
-                  accept="image/*,application/pdf,text/*,.md,.csv,.json"
-                  multiple
-                  maxFiles={6}
-                  maxFileSize={10 * 1024 * 1024}
-                  onError={(e) => toast.error(e.message)}
-                  className="relative rounded-[15px] border border-border/60 bg-background/70 backdrop-blur-2xl"
-                >
-                  <AttachPreview />
-                  <PromptInputTextarea
-                    placeholder={listening ? "Listening…" : "Ask Folio anything…"}
-                    autoFocus
-                    disabled={isLoading}
-                  />
-                  <PromptInputFooter className="justify-between">
-                    <div className="flex items-center gap-2">
-                      <AttachButton />
-                      <VoiceButton
-                        disabled={isLoading}
-                        onListeningChange={setListening}
-                        onAmplitude={setVoiceAmp}
-                        onInterim={setInterim}
-                        onTranscript={(text) => {
-                          setListening(false);
-                          setVoiceAmp(0);
-                          setInterim("");
-                          sendMessage({ text });
-                        }}
-                      />
-                    </div>
-                    <PromptInputSubmit status={status} disabled={isLoading} />
-                  </PromptInputFooter>
-                </PromptInput>
+              {messages.length > 0 && (
+                <div className="mb-3 flex flex-wrap gap-1.5">
+                  {QUICK_CHIPS.map((c) => (
+                    <button
+                      key={c.label}
+                      onClick={() => sendMessage({ text: c.q })}
+                      disabled={isLoading}
+                      className="rounded-full border border-border/50 bg-background/50 px-3 py-1 text-[11px] text-foreground/70 backdrop-blur transition hover:-translate-y-0.5 hover:border-foreground/30 hover:text-foreground disabled:opacity-40"
+                    >
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div className="[perspective:900px]">
+                <div className={cn("relative rgb-aurora rounded-[22px] p-px transition-transform duration-300", (isLoading || listening) && "is-loud")}>
+                  <PromptInput
+                    onSubmit={handleSubmit}
+                    accept="image/*,application/pdf,text/*,.md,.csv,.json"
+                    multiple
+                    maxFiles={6}
+                    maxFileSize={10 * 1024 * 1024}
+                    onError={(e) => toast.error(e.message)}
+                    className="relative rounded-[21px] border border-border/60 bg-background/80 shadow-[0_20px_50px_-30px_rgba(0,0,0,0.6)] backdrop-blur-2xl"
+                  >
+                    <AttachPreview />
+                    <PromptInputTextarea
+                      placeholder={listening ? "Listening…" : `Ask Folio anything, ${displayName}…`}
+                      autoFocus
+                      disabled={isLoading}
+                    />
+                    <PromptInputFooter className="justify-between">
+                      <div className="flex items-center gap-2">
+                        <AttachButton />
+                        <VoiceButton
+                          disabled={isLoading}
+                          onListeningChange={setListening}
+                          onAmplitude={setVoiceAmp}
+                          onInterim={setInterim}
+                          onTranscript={(text) => {
+                            setListening(false);
+                            setVoiceAmp(0);
+                            setInterim("");
+                            sendMessage({ text });
+                          }}
+                        />
+                        <span className="hidden text-[10px] uppercase tracking-[0.24em] text-muted-foreground sm:inline">
+                          {prefs.enterToSend ? "Enter sends" : "⌘ + Enter sends"}
+                        </span>
+                      </div>
+                      <PromptInputSubmit status={status} disabled={isLoading} />
+                    </PromptInputFooter>
+                  </PromptInput>
+                </div>
               </div>
               <p className="mt-2.5 text-center text-[11px] text-muted-foreground">
-                Hold the mic to talk · voice replies toggle in the header
+                Hold the mic to talk · attach photos and documents · voice replies toggle in the header
               </p>
             </div>
           </div>
@@ -922,5 +986,6 @@ export function ChatRoom({ threadId }: { threadId: string }) {
     </div>
   );
 }
+
 
 
