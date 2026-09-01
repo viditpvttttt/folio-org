@@ -33,7 +33,10 @@ export function AppShell({
   scene?: boolean;
   density?: number;
 }) {
+  // Applies the global depth attribute to <html> for every app section.
+  usePreferences();
   return (
+
     <div className={cn("relative min-h-screen w-full overflow-x-hidden bg-background text-foreground paper-grain", className)}>
       <AppBackdrop scene={scene} />
       <div className="relative z-10">
