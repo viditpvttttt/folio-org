@@ -6,6 +6,20 @@ export type Units = "metric" | "imperial";
 export type TimeFormat = "12h" | "24h";
 export type Density = "comfortable" | "compact";
 export type Landing = "dashboard" | "chat";
+export type Depth = "flat" | "soft" | "deep";
+
+/** Widgets the dashboard can show, in render order. */
+export const DASHBOARD_WIDGETS = [
+  { id: "stats", label: "Live stats" },
+  { id: "actions", label: "Quick actions" },
+  { id: "skills", label: "Skills" },
+  { id: "weather", label: "Weather & news" },
+  { id: "memory", label: "Memory" },
+  { id: "recent", label: "Recent chats" },
+] as const;
+
+export type WidgetId = (typeof DASHBOARD_WIDGETS)[number]["id"];
+
 
 export type Preferences = {
   /** How Folio should sound. */
