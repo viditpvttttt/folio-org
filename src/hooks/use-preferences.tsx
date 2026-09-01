@@ -56,6 +56,12 @@ export type Preferences = {
   showRail: boolean;
   /** Preferred reply language ("auto" follows your message). */
   language: string;
+  /** Global 3D depth level, applied to every section. */
+  depth: Depth;
+  /** Dashboard widgets that are visible, in order. */
+  widgets: WidgetId[];
+  /** Active quick filter on the dashboard tool grids. */
+  quickFilter: string;
 };
 
 export const DEFAULT_PREFERENCES: Preferences = {
@@ -76,7 +82,11 @@ export const DEFAULT_PREFERENCES: Preferences = {
   landing: "dashboard",
   showRail: true,
   language: "auto",
+  depth: "soft",
+  widgets: DASHBOARD_WIDGETS.map((w) => w.id),
+  quickFilter: "all",
 };
+
 
 
 const KEY = "folio.preferences";
