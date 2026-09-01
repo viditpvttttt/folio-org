@@ -101,12 +101,28 @@ function read(): Preferences {
   }
 }
 
-/** Local, per-browser assistant preferences. */
+const SYNC_EVENT = "folio:preferences";
+
+function applyDepth(depth: Depth) {
+  if (typeof document === "undefined") return;
+  document.documentElement.dataset.depth = depth;
+}
+
+/** Local, per-browser assistant preferences. Synced across every hook instance. */
 export function usePreferences() {
   const [prefs, setPrefs] = useState<Preferences>(DEFAULT_PREFERENCES);
 
   useEffect(() => {
-    setPrefs(read());
+    const initial = read();
+    setPrefs(initial);
+    applyDepth(initial.depth);
+    const onSync = (e: Event) => {
+      const next = (e as CustomEvent<Preferences>).detail;
+      setPrefs(next);
+      applyDepth(next.depth);
+    };
+    window.addEventListener(SYNC_EVENT, onSync as EventListener);
+    return () => window.removeEventListener(SYNC_EVENT, onSync as EventListener);
   }, []);
 
   const update = useCallback((patch: Partial<Preferences>) => {
@@ -117,6 +133,8 @@ export function usePreferences() {
       } catch {
         /* storage unavailable */
       }
+      applyDepth(next.depth);
+      window.dispatchEvent(new CustomEvent(SYNC_EVENT, { detail: next }));
       return next;
     });
   }, []);
@@ -128,7 +146,10 @@ export function usePreferences() {
       /* storage unavailable */
     }
     setPrefs(DEFAULT_PREFERENCES);
+    applyDepth(DEFAULT_PREFERENCES.depth);
+    window.dispatchEvent(new CustomEvent(SYNC_EVENT, { detail: DEFAULT_PREFERENCES }));
   }, []);
+
 
   return { ...prefs, update, reset };
 }
