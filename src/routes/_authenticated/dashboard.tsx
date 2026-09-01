@@ -7,7 +7,7 @@ import {
   MessageCircle, Plus, Cloud, Calculator, Ruler, Coins,
   BookOpen, Dices, CalendarClock, Sparkles, ArrowRight,
   Brain, Trash2, Newspaper, Languages, KeyRound, QrCode, ChefHat, Palette, Link2,
-  Code2, ImageIcon, Terminal, Briefcase, Compass,
+  Code2, ImageIcon, Terminal, Briefcase, Compass, Layers, Check, SlidersHorizontal,
 } from "lucide-react";
 import { AppShell, GlassCard } from "@/components/shell/AppShell";
 import { FolioMark } from "@/components/brand/FolioMark";
@@ -15,7 +15,7 @@ import { Reveal } from "@/components/fx/Reveal";
 import { WeatherWidget } from "@/components/chat/WeatherWidget";
 import { NewsWidget } from "@/components/chat/NewsWidget";
 import { useAuth } from "@/hooks/use-auth";
-import { usePreferences } from "@/hooks/use-preferences";
+import { usePreferences, DASHBOARD_WIDGETS, type Depth, type WidgetId } from "@/hooks/use-preferences";
 import { supabase } from "@/integrations/supabase/client";
 import { createThread, listThreads } from "@/lib/threads.functions";
 import { addMemory, deleteMemory, listMemories } from "@/lib/memories.functions";
@@ -44,32 +44,46 @@ function useNow() {
   return now;
 }
 
+const FILTERS = [
+  { id: "all", label: "Everything" },
+  { id: "daily", label: "Daily life" },
+  { id: "work", label: "Work" },
+  { id: "create", label: "Create" },
+  { id: "research", label: "Research" },
+] as const;
+
 const PROMPTS = [
-  { icon: ImageIcon, label: "Generate image", q: "Draw a serene mountain lake at sunrise, watercolor" },
-  { icon: Code2, label: "Explain code", q: "Explain the difference between debounce and throttle with a JS example" },
-  { icon: Terminal, label: "Run a snippet", q: "Run: [1,2,3,4,5].reduce((a,b)=>a+b,0)" },
-  { icon: Cloud, label: "Weather", q: "What's the weather where I am right now?" },
-  { icon: Calculator, label: "Quick math", q: "What's 15% tip on $84.50?" },
-  { icon: Ruler, label: "Convert units", q: "Convert 12 miles to kilometers" },
-  { icon: BookOpen, label: "Define a word", q: "Define 'serendipity'" },
-  { icon: CalendarClock, label: "Plan my day", q: "Plan my day: workout 45m, deep work 2h, lunch 30m, emails 30m" },
-  { icon: Dices, label: "Pick for me", q: "Flip a coin three times" },
-  { icon: Sparkles, label: "Draft a message", q: "Draft a polite email asking for a project deadline extension" },
+  { icon: ImageIcon, label: "Generate image", tag: "create", q: "Draw a serene mountain lake at sunrise, watercolor" },
+  { icon: Code2, label: "Explain code", tag: "work", q: "Explain the difference between debounce and throttle with a JS example" },
+  { icon: Terminal, label: "Run a snippet", tag: "work", q: "Run: [1,2,3,4,5].reduce((a,b)=>a+b,0)" },
+  { icon: Cloud, label: "Weather", tag: "daily", q: "What's the weather where I am right now?" },
+  { icon: Calculator, label: "Quick math", tag: "daily", q: "What's 15% tip on $84.50?" },
+  { icon: Ruler, label: "Convert units", tag: "daily", q: "Convert 12 miles to kilometers" },
+  { icon: BookOpen, label: "Define a word", tag: "research", q: "Define 'serendipity'" },
+  { icon: CalendarClock, label: "Plan my day", tag: "daily", q: "Plan my day: workout 45m, deep work 2h, lunch 30m, emails 30m" },
+  { icon: Dices, label: "Pick for me", tag: "daily", q: "Flip a coin three times" },
+  { icon: Sparkles, label: "Draft a message", tag: "work", q: "Draft a polite email asking for a project deadline extension" },
 ];
 
 const SKILLS = [
-  { icon: Cloud, label: "Weather", q: "What's the weather where I am right now?" },
-  { icon: Newspaper, label: "News", q: "Top tech headlines today" },
-  { icon: Languages, label: "Translate", q: "Translate 'good morning' to Japanese" },
-  { icon: Coins, label: "Currency", q: "Convert 250 USD to EUR" },
-  { icon: BookOpen, label: "Dictionary", q: "Define 'serendipity'" },
-  { icon: ChefHat, label: "Recipes", q: "Give me a random dinner recipe" },
-  { icon: Palette, label: "Palettes", q: "Palette from #6c5ce7" },
-  { icon: KeyRound, label: "Passwords", q: "Generate a 24-char password" },
-  { icon: QrCode, label: "QR codes", q: "Make a QR code for https://folio.app" },
-  { icon: Link2, label: "Web reader", q: "Summarize https://news.ycombinator.com" },
-  { icon: Compass, label: "Deep research", q: "Research the state of solid-state batteries in 2026" },
-  { icon: Briefcase, label: "Work mode", q: "Prep me for a 30-minute client kickoff call" },
+  { icon: Cloud, label: "Weather", tag: "daily", q: "What's the weather where I am right now?" },
+  { icon: Newspaper, label: "News", tag: "research", q: "Top tech headlines today" },
+  { icon: Languages, label: "Translate", tag: "daily", q: "Translate 'good morning' to Japanese" },
+  { icon: Coins, label: "Currency", tag: "daily", q: "Convert 250 USD to EUR" },
+  { icon: BookOpen, label: "Dictionary", tag: "research", q: "Define 'serendipity'" },
+  { icon: ChefHat, label: "Recipes", tag: "daily", q: "Give me a random dinner recipe" },
+  { icon: Palette, label: "Palettes", tag: "create", q: "Palette from #6c5ce7" },
+  { icon: KeyRound, label: "Passwords", tag: "daily", q: "Generate a 24-char password" },
+  { icon: QrCode, label: "QR codes", tag: "create", q: "Make a QR code for https://folio.app" },
+  { icon: Link2, label: "Web reader", tag: "research", q: "Summarize https://news.ycombinator.com" },
+  { icon: Compass, label: "Deep research", tag: "research", q: "Research the state of solid-state batteries in 2026" },
+  { icon: Briefcase, label: "Work mode", tag: "work", q: "Prep me for a 30-minute client kickoff call" },
+];
+
+const DEPTHS: { id: Depth; label: string }[] = [
+  { id: "flat", label: "Flat" },
+  { id: "soft", label: "Soft 3D" },
+  { id: "deep", label: "Deep 3D" },
 ];
 
 function greeting(h: number) {
