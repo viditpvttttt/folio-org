@@ -7,7 +7,7 @@ import {
   MessageCircle, Plus, Cloud, Calculator, Ruler, Coins,
   BookOpen, Dices, CalendarClock, Sparkles, ArrowRight,
   Brain, Trash2, Newspaper, Languages, KeyRound, QrCode, ChefHat, Palette, Link2,
-  Code2, ImageIcon, Terminal, Briefcase, Compass,
+  Code2, ImageIcon, Terminal, Briefcase, Compass, Layers, Check, SlidersHorizontal,
 } from "lucide-react";
 import { AppShell, GlassCard } from "@/components/shell/AppShell";
 import { FolioMark } from "@/components/brand/FolioMark";
@@ -15,7 +15,7 @@ import { Reveal } from "@/components/fx/Reveal";
 import { WeatherWidget } from "@/components/chat/WeatherWidget";
 import { NewsWidget } from "@/components/chat/NewsWidget";
 import { useAuth } from "@/hooks/use-auth";
-import { usePreferences } from "@/hooks/use-preferences";
+import { usePreferences, DASHBOARD_WIDGETS, type Depth, type WidgetId } from "@/hooks/use-preferences";
 import { supabase } from "@/integrations/supabase/client";
 import { createThread, listThreads } from "@/lib/threads.functions";
 import { addMemory, deleteMemory, listMemories } from "@/lib/memories.functions";
@@ -44,32 +44,46 @@ function useNow() {
   return now;
 }
 
+const FILTERS = [
+  { id: "all", label: "Everything" },
+  { id: "daily", label: "Daily life" },
+  { id: "work", label: "Work" },
+  { id: "create", label: "Create" },
+  { id: "research", label: "Research" },
+] as const;
+
 const PROMPTS = [
-  { icon: ImageIcon, label: "Generate image", q: "Draw a serene mountain lake at sunrise, watercolor" },
-  { icon: Code2, label: "Explain code", q: "Explain the difference between debounce and throttle with a JS example" },
-  { icon: Terminal, label: "Run a snippet", q: "Run: [1,2,3,4,5].reduce((a,b)=>a+b,0)" },
-  { icon: Cloud, label: "Weather", q: "What's the weather where I am right now?" },
-  { icon: Calculator, label: "Quick math", q: "What's 15% tip on $84.50?" },
-  { icon: Ruler, label: "Convert units", q: "Convert 12 miles to kilometers" },
-  { icon: BookOpen, label: "Define a word", q: "Define 'serendipity'" },
-  { icon: CalendarClock, label: "Plan my day", q: "Plan my day: workout 45m, deep work 2h, lunch 30m, emails 30m" },
-  { icon: Dices, label: "Pick for me", q: "Flip a coin three times" },
-  { icon: Sparkles, label: "Draft a message", q: "Draft a polite email asking for a project deadline extension" },
+  { icon: ImageIcon, label: "Generate image", tag: "create", q: "Draw a serene mountain lake at sunrise, watercolor" },
+  { icon: Code2, label: "Explain code", tag: "work", q: "Explain the difference between debounce and throttle with a JS example" },
+  { icon: Terminal, label: "Run a snippet", tag: "work", q: "Run: [1,2,3,4,5].reduce((a,b)=>a+b,0)" },
+  { icon: Cloud, label: "Weather", tag: "daily", q: "What's the weather where I am right now?" },
+  { icon: Calculator, label: "Quick math", tag: "daily", q: "What's 15% tip on $84.50?" },
+  { icon: Ruler, label: "Convert units", tag: "daily", q: "Convert 12 miles to kilometers" },
+  { icon: BookOpen, label: "Define a word", tag: "research", q: "Define 'serendipity'" },
+  { icon: CalendarClock, label: "Plan my day", tag: "daily", q: "Plan my day: workout 45m, deep work 2h, lunch 30m, emails 30m" },
+  { icon: Dices, label: "Pick for me", tag: "daily", q: "Flip a coin three times" },
+  { icon: Sparkles, label: "Draft a message", tag: "work", q: "Draft a polite email asking for a project deadline extension" },
 ];
 
 const SKILLS = [
-  { icon: Cloud, label: "Weather", q: "What's the weather where I am right now?" },
-  { icon: Newspaper, label: "News", q: "Top tech headlines today" },
-  { icon: Languages, label: "Translate", q: "Translate 'good morning' to Japanese" },
-  { icon: Coins, label: "Currency", q: "Convert 250 USD to EUR" },
-  { icon: BookOpen, label: "Dictionary", q: "Define 'serendipity'" },
-  { icon: ChefHat, label: "Recipes", q: "Give me a random dinner recipe" },
-  { icon: Palette, label: "Palettes", q: "Palette from #6c5ce7" },
-  { icon: KeyRound, label: "Passwords", q: "Generate a 24-char password" },
-  { icon: QrCode, label: "QR codes", q: "Make a QR code for https://folio.app" },
-  { icon: Link2, label: "Web reader", q: "Summarize https://news.ycombinator.com" },
-  { icon: Compass, label: "Deep research", q: "Research the state of solid-state batteries in 2026" },
-  { icon: Briefcase, label: "Work mode", q: "Prep me for a 30-minute client kickoff call" },
+  { icon: Cloud, label: "Weather", tag: "daily", q: "What's the weather where I am right now?" },
+  { icon: Newspaper, label: "News", tag: "research", q: "Top tech headlines today" },
+  { icon: Languages, label: "Translate", tag: "daily", q: "Translate 'good morning' to Japanese" },
+  { icon: Coins, label: "Currency", tag: "daily", q: "Convert 250 USD to EUR" },
+  { icon: BookOpen, label: "Dictionary", tag: "research", q: "Define 'serendipity'" },
+  { icon: ChefHat, label: "Recipes", tag: "daily", q: "Give me a random dinner recipe" },
+  { icon: Palette, label: "Palettes", tag: "create", q: "Palette from #6c5ce7" },
+  { icon: KeyRound, label: "Passwords", tag: "daily", q: "Generate a 24-char password" },
+  { icon: QrCode, label: "QR codes", tag: "create", q: "Make a QR code for https://folio.app" },
+  { icon: Link2, label: "Web reader", tag: "research", q: "Summarize https://news.ycombinator.com" },
+  { icon: Compass, label: "Deep research", tag: "research", q: "Research the state of solid-state batteries in 2026" },
+  { icon: Briefcase, label: "Work mode", tag: "work", q: "Prep me for a 30-minute client kickoff call" },
+];
+
+const DEPTHS: { id: Depth; label: string }[] = [
+  { id: "flat", label: "Flat" },
+  { id: "soft", label: "Soft 3D" },
+  { id: "deep", label: "Deep 3D" },
 ];
 
 function greeting(h: number) {
@@ -144,6 +158,18 @@ function DashboardPage() {
     "friend";
   const firstName = name.split(" ")[0];
 
+  const filter = prefs.quickFilter;
+  const visible = (id: WidgetId) => prefs.widgets.includes(id);
+  const toggleWidget = (id: WidgetId) =>
+    prefs.update({
+      widgets: prefs.widgets.includes(id)
+        ? prefs.widgets.filter((w) => w !== id)
+        : [...DASHBOARD_WIDGETS.map((w) => w.id)].filter((w) => w === id || prefs.widgets.includes(w)),
+    });
+  const matches = (tag: string) => filter === "all" || tag === filter;
+  const prompts = PROMPTS.filter((p) => matches(p.tag));
+  const skills = SKILLS.filter((sk) => matches(sk.tag));
+
   const stats = [
     { label: "Conversations", value: threadsQ.data?.length ?? 0 },
     { label: "Memories", value: memsQ.data?.length ?? 0 },
@@ -192,6 +218,76 @@ function DashboardPage() {
               </p>
             </Reveal>
 
+            <Reveal delay={175}>
+              <div className="mt-10 flex flex-wrap items-center gap-2.5">
+                <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
+                  <SlidersHorizontal className="h-3.5 w-3.5" /> Filter
+                </span>
+                {FILTERS.map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() => prefs.update({ quickFilter: f.id })}
+                    className={
+                      "rounded-full border px-3.5 py-1.5 text-xs transition " +
+                      (filter === f.id
+                        ? "border-transparent bg-foreground text-background"
+                        : "border-border/60 bg-background/60 text-foreground/75 hover:bg-foreground/5")
+                    }
+                  >
+                    {f.label}
+                  </button>
+                ))}
+
+                <span className="mx-1 hidden h-5 w-px bg-border/70 sm:block" />
+
+                <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
+                  <Layers className="h-3.5 w-3.5" /> Depth
+                </span>
+                <div className="inline-flex rounded-full border border-border/60 bg-background/60 p-0.5">
+                  {DEPTHS.map((d) => (
+                    <button
+                      key={d.id}
+                      onClick={() => prefs.update({ depth: d.id })}
+                      className={
+                        "rounded-full px-3 py-1 text-xs transition " +
+                        (prefs.depth === d.id ? "bg-foreground text-background" : "text-foreground/70 hover:bg-foreground/5")
+                      }
+                    >
+                      {d.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </Reveal>
+
+            <Reveal delay={185}>
+              <details className="group mt-4 max-w-3xl rounded-2xl border border-border/60 bg-card/40 backdrop-blur-xl">
+                <summary className="cursor-pointer list-none px-4 py-3 text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                  Customize widgets
+                </summary>
+                <div className="flex flex-wrap gap-2 border-t border-border/40 p-4">
+                  {DASHBOARD_WIDGETS.map((w) => {
+                    const on = visible(w.id);
+                    return (
+                      <button
+                        key={w.id}
+                        onClick={() => toggleWidget(w.id)}
+                        className={
+                          "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs transition " +
+                          (on
+                            ? "border-transparent bg-foreground text-background"
+                            : "border-border/60 bg-background/60 text-muted-foreground hover:bg-foreground/5")
+                        }
+                      >
+                        {on && <Check className="h-3 w-3" />} {w.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </details>
+            </Reveal>
+
+            {visible("stats") && (
             <Reveal delay={190}>
               <div className="mt-10 grid max-w-3xl grid-cols-2 gap-3 sm:grid-cols-4">
                 {stats.map((s) => (
@@ -202,7 +298,7 @@ function DashboardPage() {
                 ))}
               </div>
             </Reveal>
-
+            )}
 
             <Reveal delay={220}>
               <div className="mt-10 flex flex-wrap items-center gap-3">
@@ -231,6 +327,7 @@ function DashboardPage() {
         </section>
 
         {/* ---------- quick actions ---------- */}
+        {visible("actions") && (
         <section className="border-t border-border/60">
           <div className="mx-auto max-w-6xl px-6 py-20 md:py-24">
             <Reveal>
@@ -246,7 +343,7 @@ function DashboardPage() {
             </Reveal>
 
             <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {PROMPTS.map(({ icon: Icon, label, q }, i) => (
+              {prompts.map(({ icon: Icon, label, q }, i) => (
                 <Reveal key={label} delay={i * 45}>
                   <GlassCard>
                     <button onClick={() => startWith(q)} className="h-full w-full p-6 text-left">
@@ -260,8 +357,10 @@ function DashboardPage() {
             </div>
           </div>
         </section>
+        )}
 
         {/* ---------- skills ---------- */}
+        {visible("skills") && (
         <section className="border-t border-border/60 bg-paper-dim/30">
           <div className="mx-auto max-w-6xl px-6 py-20 md:py-24">
             <Reveal>
@@ -270,7 +369,7 @@ function DashboardPage() {
             </Reveal>
             <Reveal delay={100}>
               <div className="mt-10 flex flex-wrap gap-2.5">
-                {SKILLS.map(({ icon: Icon, label, q }) => (
+                {skills.map(({ icon: Icon, label, q }) => (
                   <button
                     key={label}
                     onClick={() => startWith(q)}
@@ -283,6 +382,7 @@ function DashboardPage() {
             </Reveal>
           </div>
         </section>
+        )}
 
         {/* ---------- live surface ---------- */}
         <section className="border-t border-border/60">
@@ -293,6 +393,7 @@ function DashboardPage() {
             </Reveal>
 
             <div className="mt-12 grid gap-5 lg:grid-cols-3">
+              {visible("weather") && (
               <Reveal>
                 <GlassCard className="lg:col-span-1">
                   <div className="flex items-center gap-2 border-b border-border/40 px-6 py-4">
@@ -305,7 +406,9 @@ function DashboardPage() {
                   </div>
                 </GlassCard>
               </Reveal>
+              )}
 
+              {visible("memory") && (
               <Reveal delay={90}>
                 <GlassCard>
                   <div className="flex items-center gap-2 border-b border-border/40 px-6 py-4">
@@ -355,7 +458,9 @@ function DashboardPage() {
                   </div>
                 </GlassCard>
               </Reveal>
+              )}
 
+              {visible("recent") && (
               <Reveal delay={180}>
                 <GlassCard>
                   <div className="flex items-center gap-2 border-b border-border/40 px-6 py-4">
@@ -383,6 +488,7 @@ function DashboardPage() {
                   </ul>
                 </GlassCard>
               </Reveal>
+              )}
             </div>
           </div>
         </section>

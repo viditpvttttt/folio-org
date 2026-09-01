@@ -6,6 +6,20 @@ export type Units = "metric" | "imperial";
 export type TimeFormat = "12h" | "24h";
 export type Density = "comfortable" | "compact";
 export type Landing = "dashboard" | "chat";
+export type Depth = "flat" | "soft" | "deep";
+
+/** Widgets the dashboard can show, in render order. */
+export const DASHBOARD_WIDGETS = [
+  { id: "stats", label: "Live stats" },
+  { id: "actions", label: "Quick actions" },
+  { id: "skills", label: "Skills" },
+  { id: "weather", label: "Weather & news" },
+  { id: "memory", label: "Memory" },
+  { id: "recent", label: "Recent chats" },
+] as const;
+
+export type WidgetId = (typeof DASHBOARD_WIDGETS)[number]["id"];
+
 
 export type Preferences = {
   /** How Folio should sound. */
@@ -42,6 +56,12 @@ export type Preferences = {
   showRail: boolean;
   /** Preferred reply language ("auto" follows your message). */
   language: string;
+  /** Global 3D depth level, applied to every section. */
+  depth: Depth;
+  /** Dashboard widgets that are visible, in order. */
+  widgets: WidgetId[];
+  /** Active quick filter on the dashboard tool grids. */
+  quickFilter: string;
 };
 
 export const DEFAULT_PREFERENCES: Preferences = {
@@ -62,7 +82,11 @@ export const DEFAULT_PREFERENCES: Preferences = {
   landing: "dashboard",
   showRail: true,
   language: "auto",
+  depth: "soft",
+  widgets: DASHBOARD_WIDGETS.map((w) => w.id),
+  quickFilter: "all",
 };
+
 
 
 const KEY = "folio.preferences";
@@ -77,12 +101,28 @@ function read(): Preferences {
   }
 }
 
-/** Local, per-browser assistant preferences. */
+const SYNC_EVENT = "folio:preferences";
+
+function applyDepth(depth: Depth) {
+  if (typeof document === "undefined") return;
+  document.documentElement.dataset.depth = depth;
+}
+
+/** Local, per-browser assistant preferences. Synced across every hook instance. */
 export function usePreferences() {
   const [prefs, setPrefs] = useState<Preferences>(DEFAULT_PREFERENCES);
 
   useEffect(() => {
-    setPrefs(read());
+    const initial = read();
+    setPrefs(initial);
+    applyDepth(initial.depth);
+    const onSync = (e: Event) => {
+      const next = (e as CustomEvent<Preferences>).detail;
+      setPrefs(next);
+      applyDepth(next.depth);
+    };
+    window.addEventListener(SYNC_EVENT, onSync as EventListener);
+    return () => window.removeEventListener(SYNC_EVENT, onSync as EventListener);
   }, []);
 
   const update = useCallback((patch: Partial<Preferences>) => {
@@ -93,6 +133,8 @@ export function usePreferences() {
       } catch {
         /* storage unavailable */
       }
+      applyDepth(next.depth);
+      window.dispatchEvent(new CustomEvent(SYNC_EVENT, { detail: next }));
       return next;
     });
   }, []);
@@ -104,7 +146,10 @@ export function usePreferences() {
       /* storage unavailable */
     }
     setPrefs(DEFAULT_PREFERENCES);
+    applyDepth(DEFAULT_PREFERENCES.depth);
+    window.dispatchEvent(new CustomEvent(SYNC_EVENT, { detail: DEFAULT_PREFERENCES }));
   }, []);
+
 
   return { ...prefs, update, reset };
 }

@@ -1,21 +1,25 @@
 import { useRef } from "react";
 import { AppNav } from "@/components/shell/AppNav";
+import { DepthSlabs } from "@/components/fx/DepthSlabs";
+import { usePreferences } from "@/hooks/use-preferences";
 import { cn } from "@/lib/utils";
 
 /**
- * Ambient backdrop — flat aurora sheets and a fine engraving grid.
- * Deliberately free of orbs, blobs and particles.
+ * Ambient backdrop — flat aurora sheets, a fine engraving grid and
+ * Skiper-style depth slabs. Deliberately free of orbs, blobs and particles.
  */
 export function AppBackdrop({ scene = true }: { scene?: boolean; density?: number }) {
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
       {scene && <div className="absolute inset-x-0 top-0 h-[46vh] aurora-sheet opacity-70" />}
+      {scene && <DepthSlabs className="opacity-70" layers={5} intensity={0.7} />}
       <div className="absolute inset-x-0 bottom-0 h-[36vh] aurora-sheet-b opacity-50" />
       <div className="absolute inset-0 grid-fine opacity-[0.55]" />
       <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent,var(--color-background))] opacity-60" />
     </div>
   );
 }
+
 
 export function AppShell({
   children,
@@ -29,7 +33,10 @@ export function AppShell({
   scene?: boolean;
   density?: number;
 }) {
+  // Applies the global depth attribute to <html> for every app section.
+  usePreferences();
   return (
+
     <div className={cn("relative min-h-screen w-full overflow-x-hidden bg-background text-foreground paper-grain", className)}>
       <AppBackdrop scene={scene} />
       <div className="relative z-10">

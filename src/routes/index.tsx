@@ -4,7 +4,7 @@ import {
   ArrowRight, Sparkles, Wand2, MessageCircle, Mic, Newspaper, CloudSun,
   Brain, Code2, Briefcase, Compass, Shield, Zap,
 } from "lucide-react";
-import { AmbientScene } from "@/components/chat/AmbientScene";
+import { DepthSlabs } from "@/components/fx/DepthSlabs";
 import { CursorGlow } from "@/components/chat/CursorGlow";
 import { FolioMark } from "@/components/brand/FolioMark";
 import { useAuth } from "@/hooks/use-auth";
@@ -163,9 +163,7 @@ function Landing() {
       {/* ---------- hero ---------- */}
       <section className="relative min-h-[92vh] flex items-center">
         <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-          <div className="absolute inset-0">
-            <AmbientScene />
-          </div>
+          <DepthSlabs layers={6} intensity={1} />
           <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[620px] w-[900px] rounded-full opacity-60 blur-3xl rgb-blob" />
           <div className="pointer-events-none absolute inset-0 bg-background/45 backdrop-blur-[2px]" />
         </div>
@@ -329,7 +327,7 @@ function Landing() {
           <Reveal delay={140}>
             <div className="relative aspect-square max-w-md mx-auto w-full rounded-3xl border border-border/60 bg-card/20 backdrop-blur-xl overflow-hidden">
               <div aria-hidden className="pointer-events-none absolute inset-0 grid place-items-center">
-                <div className="h-56 w-56 rounded-full rgb-blob opacity-30 blur-3xl" />
+                <div className="h-56 w-56 rgb-blob opacity-25 blur-3xl rounded-[2rem]" />
               </div>
               <div className="absolute inset-0 grid place-items-center">
                 <FolioMark className="h-56 w-56" />
