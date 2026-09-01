@@ -330,3 +330,69 @@ html[data-contrast="high"] * { border-color: var(--border) !important; }
     color-mix(in oklab, var(--color-foreground) 8%, transparent), transparent 65%);
 }
 .card-3d:hover .card-sheen { opacity: 1; }
+
+/* ===== Skiper-style depth slabs ===== */
+.depth-slabs { perspective: 1200px; }
+.depth-slabs__stage {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform:
+    rotateX(calc(var(--py, 0) * -6deg * var(--depth-intensity, 1)))
+    rotateY(calc(var(--px, 0) * 8deg * var(--depth-intensity, 1)));
+  transition: transform 120ms linear;
+}
+.depth-slab {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(86vw, 1080px);
+  height: min(52vh, 460px);
+  margin-left: calc(min(86vw, 1080px) / -2);
+  margin-top: calc(min(52vh, 460px) / -2);
+  border-radius: 28px;
+  border: 1px solid color-mix(in oklab, var(--color-foreground) 10%, transparent);
+  background: linear-gradient(
+    130deg,
+    color-mix(in oklab, #ff4d8d 7%, transparent),
+    color-mix(in oklab, #b66dff 6%, transparent) 35%,
+    color-mix(in oklab, #4d9bff 7%, transparent) 68%,
+    color-mix(in oklab, #7dffb4 5%, transparent)
+  );
+  backdrop-filter: blur(2px);
+  opacity: calc(0.5 - (var(--i) / var(--n)) * 0.32);
+  transform:
+    translateZ(calc(var(--i) * -90px))
+    translateY(calc(var(--i) * 26px))
+    rotateZ(calc(var(--i) * -1.6deg))
+    scale(calc(1 + var(--i) * 0.045));
+  animation: slab-drift 16s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -2.4s);
+}
+@keyframes slab-drift {
+  0%, 100% { filter: hue-rotate(0deg); }
+  50% { filter: hue-rotate(22deg); }
+}
+
+/* ===== Global 3D depth toggle ===== */
+html[data-depth="flat"] .card-3d,
+html[data-depth="flat"] .depth-slabs__stage,
+html[data-depth="flat"] .depth-slab {
+  transform: none !important;
+}
+html[data-depth="flat"] .card-3d:hover {
+  box-shadow: 0 1px 2px color-mix(in oklab, var(--color-foreground) 8%, transparent);
+}
+html[data-depth="flat"] .card-sheen,
+html[data-depth="flat"] .depth-slabs { display: none; }
+
+html[data-depth="deep"] .card-3d:hover {
+  box-shadow:
+    0 34px 70px -26px color-mix(in oklab, var(--color-foreground) 60%, transparent),
+    0 3px 0 color-mix(in oklab, var(--color-foreground) 8%, transparent);
+}
+html[data-depth="deep"] .depth-slab { opacity: calc(0.65 - (var(--i) / var(--n)) * 0.34); }
+
+@media (prefers-reduced-motion: reduce) {
+  .depth-slab { animation: none; }
+}
