@@ -158,6 +158,18 @@ function DashboardPage() {
     "friend";
   const firstName = name.split(" ")[0];
 
+  const filter = prefs.quickFilter;
+  const visible = (id: WidgetId) => prefs.widgets.includes(id);
+  const toggleWidget = (id: WidgetId) =>
+    prefs.update({
+      widgets: prefs.widgets.includes(id)
+        ? prefs.widgets.filter((w) => w !== id)
+        : [...DASHBOARD_WIDGETS.map((w) => w.id)].filter((w) => w === id || prefs.widgets.includes(w)),
+    });
+  const matches = (tag: string) => filter === "all" || tag === filter;
+  const prompts = PROMPTS.filter((p) => matches(p.tag));
+  const skills = SKILLS.filter((sk) => matches(sk.tag));
+
   const stats = [
     { label: "Conversations", value: threadsQ.data?.length ?? 0 },
     { label: "Memories", value: memsQ.data?.length ?? 0 },
@@ -206,6 +218,76 @@ function DashboardPage() {
               </p>
             </Reveal>
 
+            <Reveal delay={175}>
+              <div className="mt-10 flex flex-wrap items-center gap-2.5">
+                <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
+                  <SlidersHorizontal className="h-3.5 w-3.5" /> Filter
+                </span>
+                {FILTERS.map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() => prefs.update({ quickFilter: f.id })}
+                    className={
+                      "rounded-full border px-3.5 py-1.5 text-xs transition " +
+                      (filter === f.id
+                        ? "border-transparent bg-foreground text-background"
+                        : "border-border/60 bg-background/60 text-foreground/75 hover:bg-foreground/5")
+                    }
+                  >
+                    {f.label}
+                  </button>
+                ))}
+
+                <span className="mx-1 hidden h-5 w-px bg-border/70 sm:block" />
+
+                <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
+                  <Layers className="h-3.5 w-3.5" /> Depth
+                </span>
+                <div className="inline-flex rounded-full border border-border/60 bg-background/60 p-0.5">
+                  {DEPTHS.map((d) => (
+                    <button
+                      key={d.id}
+                      onClick={() => prefs.update({ depth: d.id })}
+                      className={
+                        "rounded-full px-3 py-1 text-xs transition " +
+                        (prefs.depth === d.id ? "bg-foreground text-background" : "text-foreground/70 hover:bg-foreground/5")
+                      }
+                    >
+                      {d.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </Reveal>
+
+            <Reveal delay={185}>
+              <details className="group mt-4 max-w-3xl rounded-2xl border border-border/60 bg-card/40 backdrop-blur-xl">
+                <summary className="cursor-pointer list-none px-4 py-3 text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                  Customize widgets
+                </summary>
+                <div className="flex flex-wrap gap-2 border-t border-border/40 p-4">
+                  {DASHBOARD_WIDGETS.map((w) => {
+                    const on = visible(w.id);
+                    return (
+                      <button
+                        key={w.id}
+                        onClick={() => toggleWidget(w.id)}
+                        className={
+                          "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs transition " +
+                          (on
+                            ? "border-transparent bg-foreground text-background"
+                            : "border-border/60 bg-background/60 text-muted-foreground hover:bg-foreground/5")
+                        }
+                      >
+                        {on && <Check className="h-3 w-3" />} {w.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </details>
+            </Reveal>
+
+            {visible("stats") && (
             <Reveal delay={190}>
               <div className="mt-10 grid max-w-3xl grid-cols-2 gap-3 sm:grid-cols-4">
                 {stats.map((s) => (
@@ -216,7 +298,7 @@ function DashboardPage() {
                 ))}
               </div>
             </Reveal>
-
+            )}
 
             <Reveal delay={220}>
               <div className="mt-10 flex flex-wrap items-center gap-3">
@@ -245,6 +327,7 @@ function DashboardPage() {
         </section>
 
         {/* ---------- quick actions ---------- */}
+        {visible("actions") && (
         <section className="border-t border-border/60">
           <div className="mx-auto max-w-6xl px-6 py-20 md:py-24">
             <Reveal>
@@ -260,7 +343,7 @@ function DashboardPage() {
             </Reveal>
 
             <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {PROMPTS.map(({ icon: Icon, label, q }, i) => (
+              {prompts.map(({ icon: Icon, label, q }, i) => (
                 <Reveal key={label} delay={i * 45}>
                   <GlassCard>
                     <button onClick={() => startWith(q)} className="h-full w-full p-6 text-left">
@@ -274,8 +357,10 @@ function DashboardPage() {
             </div>
           </div>
         </section>
+        )}
 
         {/* ---------- skills ---------- */}
+        {visible("skills") && (
         <section className="border-t border-border/60 bg-paper-dim/30">
           <div className="mx-auto max-w-6xl px-6 py-20 md:py-24">
             <Reveal>
@@ -284,7 +369,7 @@ function DashboardPage() {
             </Reveal>
             <Reveal delay={100}>
               <div className="mt-10 flex flex-wrap gap-2.5">
-                {SKILLS.map(({ icon: Icon, label, q }) => (
+                {skills.map(({ icon: Icon, label, q }) => (
                   <button
                     key={label}
                     onClick={() => startWith(q)}
@@ -297,6 +382,7 @@ function DashboardPage() {
             </Reveal>
           </div>
         </section>
+        )}
 
         {/* ---------- live surface ---------- */}
         <section className="border-t border-border/60">
@@ -307,6 +393,7 @@ function DashboardPage() {
             </Reveal>
 
             <div className="mt-12 grid gap-5 lg:grid-cols-3">
+              {visible("weather") && (
               <Reveal>
                 <GlassCard className="lg:col-span-1">
                   <div className="flex items-center gap-2 border-b border-border/40 px-6 py-4">
@@ -319,7 +406,9 @@ function DashboardPage() {
                   </div>
                 </GlassCard>
               </Reveal>
+              )}
 
+              {visible("memory") && (
               <Reveal delay={90}>
                 <GlassCard>
                   <div className="flex items-center gap-2 border-b border-border/40 px-6 py-4">
@@ -369,7 +458,9 @@ function DashboardPage() {
                   </div>
                 </GlassCard>
               </Reveal>
+              )}
 
+              {visible("recent") && (
               <Reveal delay={180}>
                 <GlassCard>
                   <div className="flex items-center gap-2 border-b border-border/40 px-6 py-4">
@@ -397,6 +488,7 @@ function DashboardPage() {
                   </ul>
                 </GlassCard>
               </Reveal>
+              )}
             </div>
           </div>
         </section>
