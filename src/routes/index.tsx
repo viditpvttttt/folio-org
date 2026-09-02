@@ -311,8 +311,7 @@ function Landing() {
         </div>
       </section>
 
-        </div>
-      </section>
+
 
       {/* ---------- voice / orb ---------- */}
       <section id="voice" className="relative border-t border-border/60 overflow-hidden">
