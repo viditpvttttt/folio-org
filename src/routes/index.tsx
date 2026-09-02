@@ -5,6 +5,12 @@ import {
   Brain, Code2, Briefcase, Compass, Shield, Zap,
 } from "lucide-react";
 import { DepthSlabs } from "@/components/fx/DepthSlabs";
+import { SpotlightCard } from "@/components/fx/SpotlightCard";
+import { CardSwap3D } from "@/components/fx/CardSwap3D";
+import { Marquee3D } from "@/components/fx/Marquee3D";
+import { ScrambleText } from "@/components/fx/ScrambleText";
+import { ScrollProgress } from "@/components/fx/ScrollProgress";
+import { MagneticButton } from "@/components/fx/MagneticButton";
 import { CursorGlow } from "@/components/chat/CursorGlow";
 import { FolioMark } from "@/components/brand/FolioMark";
 import { useAuth } from "@/hooks/use-auth";
@@ -105,6 +111,13 @@ const CAPABILITIES = [
   { icon: Compass, title: "Deep research", body: "It browses, reads and synthesises — with sources — instead of guessing from last year's training data." },
 ];
 
+const DAY_CARDS = [
+  { tag: "07:10", title: "The morning read", body: "Weather where you actually are, your topics in the news, and anything you asked Folio to remember for today." },
+  { tag: "11:30", title: "Deep work", body: "Draft the email, refine the doc, run the snippet, explain the paper — without leaving one calm surface." },
+  { tag: "15:45", title: "Research sprint", body: "Folio browses, reads and synthesises with sources, then hands you a one-pager you can send." },
+  { tag: "21:00", title: "Wind down", body: "Tomorrow's plan, reminders set, notes filed. Everything stays in your account, only yours." },
+];
+
 const SKILLS = [
   "Weather", "News", "Translate", "Currency", "Dictionary", "Recipes", "Palettes",
   "Passwords", "QR codes", "Web reader", "Image generation", "Code execution",
@@ -137,6 +150,7 @@ function Landing() {
 
   return (
     <div className="min-h-screen bg-background text-foreground paper-grain relative overflow-x-hidden">
+      <ScrollProgress />
       <CursorGlow />
 
       {/* ---------- nav ---------- */}
@@ -154,12 +168,15 @@ function Landing() {
             <a href="#voice" className="hover:text-foreground transition">Voice</a>
             <a href="#faq" className="hover:text-foreground transition">FAQ</a>
           </nav>
-          <Link
-            to="/login"
-            className="rounded-full bg-primary px-4 py-2 text-sm text-primary-foreground hover:opacity-90 transition"
-          >
-            Start free
-          </Link>
+          <MagneticButton strength={0.3}>
+            <Link
+              to="/login"
+              className="rounded-full bg-primary px-4 py-2 text-sm text-primary-foreground hover:opacity-90 transition"
+            >
+              Start free
+            </Link>
+          </MagneticButton>
+
         </div>
       </header>
 
@@ -253,15 +270,36 @@ function Landing() {
           <div className="mt-14 grid gap-5 md:grid-cols-3">
             {CAPABILITIES.map(({ icon: Icon, title, body }, idx) => (
               <Reveal key={title} delay={idx * 70}>
-                <div className="group relative h-full rounded-2xl border border-border/60 bg-card/40 backdrop-blur p-7 overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:border-border">
-                  <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full rgb-blob opacity-0 blur-2xl transition-opacity duration-700 group-hover:opacity-40" />
+                <SpotlightCard className="h-full">
                   <Icon className="h-5 w-5 mb-5" />
                   <h3 className="font-serif text-2xl mb-2">{title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{body}</p>
-                </div>
+                </SpotlightCard>
               </Reveal>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ---------- card swap: a day with Folio ---------- */}
+      <section className="relative border-t border-border/60 overflow-hidden">
+        <div className="pointer-events-none absolute right-[-10%] top-1/4 h-[420px] w-[520px] rounded-full rgb-blob opacity-25 blur-3xl" />
+        <div className="relative mx-auto max-w-6xl px-6 py-24 md:py-32 grid gap-16 md:grid-cols-2 items-center">
+          <Reveal>
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">A day with Folio</p>
+              <h2 className="font-serif text-4xl md:text-6xl mt-3 tracking-tight leading-[1.02]">
+                <ScrambleText text="Morning to midnight." />
+              </h2>
+              <p className="mt-6 max-w-md text-muted-foreground leading-relaxed">
+                One place that moves with your day. Hover the stack to pause it, click to flip
+                through — it's the same rhythm Folio follows for you.
+              </p>
+            </div>
+          </Reveal>
+          <Reveal delay={120}>
+            <CardSwap3D items={DAY_CARDS} />
+          </Reveal>
         </div>
       </section>
 
@@ -282,19 +320,15 @@ function Landing() {
             </div>
           </Reveal>
           <Reveal delay={120}>
-            <div className="mt-12 flex flex-wrap gap-2.5">
-              {SKILLS.map((s) => (
-                <span
-                  key={s}
-                  className="rounded-full border border-border/60 bg-background/60 px-4 py-2 text-sm text-foreground/80 transition hover:bg-foreground hover:text-background"
-                >
-                  {s}
-                </span>
-              ))}
+            <div className="mt-12 space-y-3">
+              <Marquee3D items={SKILLS} speed={38} />
+              <Marquee3D items={[...SKILLS].reverse()} speed={46} reverse />
             </div>
           </Reveal>
         </div>
       </section>
+
+
 
       {/* ---------- voice / orb ---------- */}
       <section id="voice" className="relative border-t border-border/60 overflow-hidden">
@@ -405,12 +439,15 @@ function Landing() {
           </Reveal>
           <Reveal delay={100}>
             <div className="mt-12 flex flex-wrap justify-center gap-4">
-              <Link
-                to="/login"
-                className="group inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-primary-foreground transition hover:opacity-90"
-              >
-                Start chatting <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
-              </Link>
+              <MagneticButton strength={0.28}>
+                <Link
+                  to="/login"
+                  className="group inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-primary-foreground transition hover:opacity-90"
+                >
+                  Start chatting <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+                </Link>
+              </MagneticButton>
+
               <a
                 href="#what"
                 className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/60 px-7 py-3.5 transition hover:bg-foreground/5"
