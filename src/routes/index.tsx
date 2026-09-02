@@ -150,6 +150,7 @@ function Landing() {
 
   return (
     <div className="min-h-screen bg-background text-foreground paper-grain relative overflow-x-hidden">
+      <ScrollProgress />
       <CursorGlow />
 
       {/* ---------- nav ---------- */}
@@ -167,12 +168,15 @@ function Landing() {
             <a href="#voice" className="hover:text-foreground transition">Voice</a>
             <a href="#faq" className="hover:text-foreground transition">FAQ</a>
           </nav>
-          <Link
-            to="/login"
-            className="rounded-full bg-primary px-4 py-2 text-sm text-primary-foreground hover:opacity-90 transition"
-          >
-            Start free
-          </Link>
+          <MagneticButton strength={0.3}>
+            <Link
+              to="/login"
+              className="rounded-full bg-primary px-4 py-2 text-sm text-primary-foreground hover:opacity-90 transition"
+            >
+              Start free
+            </Link>
+          </MagneticButton>
+
         </div>
       </header>
 
@@ -435,12 +439,15 @@ function Landing() {
           </Reveal>
           <Reveal delay={100}>
             <div className="mt-12 flex flex-wrap justify-center gap-4">
-              <Link
-                to="/login"
-                className="group inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-primary-foreground transition hover:opacity-90"
-              >
-                Start chatting <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
-              </Link>
+              <MagneticButton strength={0.28}>
+                <Link
+                  to="/login"
+                  className="group inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-primary-foreground transition hover:opacity-90"
+                >
+                  Start chatting <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+                </Link>
+              </MagneticButton>
+
               <a
                 href="#what"
                 className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/60 px-7 py-3.5 transition hover:bg-foreground/5"
