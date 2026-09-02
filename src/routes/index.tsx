@@ -8,6 +8,7 @@ import { DepthSlabs } from "@/components/fx/DepthSlabs";
 import { CursorGlow } from "@/components/chat/CursorGlow";
 import { FolioMark } from "@/components/brand/FolioMark";
 import { useAuth } from "@/hooks/use-auth";
+import { usePreferences } from "@/hooks/use-preferences";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -118,6 +119,8 @@ const FAQ = [
 ];
 
 function Landing() {
+  // Keeps the global 3D depth setting applied on the landing page too.
+  usePreferences();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
