@@ -5,6 +5,12 @@ import {
   Brain, Code2, Briefcase, Compass, Shield, Zap,
 } from "lucide-react";
 import { DepthSlabs } from "@/components/fx/DepthSlabs";
+import { SpotlightCard } from "@/components/fx/SpotlightCard";
+import { CardSwap3D } from "@/components/fx/CardSwap3D";
+import { Marquee3D } from "@/components/fx/Marquee3D";
+import { ScrambleText } from "@/components/fx/ScrambleText";
+import { ScrollProgress } from "@/components/fx/ScrollProgress";
+import { MagneticButton } from "@/components/fx/MagneticButton";
 import { CursorGlow } from "@/components/chat/CursorGlow";
 import { FolioMark } from "@/components/brand/FolioMark";
 import { useAuth } from "@/hooks/use-auth";
