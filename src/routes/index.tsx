@@ -111,6 +111,13 @@ const CAPABILITIES = [
   { icon: Compass, title: "Deep research", body: "It browses, reads and synthesises — with sources — instead of guessing from last year's training data." },
 ];
 
+const DAY_CARDS = [
+  { tag: "07:10", title: "The morning read", body: "Weather where you actually are, your topics in the news, and anything you asked Folio to remember for today." },
+  { tag: "11:30", title: "Deep work", body: "Draft the email, refine the doc, run the snippet, explain the paper — without leaving one calm surface." },
+  { tag: "15:45", title: "Research sprint", body: "Folio browses, reads and synthesises with sources, then hands you a one-pager you can send." },
+  { tag: "21:00", title: "Wind down", body: "Tomorrow's plan, reminders set, notes filed. Everything stays in your account, only yours." },
+];
+
 const SKILLS = [
   "Weather", "News", "Translate", "Currency", "Dictionary", "Recipes", "Palettes",
   "Passwords", "QR codes", "Web reader", "Image generation", "Code execution",
