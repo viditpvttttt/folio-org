@@ -10,6 +10,9 @@ import {
   Code2, ImageIcon, Terminal, Briefcase, Compass, Layers, Check, SlidersHorizontal,
 } from "lucide-react";
 import { AppShell, GlassCard } from "@/components/shell/AppShell";
+import { MagneticButton } from "@/components/fx/MagneticButton";
+import { Marquee3D } from "@/components/fx/Marquee3D";
+import { SpotlightCard } from "@/components/fx/SpotlightCard";
 import { FolioMark } from "@/components/brand/FolioMark";
 import { Reveal } from "@/components/fx/Reveal";
 import { WeatherWidget } from "@/components/chat/WeatherWidget";
@@ -345,14 +348,15 @@ function DashboardPage() {
             <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {prompts.map(({ icon: Icon, label, q }, i) => (
                 <Reveal key={label} delay={i * 45}>
-                  <GlassCard>
+                  <SpotlightCard className="h-full p-0">
                     <button onClick={() => startWith(q)} className="h-full w-full p-6 text-left">
                       <Icon className="mb-5 h-5 w-5" />
                       <div className="font-serif text-xl">{label}</div>
                       <div className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{q}</div>
                     </button>
-                  </GlassCard>
+                  </SpotlightCard>
                 </Reveal>
+
               ))}
             </div>
           </div>
@@ -370,16 +374,23 @@ function DashboardPage() {
             <Reveal delay={100}>
               <div className="mt-10 flex flex-wrap gap-2.5">
                 {skills.map(({ icon: Icon, label, q }) => (
-                  <button
-                    key={label}
-                    onClick={() => startWith(q)}
-                    className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/60 px-4 py-2 text-sm text-foreground/80 transition hover:bg-foreground hover:text-background"
-                  >
-                    <Icon className="h-3.5 w-3.5" /> {label}
-                  </button>
+                  <MagneticButton key={label} strength={0.22}>
+                    <button
+                      onClick={() => startWith(q)}
+                      className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/60 px-4 py-2 text-sm text-foreground/80 transition hover:bg-foreground hover:text-background"
+                    >
+                      <Icon className="h-3.5 w-3.5" /> {label}
+                    </button>
+                  </MagneticButton>
                 ))}
               </div>
             </Reveal>
+            <Reveal delay={160}>
+              <div className="mt-8">
+                <Marquee3D items={skills.map((s) => s.label)} speed={40} />
+              </div>
+            </Reveal>
+
           </div>
         </section>
         )}
