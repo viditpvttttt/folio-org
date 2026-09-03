@@ -180,6 +180,55 @@ function SubstrateField() {
   );
 }
 
+
+function SplitNavLink({ href, label }: { href: string; label: string }) {
+  const letters = label.split("");
+  return (
+    <a href={href} className="split-link group relative text-sm text-muted-foreground transition-colors hover:text-foreground">
+      <span className="split-link__viewport" aria-hidden="true">
+        <span className="split-link__row">
+          {letters.map((letter, index) => (
+            <span key={letter + "-top-" + index} className="split-link__letter" style={{ transitionDelay: index * 18 + "ms" }}>
+              {letter === " " ? "\u00a0" : letter}
+            </span>
+          ))}
+        </span>
+        <span className="split-link__row split-link__row--next">
+          {letters.map((letter, index) => (
+            <span key={letter + "-next-" + index} className="split-link__letter" style={{ transitionDelay: index * 18 + "ms" }}>
+              {letter === " " ? "\u00a0" : letter}
+            </span>
+          ))}
+        </span>
+      </span>
+      <span className="split-link__line" aria-hidden="true" />
+      <span className="sr-only">{label}</span>
+    </a>
+  );
+}
+
+function BoxReveal({
+  children,
+  delay = 0,
+}: { children: React.ReactNode; delay?: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([entry]) => entry.isIntersecting && setShown(true), { threshold: 0.2 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  return (
+    <div ref={ref} className={cn("box-reveal", shown && "box-reveal--shown")} style={{ transitionDelay: delay + "ms" }}>
+      {children}
+    </div>
+  );
+}
+
 const CAPABILITIES = [
   { icon: CloudSun, title: "Weather, properly", body: "Live conditions for anywhere, rendered as a card you actually want to look at — not a paragraph of numbers." },
   { icon: Newspaper, title: "News you choose", body: "Pick your own topics — from “world” to “formula 1” — and Folio keeps a quiet, self-refreshing feed." },
@@ -241,10 +290,10 @@ function Landing() {
         <div className="landing-header__inner mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Link to="/" className="font-serif text-2xl tracking-tight">Folio</Link>
           <nav className="hidden md:flex items-center gap-7 text-sm text-muted-foreground">
-            <a href="#what" className="hover:text-foreground transition">What it does</a>
-            <a href="#skills" className="hover:text-foreground transition">Skills</a>
-            <a href="#voice" className="hover:text-foreground transition">Voice</a>
-            <a href="#faq" className="hover:text-foreground transition">FAQ</a>
+            <SplitNavLink href="#what" label="What it does" />
+            <SplitNavLink href="#skills" label="Skills" />
+            <SplitNavLink href="#voice" label="Voice" />
+            <SplitNavLink href="#faq" label="FAQ" />
           </nav>
           <MagneticButton strength={0.3}>
             <Link
@@ -263,6 +312,7 @@ function Landing() {
         <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
           <DepthSlabs layers={6} intensity={1} />
            <SubstrateField />
+          <div className="spectral-field spectral-field--folio" aria-hidden="true" />
           <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[620px] w-[900px] rounded-full opacity-60 blur-3xl rgb-blob" />
           <div className="pointer-events-none absolute inset-0 bg-background/45 backdrop-blur-[2px]" />
         </div>
@@ -295,7 +345,7 @@ function Landing() {
 
           {/* fake composer */}
           <Reveal delay={240}>
-            <div className="hero-composer mx-auto mt-12 max-w-2xl">
+            <div className="hero-composer gradient-border mx-auto mt-12 max-w-2xl">
               <div className="relative rounded-2xl p-[1.5px] overflow-hidden">
                 <div className="absolute inset-0 rgb-blob opacity-70 blur-[10px]" />
                 <div className="relative rounded-2xl bg-background/85 backdrop-blur-xl border border-border/50 px-5 py-4 flex items-center gap-3 text-left">
@@ -328,11 +378,13 @@ function Landing() {
       <section className="border-t border-border/60 bg-paper-dim/30">
         <div className="mx-auto max-w-4xl px-6 py-28 md:py-40">
           <Reveal>
-            <p className="font-serif text-3xl md:text-5xl leading-[1.25] tracking-tight">
-              Most assistants give you <span className="text-muted-foreground">text</span>.
-              Folio gives you <em className="italic">something to use</em> — a card, a component,
-              a diagram, a draft, a decision.
-            </p>
+            <BoxReveal>
+              <p className="font-serif text-3xl md:text-5xl leading-[1.25] tracking-tight">
+                Most assistants give you <span className="text-muted-foreground">text</span>.
+                Folio gives you <em className="italic">something to use</em> — a card, a component,
+                a diagram, a draft, a decision.
+              </p>
+            </BoxReveal>
           </Reveal>
         </div>
       </section>
@@ -349,7 +401,7 @@ function Landing() {
           <div className="mt-14 grid gap-5 md:grid-cols-3">
             {CAPABILITIES.map(({ icon: Icon, title, body }, idx) => (
               <Reveal key={title} delay={idx * 70}>
-                <SpotlightCard className="capability-card h-full">
+                <SpotlightCard className="capability-card tile-aurora h-full">
                   <div className="capability-card__icon"><Icon className="h-5 w-5" /></div>
                   <h3 className="font-serif text-2xl mb-2">{title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{body}</p>
@@ -377,7 +429,7 @@ function Landing() {
             </div>
           </Reveal>
           <Reveal delay={120}>
-            <CardSwap3D items={DAY_CARDS} />
+            <CardSwap3D items={DAY_CARDS} className="sticky-card-stack" />
           </Reveal>
         </div>
       </section>
