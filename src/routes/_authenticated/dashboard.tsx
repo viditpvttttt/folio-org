@@ -370,16 +370,23 @@ function DashboardPage() {
             <Reveal delay={100}>
               <div className="mt-10 flex flex-wrap gap-2.5">
                 {skills.map(({ icon: Icon, label, q }) => (
-                  <button
-                    key={label}
-                    onClick={() => startWith(q)}
-                    className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/60 px-4 py-2 text-sm text-foreground/80 transition hover:bg-foreground hover:text-background"
-                  >
-                    <Icon className="h-3.5 w-3.5" /> {label}
-                  </button>
+                  <MagneticButton key={label} strength={0.22}>
+                    <button
+                      onClick={() => startWith(q)}
+                      className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/60 px-4 py-2 text-sm text-foreground/80 transition hover:bg-foreground hover:text-background"
+                    >
+                      <Icon className="h-3.5 w-3.5" /> {label}
+                    </button>
+                  </MagneticButton>
                 ))}
               </div>
             </Reveal>
+            <Reveal delay={160}>
+              <div className="mt-8">
+                <Marquee3D items={skills.map((s) => s.label)} speed={40} />
+              </div>
+            </Reveal>
+
           </div>
         </section>
         )}
