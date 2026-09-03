@@ -102,133 +102,6 @@ function RotatingPrompt() {
   );
 }
 
-
-const FIELD_NODES = [
-  { x: 14, y: 30 }, { x: 29, y: 17 }, { x: 45, y: 25 },
-  { x: 63, y: 14 }, { x: 80, y: 31 }, { x: 71, y: 50 },
-  { x: 86, y: 68 }, { x: 60, y: 78 }, { x: 39, y: 67 },
-  { x: 21, y: 79 }, { x: 31, y: 48 }, { x: 52, y: 47 },
-];
-const FIELD_EDGES = [[0, 1], [1, 2], [1, 10], [2, 3], [2, 11], [3, 4], [4, 5], [5, 6], [5, 7], [7, 8], [8, 9], [8, 10], [9, 10], [10, 11], [11, 7], [11, 5]];
-
-function SubstrateField() {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    let raf = 0;
-    let targetX = 0;
-    let targetY = 0;
-    let currentX = 0;
-    let currentY = 0;
-
-    const onMove = (event: PointerEvent) => {
-      targetX = (event.clientX / window.innerWidth - 0.5) * 16;
-      targetY = (event.clientY / window.innerHeight - 0.5) * -12;
-    };
-    const onLeave = () => { targetX = 0; targetY = 0; };
-    const tick = () => {
-      currentX += (targetX - currentX) * 0.045;
-      currentY += (targetY - currentY) * 0.045;
-      el.style.setProperty("--field-x", currentX.toFixed(2) + "px");
-      el.style.setProperty("--field-y", currentY.toFixed(2) + "px");
-      el.style.setProperty("--field-rx", (currentY * 0.28).toFixed(2) + "deg");
-      el.style.setProperty("--field-ry", (currentX * 0.28).toFixed(2) + "deg");
-      raf = requestAnimationFrame(tick);
-    };
-
-    window.addEventListener("pointermove", onMove, { passive: true });
-    window.addEventListener("blur", onLeave);
-    raf = requestAnimationFrame(tick);
-    return () => {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("blur", onLeave);
-      cancelAnimationFrame(raf);
-    };
-  }, []);
-
-  return (
-    <div ref={ref} aria-hidden className="substrate-field">
-      <div className="substrate-field__scene">
-        <div className="substrate-field__halo" />
-        <svg className="substrate-field__svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-          {FIELD_EDGES.map(([from, to], index) => (
-            <line
-              key={index}
-              className="substrate-field__line"
-              x1={FIELD_NODES[from].x}
-              y1={FIELD_NODES[from].y}
-              x2={FIELD_NODES[to].x}
-              y2={FIELD_NODES[to].y}
-              style={{ animationDelay: index * 180 + "ms" }}
-            />
-          ))}
-        </svg>
-        {FIELD_NODES.map((node, index) => (
-          <span
-            key={index}
-            className="substrate-field__node"
-            style={{ left: node.x + "%", top: node.y + "%", animationDelay: index * 160 + "ms" }}
-          >
-            <span />
-          </span>
-        ))}
-        <div className="substrate-field__core"><span /></div>
-      </div>
-    </div>
-  );
-}
-
-
-function SplitNavLink({ href, label }: { href: string; label: string }) {
-  const letters = label.split("");
-  return (
-    <a href={href} className="split-link group relative text-sm text-muted-foreground transition-colors hover:text-foreground">
-      <span className="split-link__viewport" aria-hidden="true">
-        <span className="split-link__row">
-          {letters.map((letter, index) => (
-            <span key={letter + "-top-" + index} className="split-link__letter" style={{ transitionDelay: index * 18 + "ms" }}>
-              {letter === " " ? "\u00a0" : letter}
-            </span>
-          ))}
-        </span>
-        <span className="split-link__row split-link__row--next">
-          {letters.map((letter, index) => (
-            <span key={letter + "-next-" + index} className="split-link__letter" style={{ transitionDelay: index * 18 + "ms" }}>
-              {letter === " " ? "\u00a0" : letter}
-            </span>
-          ))}
-        </span>
-      </span>
-      <span className="split-link__line" aria-hidden="true" />
-      <span className="sr-only">{label}</span>
-    </a>
-  );
-}
-
-function BoxReveal({
-  children,
-  delay = 0,
-}: { children: React.ReactNode; delay?: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [shown, setShown] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(([entry]) => entry.isIntersecting && setShown(true), { threshold: 0.2 });
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-
-  return (
-    <div ref={ref} className={cn("box-reveal", shown && "box-reveal--shown")} style={{ transitionDelay: delay + "ms" }}>
-      {children}
-    </div>
-  );
-}
-
 const CAPABILITIES = [
   { icon: CloudSun, title: "Weather, properly", body: "Live conditions for anywhere, rendered as a card you actually want to look at — not a paragraph of numbers." },
   { icon: Newspaper, title: "News you choose", body: "Pick your own topics — from “world” to “formula 1” — and Folio keeps a quiet, self-refreshing feed." },
@@ -283,17 +156,17 @@ function Landing() {
       {/* ---------- nav ---------- */}
       <header
         className={cn(
-          "landing-header sticky top-0 z-50 transition-all duration-500",
-          scrolled ? "landing-header--scrolled" : "",
+          "sticky top-0 z-50 transition-all duration-500",
+          scrolled ? "backdrop-blur-xl bg-background/70 border-b border-border/60" : "bg-transparent",
         )}
       >
-        <div className="landing-header__inner mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Link to="/" className="font-serif text-2xl tracking-tight">Folio</Link>
           <nav className="hidden md:flex items-center gap-7 text-sm text-muted-foreground">
-            <SplitNavLink href="#what" label="What it does" />
-            <SplitNavLink href="#skills" label="Skills" />
-            <SplitNavLink href="#voice" label="Voice" />
-            <SplitNavLink href="#faq" label="FAQ" />
+            <a href="#what" className="hover:text-foreground transition">What it does</a>
+            <a href="#skills" className="hover:text-foreground transition">Skills</a>
+            <a href="#voice" className="hover:text-foreground transition">Voice</a>
+            <a href="#faq" className="hover:text-foreground transition">FAQ</a>
           </nav>
           <MagneticButton strength={0.3}>
             <Link
@@ -308,16 +181,14 @@ function Landing() {
       </header>
 
       {/* ---------- hero ---------- */}
-      <section className="hero-section relative min-h-[92vh] flex items-center">
+      <section className="relative min-h-[92vh] flex items-center">
         <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
           <DepthSlabs layers={6} intensity={1} />
-           <SubstrateField />
-          <div className="spectral-field spectral-field--folio" aria-hidden="true" />
           <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[620px] w-[900px] rounded-full opacity-60 blur-3xl rgb-blob" />
           <div className="pointer-events-none absolute inset-0 bg-background/45 backdrop-blur-[2px]" />
         </div>
 
-        <div className="hero-copy relative z-10 mx-auto max-w-5xl px-6 py-24 text-center">
+        <div className="relative z-10 mx-auto max-w-5xl px-6 py-24 text-center">
 
           <Reveal>
             <p className="text-[11px] uppercase tracking-[0.35em] text-muted-foreground mb-8">
@@ -345,7 +216,7 @@ function Landing() {
 
           {/* fake composer */}
           <Reveal delay={240}>
-            <div className="hero-composer gradient-border mx-auto mt-12 max-w-2xl">
+            <div className="mx-auto mt-12 max-w-2xl">
               <div className="relative rounded-2xl p-[1.5px] overflow-hidden">
                 <div className="absolute inset-0 rgb-blob opacity-70 blur-[10px]" />
                 <div className="relative rounded-2xl bg-background/85 backdrop-blur-xl border border-border/50 px-5 py-4 flex items-center gap-3 text-left">
@@ -362,7 +233,7 @@ function Landing() {
                   </Link>
                 </div>
               </div>
-              <div className="hero-badges mt-5 flex flex-wrap justify-center gap-2 text-xs text-muted-foreground">
+              <div className="mt-5 flex flex-wrap justify-center gap-2 text-xs text-muted-foreground">
                 {["No setup", "Voice built in", "Remembers you", "Free to start"].map((t) => (
                   <span key={t} className="rounded-full border border-border/60 bg-background/50 px-3 py-1">
                     {t}
@@ -378,13 +249,11 @@ function Landing() {
       <section className="border-t border-border/60 bg-paper-dim/30">
         <div className="mx-auto max-w-4xl px-6 py-28 md:py-40">
           <Reveal>
-            <BoxReveal>
-              <p className="font-serif text-3xl md:text-5xl leading-[1.25] tracking-tight">
-                Most assistants give you <span className="text-muted-foreground">text</span>.
-                Folio gives you <em className="italic">something to use</em> — a card, a component,
-                a diagram, a draft, a decision.
-              </p>
-            </BoxReveal>
+            <p className="font-serif text-3xl md:text-5xl leading-[1.25] tracking-tight">
+              Most assistants give you <span className="text-muted-foreground">text</span>.
+              Folio gives you <em className="italic">something to use</em> — a card, a component,
+              a diagram, a draft, a decision.
+            </p>
           </Reveal>
         </div>
       </section>
@@ -401,8 +270,8 @@ function Landing() {
           <div className="mt-14 grid gap-5 md:grid-cols-3">
             {CAPABILITIES.map(({ icon: Icon, title, body }, idx) => (
               <Reveal key={title} delay={idx * 70}>
-                <SpotlightCard className="capability-card tile-aurora h-full">
-                  <div className="capability-card__icon"><Icon className="h-5 w-5" /></div>
+                <SpotlightCard className="h-full">
+                  <Icon className="h-5 w-5 mb-5" />
                   <h3 className="font-serif text-2xl mb-2">{title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{body}</p>
                 </SpotlightCard>
@@ -429,7 +298,7 @@ function Landing() {
             </div>
           </Reveal>
           <Reveal delay={120}>
-            <CardSwap3D items={DAY_CARDS} className="sticky-card-stack" />
+            <CardSwap3D items={DAY_CARDS} />
           </Reveal>
         </div>
       </section>
@@ -546,8 +415,8 @@ function Landing() {
           <div className="mt-12 divide-y divide-border/60 border-y border-border/60">
             {FAQ.map(({ q, a }, i) => (
               <Reveal key={q} delay={i * 60}>
-                <details className="faq-item group py-6">
-                  <summary className="faq-summary cursor-pointer list-none flex items-center gap-4">
+                <details className="group py-6">
+                  <summary className="cursor-pointer list-none flex items-center gap-4">
                     <span className="font-serif text-xl md:text-2xl flex-1">{q}</span>
                     <span className="text-muted-foreground transition group-open:rotate-45 text-2xl leading-none">+</span>
                   </summary>
