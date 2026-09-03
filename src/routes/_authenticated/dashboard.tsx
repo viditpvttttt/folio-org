@@ -10,6 +10,9 @@ import {
   Code2, ImageIcon, Terminal, Briefcase, Compass, Layers, Check, SlidersHorizontal,
 } from "lucide-react";
 import { AppShell, GlassCard } from "@/components/shell/AppShell";
+import { MagneticButton } from "@/components/fx/MagneticButton";
+import { Marquee3D } from "@/components/fx/Marquee3D";
+import { SpotlightCard } from "@/components/fx/SpotlightCard";
 import { FolioMark } from "@/components/brand/FolioMark";
 import { Reveal } from "@/components/fx/Reveal";
 import { WeatherWidget } from "@/components/chat/WeatherWidget";
