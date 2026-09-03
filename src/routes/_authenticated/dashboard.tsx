@@ -348,14 +348,15 @@ function DashboardPage() {
             <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {prompts.map(({ icon: Icon, label, q }, i) => (
                 <Reveal key={label} delay={i * 45}>
-                  <GlassCard>
+                  <SpotlightCard className="h-full p-0">
                     <button onClick={() => startWith(q)} className="h-full w-full p-6 text-left">
                       <Icon className="mb-5 h-5 w-5" />
                       <div className="font-serif text-xl">{label}</div>
                       <div className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{q}</div>
                     </button>
-                  </GlassCard>
+                  </SpotlightCard>
                 </Reveal>
+
               ))}
             </div>
           </div>
