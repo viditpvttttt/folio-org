@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { AppNav } from "@/components/shell/AppNav";
 import { DepthSlabs } from "@/components/fx/DepthSlabs";
+import { ScrollProgress } from "@/components/fx/ScrollProgress";
 import { usePreferences } from "@/hooks/use-preferences";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,7 @@ export function AppShell({
   return (
 
     <div className={cn("relative min-h-screen w-full overflow-x-hidden bg-background text-foreground paper-grain", className)}>
+      <ScrollProgress />
       <AppBackdrop scene={scene} />
       <div className="relative z-10">
         <AppNav right={right} />
