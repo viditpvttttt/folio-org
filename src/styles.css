@@ -67,6 +67,13 @@
   --border: oklch(0.88 0.012 80);
   --input: oklch(0.88 0.012 80);
   --ring: var(--ink-soft);
+
+  /* Substrate Spectral Palette */
+  --spectral-r: #e0574a;
+  --spectral-g: #5f8c6a;
+  --spectral-b: #7b6bd6;
+  --spectral-y: #e5a742;
+  --clay: #c47857;
 }
 
 .dark {
@@ -92,6 +99,13 @@
   --border: oklch(0.3 0.008 80);
   --input: oklch(0.3 0.008 80);
   --ring: oklch(0.7 0.008 80);
+
+  /* Substrate Spectral Palette Dark */
+  --spectral-r: #e8685d;
+  --spectral-g: #71a07d;
+  --spectral-b: #8e7fe0;
+  --spectral-y: #f0b759;
+  --clay: #d68b6b;
 }
 
 @layer base {
@@ -486,3 +500,100 @@ html[data-depth="deep"] .spotlight-card { transform: perspective(760px) rotateX(
   .marquee3d__track { animation: none; }
   .spotlight-card, .card-swap__card { transition: none; }
 }
+
+/* ==========================================================================
+   Substrate & Skiper UI Interactive Styles
+   ========================================================================== */
+
+.rule-label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* Aurora 3D perspective gradient tiles */
+.tile-aurora {
+  background:
+    radial-gradient(120% 120% at 10% 10%, var(--tile-a, #c88bd9) 0%, transparent 60%),
+    radial-gradient(100% 100% at 85% 15%, var(--tile-b, #7b6bd6) 0%, transparent 55%),
+    radial-gradient(110% 110% at 50% 90%, var(--tile-c, #e0574a) 0%, transparent 65%),
+    #17161e;
+  background-blend-mode: normal, screen, screen, normal;
+  color: #ffffff;
+}
+
+/* Sweeping light beam on buttons */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 40%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transform: rotate(25deg);
+  animation: btn-shine-sweep 4.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes btn-shine-sweep {
+  0%, 65% { left: -60%; }
+  100% { left: 160%; }
+}
+
+/* Infinite Marquee Tickers */
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 34s linear infinite;
+}
+.marquee-track-reverse {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 38s linear infinite reverse;
+}
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* Background cloudscapes */
+.hero-cloudscape {
+  position: absolute;
+  inset: -20%;
+  background: radial-gradient(
+    circle at 50% 30%,
+    color-mix(in oklab, var(--spectral-b) 16%, transparent),
+    transparent 65%
+  );
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.spectral-base {
+  position: absolute;
+  inset-x: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--spectral-b),
+    var(--spectral-r),
+    var(--spectral-g),
+    transparent
+  );
+  opacity: 0.4;
+}
+

@@ -6,16 +6,14 @@ export function MagneticButton({
   children,
   className,
   strength = 0.35,
-  as: As = "div",
 }: {
   children: ReactNode;
   className?: string;
   strength?: number;
-  as?: React.ElementType;
 }) {
-  const ref = useRef<HTMLElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
 
-  const onMove = (e: React.PointerEvent) => {
+  const onMove = (e: React.PointerEvent<HTMLDivElement>) => {
     const el = ref.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
@@ -29,13 +27,16 @@ export function MagneticButton({
   };
 
   return (
-    <As
-      ref={ref as never}
+    <div
+      ref={ref}
       onPointerMove={onMove}
       onPointerLeave={onLeave}
-      className={cn("inline-block transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform", className)}
+      className={cn(
+        "inline-block transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform",
+        className
+      )}
     >
       {children}
-    </As>
+    </div>
   );
 }
