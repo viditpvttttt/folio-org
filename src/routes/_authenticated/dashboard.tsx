@@ -173,6 +173,7 @@ function DashboardPage() {
 
   const filter = prefs.quickFilter;
   const visible = (id: WidgetId) => prefs.widgets.includes(id);
+  const connectors = useAppConnectors();
   const toggleWidget = (id: WidgetId) =>
     prefs.update({
       widgets: prefs.widgets.includes(id)
