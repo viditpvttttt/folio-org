@@ -16,6 +16,7 @@ export const DASHBOARD_WIDGETS = [
   { id: "weather", label: "Weather & news" },
   { id: "memory", label: "Memory" },
   { id: "recent", label: "Recent chats" },
+  { id: "connectors", label: "Connected apps" },
 ] as const;
 
 export type WidgetId = (typeof DASHBOARD_WIDGETS)[number]["id"];
@@ -95,7 +96,16 @@ function read(): Preferences {
   if (typeof window === "undefined") return DEFAULT_PREFERENCES;
   try {
     const raw = window.localStorage.getItem(KEY);
-    return raw ? { ...DEFAULT_PREFERENCES, ...(JSON.parse(raw) as Partial<Preferences>) } : DEFAULT_PREFERENCES;
+    if (!raw) return DEFAULT_PREFERENCES;
+    const parsed = { ...DEFAULT_PREFERENCES, ...(JSON.parse(raw) as Partial<Preferences>) };
+    // New widgets ship visible by default, even for saved preferences.
+    const known = new Set(parsed.widgets);
+    const legacy = new Set(["stats", "actions", "skills", "weather", "memory", "recent"]);
+    parsed.widgets = [
+      ...parsed.widgets,
+      ...DASHBOARD_WIDGETS.map((w) => w.id).filter((id) => !known.has(id) && !legacy.has(id)),
+    ];
+    return parsed;
   } catch {
     return DEFAULT_PREFERENCES;
   }
