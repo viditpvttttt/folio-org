@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OauthReturnRouteImport } from './routes/oauth.return'
 import { Route as ApiWorkbenchChatRouteImport } from './routes/api/workbench-chat'
 import { Route as ApiWorkRouteImport } from './routes/api/work'
 import { Route as ApiTranscribeRouteImport } from './routes/api/transcribe'
@@ -42,6 +43,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OauthReturnRoute = OauthReturnRouteImport.update({
+  id: '/oauth/return',
+  path: '/oauth/return',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiWorkbenchChatRoute = ApiWorkbenchChatRouteImport.update({
@@ -149,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/api/transcribe': typeof ApiTranscribeRoute
   '/api/work': typeof ApiWorkRoute
   '/api/workbench-chat': typeof ApiWorkbenchChatRoute
+  '/oauth/return': typeof OauthReturnRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/chat/': typeof AuthenticatedChatIndexRoute
   '/api/public/oauth/$provider/callback': typeof ApiPublicOauthProviderCallbackRoute
@@ -170,6 +177,7 @@ export interface FileRoutesByTo {
   '/api/transcribe': typeof ApiTranscribeRoute
   '/api/work': typeof ApiWorkRoute
   '/api/workbench-chat': typeof ApiWorkbenchChatRoute
+  '/oauth/return': typeof OauthReturnRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/chat': typeof AuthenticatedChatIndexRoute
   '/api/public/oauth/$provider/callback': typeof ApiPublicOauthProviderCallbackRoute
@@ -193,6 +201,7 @@ export interface FileRoutesById {
   '/api/transcribe': typeof ApiTranscribeRoute
   '/api/work': typeof ApiWorkRoute
   '/api/workbench-chat': typeof ApiWorkbenchChatRoute
+  '/oauth/return': typeof OauthReturnRoute
   '/_authenticated/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
   '/api/public/oauth/$provider/callback': typeof ApiPublicOauthProviderCallbackRoute
@@ -216,6 +225,7 @@ export interface FileRouteTypes {
     | '/api/transcribe'
     | '/api/work'
     | '/api/workbench-chat'
+    | '/oauth/return'
     | '/chat/$threadId'
     | '/chat/'
     | '/api/public/oauth/$provider/callback'
@@ -237,6 +247,7 @@ export interface FileRouteTypes {
     | '/api/transcribe'
     | '/api/work'
     | '/api/workbench-chat'
+    | '/oauth/return'
     | '/chat/$threadId'
     | '/chat'
     | '/api/public/oauth/$provider/callback'
@@ -259,6 +270,7 @@ export interface FileRouteTypes {
     | '/api/transcribe'
     | '/api/work'
     | '/api/workbench-chat'
+    | '/oauth/return'
     | '/_authenticated/chat/$threadId'
     | '/_authenticated/chat/'
     | '/api/public/oauth/$provider/callback'
@@ -276,6 +288,7 @@ export interface RootRouteChildren {
   ApiTranscribeRoute: typeof ApiTranscribeRoute
   ApiWorkRoute: typeof ApiWorkRoute
   ApiWorkbenchChatRoute: typeof ApiWorkbenchChatRoute
+  OauthReturnRoute: typeof OauthReturnRoute
   ApiPublicOauthProviderCallbackRoute: typeof ApiPublicOauthProviderCallbackRoute
   ApiPublicOauthProviderStartRoute: typeof ApiPublicOauthProviderStartRoute
 }
@@ -301,6 +314,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oauth/return': {
+      id: '/oauth/return'
+      path: '/oauth/return'
+      fullPath: '/oauth/return'
+      preLoaderRoute: typeof OauthReturnRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/workbench-chat': {
@@ -462,6 +482,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiTranscribeRoute: ApiTranscribeRoute,
   ApiWorkRoute: ApiWorkRoute,
   ApiWorkbenchChatRoute: ApiWorkbenchChatRoute,
+  OauthReturnRoute: OauthReturnRoute,
   ApiPublicOauthProviderCallbackRoute: ApiPublicOauthProviderCallbackRoute,
   ApiPublicOauthProviderStartRoute: ApiPublicOauthProviderStartRoute,
 }

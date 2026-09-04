@@ -8,6 +8,7 @@ import {
   BookOpen, Dices, CalendarClock, Sparkles, ArrowRight,
   Brain, Trash2, Newspaper, Languages, KeyRound, QrCode, ChefHat, Palette, Link2,
   Code2, ImageIcon, Terminal, Briefcase, Compass, Layers, Check, SlidersHorizontal,
+  Mail, GitBranch, MessageSquare, Plug,
 } from "lucide-react";
 import { AppShell, GlassCard } from "@/components/shell/AppShell";
 import { MagneticButton } from "@/components/fx/MagneticButton";
@@ -22,6 +23,15 @@ import { usePreferences, DASHBOARD_WIDGETS, type Depth, type WidgetId } from "@/
 import { supabase } from "@/integrations/supabase/client";
 import { createThread, listThreads } from "@/lib/threads.functions";
 import { addMemory, deleteMemory, listMemories } from "@/lib/memories.functions";
+import { useAppConnectors } from "@/hooks/use-app-connectors";
+import { APP_CONNECTORS, type AppConnectorId } from "@/lib/app-connectors";
+
+const CONNECTOR_ICONS: Record<AppConnectorId, React.ComponentType<{ className?: string }>> = {
+  google_mail: Mail,
+  github: Code2,
+  linear: GitBranch,
+  slack: MessageSquare,
+};
 
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -163,6 +173,7 @@ function DashboardPage() {
 
   const filter = prefs.quickFilter;
   const visible = (id: WidgetId) => prefs.widgets.includes(id);
+  const connectors = useAppConnectors();
   const toggleWidget = (id: WidgetId) =>
     prefs.update({
       widgets: prefs.widgets.includes(id)
@@ -497,6 +508,60 @@ function DashboardPage() {
                       </li>
                     )}
                   </ul>
+                </GlassCard>
+              </Reveal>
+              )}
+
+              {visible("connectors") && (
+              <Reveal delay={240}>
+                <GlassCard>
+                  <div className="flex items-center gap-2 border-b border-border/40 px-6 py-4">
+                    <Plug className="h-4 w-4" />
+                    <span className="font-serif text-lg">Connected apps</span>
+                    <span className="ml-auto text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {connectors.statuses.filter((s) => s.connected).length} live
+                    </span>
+                  </div>
+                  <ul className="divide-y divide-border/40">
+                    {(Object.keys(APP_CONNECTORS) as AppConnectorId[]).map((id) => {
+                      const meta = APP_CONNECTORS[id];
+                      const st = connectors.statusOf(id);
+                      const Icon = CONNECTOR_ICONS[id];
+                      return (
+                        <li key={id} className="flex items-center gap-3 px-6 py-3.5">
+                          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl border border-border/60 bg-background/60">
+                            <Icon className="h-4 w-4" />
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-sm">{meta.name}</span>
+                            <span className="block truncate text-[11px] text-muted-foreground">
+                              {st?.connected ? (st.accountLabel ?? "Connected") : meta.tagline}
+                            </span>
+                          </span>
+                          {st?.connected ? (
+                            <button
+                              onClick={() => connectors.disconnect(id)}
+                              className="shrink-0 rounded-full border border-border/60 px-3 py-1 text-[11px] text-muted-foreground transition hover:text-foreground"
+                            >
+                              Disconnect
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => connectors.connect(id)}
+                              className="shrink-0 rounded-full bg-foreground px-3 py-1 text-[11px] text-background transition hover:opacity-90"
+                            >
+                              Connect
+                            </button>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  <div className="border-t border-border/40 px-6 py-3">
+                    <Link to="/connectors" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground">
+                      All connectors <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  </div>
                 </GlassCard>
               </Reveal>
               )}

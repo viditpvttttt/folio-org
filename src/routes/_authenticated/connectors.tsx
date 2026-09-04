@@ -11,6 +11,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { listConnections, disconnectProvider, saveApiToken } from "@/lib/connections.functions";
 import { TOKEN_PROVIDERS } from "@/lib/token-providers";
+import { type AppConnectorId } from "@/lib/app-connectors";
+import { useAppConnectors } from "@/hooks/use-app-connectors";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -33,6 +35,8 @@ type ProviderCard = {
   icon: React.ComponentType<{ className?: string }>;
   hue: string;
   kind: "oauth" | "token" | "soon";
+  /** Lovable App User Connector id, when this card uses real per-user OAuth */
+  appId?: AppConnectorId;
   tokenHelp?: string;
   tokenUrl?: string;
 };
@@ -40,12 +44,30 @@ type ProviderCard = {
 
 const PROVIDERS: ProviderCard[] = [
   {
-    id: "google", name: "Gmail", tagline: "Read, search and send mail from chat",
-    icon: Mail, hue: "from-rose-500/25 to-orange-500/10", kind: "oauth",
+    id: "google_mail", name: "Gmail", tagline: "Read, search and send mail from chat",
+    icon: Mail, hue: "from-rose-500/25 to-orange-500/10", kind: "oauth", appId: "google_mail",
+  },
+  {
+    id: "github", name: "GitHub", tagline: "Repos, issues and pull requests",
+    icon: Code2, hue: "from-zinc-500/25 to-slate-500/10", kind: "oauth", appId: "github",
+  },
+  {
+    id: "linear", name: "Linear", tagline: "Triage issues and plan cycles",
+    icon: GitBranch, hue: "from-violet-500/25 to-indigo-500/10", kind: "oauth", appId: "linear",
+  },
+  {
+    id: "slack", name: "Slack", tagline: "Read channels, post messages",
+    icon: MessageSquare, hue: "from-fuchsia-500/25 to-pink-500/10", kind: "oauth", appId: "slack",
   },
   {
     id: "notion", name: "Notion", tagline: "Search your pages and databases",
     icon: BookOpenText, hue: "from-slate-400/25 to-zinc-500/10", kind: "oauth",
+  },
+  {
+    id: "todoist", name: "Todoist", tagline: "Capture, list and complete tasks",
+    icon: ListTodo, hue: "from-red-500/25 to-rose-500/10", kind: "token",
+    tokenHelp: "Todoist → Settings → Integrations → Developer → API token.",
+    tokenUrl: "https://app.todoist.com/app/settings/integrations/developer",
   },
   {
     id: "vercel", name: "Vercel", tagline: "List projects and deployments",
@@ -60,30 +82,6 @@ const PROVIDERS: ProviderCard[] = [
     tokenUrl: "https://cursor.com/settings",
   },
   {
-    id: "github", name: "GitHub", tagline: "Repos, issues and pull requests",
-    icon: Code2, hue: "from-zinc-500/25 to-slate-500/10", kind: "token",
-    tokenHelp: "Create a fine-grained personal access token with read access to your repositories.",
-    tokenUrl: "https://github.com/settings/tokens",
-  },
-  {
-    id: "linear", name: "Linear", tagline: "Triage issues and plan cycles",
-    icon: GitBranch, hue: "from-violet-500/25 to-indigo-500/10", kind: "token",
-    tokenHelp: "Linear → Settings → Security & access → Personal API keys.",
-    tokenUrl: "https://linear.app/settings/api",
-  },
-  {
-    id: "slack", name: "Slack", tagline: "Read channels, post messages",
-    icon: MessageSquare, hue: "from-fuchsia-500/25 to-pink-500/10", kind: "token",
-    tokenHelp: "Paste a user OAuth token (xoxp-…) from your Slack app's OAuth page.",
-    tokenUrl: "https://api.slack.com/apps",
-  },
-  {
-    id: "todoist", name: "Todoist", tagline: "Capture, list and complete tasks",
-    icon: ListTodo, hue: "from-red-500/25 to-rose-500/10", kind: "token",
-    tokenHelp: "Todoist → Settings → Integrations → Developer → API token.",
-    tokenUrl: "https://app.todoist.com/app/settings/integrations/developer",
-  },
-  {
     id: "figma", name: "Figma", tagline: "Pull frames and list your files",
     icon: Palette, hue: "from-orange-500/25 to-red-500/10", kind: "token",
     tokenHelp: "Figma → Settings → Personal access tokens.",
@@ -96,6 +94,7 @@ const PROVIDERS: ProviderCard[] = [
     tokenUrl: "https://platform.openai.com/api-keys",
   },
 ];
+
 
 const COMING_SOON: ProviderCard[] = [
   { id: "gcal",     name: "Google Calendar", tagline: "See your day, book focus blocks, RSVP",  icon: Calendar,      hue: "from-sky-500/25 to-blue-500/10",       kind: "soon" },
@@ -115,6 +114,7 @@ function ConnectorsPage() {
   const list = useServerFn(listConnections);
   const disconnect = useServerFn(disconnectProvider);
   const saveToken = useServerFn(saveApiToken);
+  const app = useAppConnectors();
 
   const q = useQuery({ queryKey: ["connections", user?.id], queryFn: () => list(), enabled: !!user });
 
@@ -199,8 +199,10 @@ function ConnectorsPage() {
 
         <div className="grid sm:grid-cols-2 gap-4">
           {PROVIDERS.map((p) => {
+            const appStatus = p.appId ? app.statusOf(p.appId) : undefined;
             const conn = findConn(p.id);
-            const connected = !!conn;
+            const connected = p.appId ? !!appStatus?.connected : !!conn;
+            const label = p.appId ? appStatus?.accountLabel : conn?.account_label;
             const Icon = p.icon;
             return (
               <TiltCard key={p.id} max={5}>
@@ -222,7 +224,7 @@ function ConnectorsPage() {
                       <p className="text-xs text-muted-foreground mt-0.5">{p.tagline}</p>
                       {connected && (
                         <p className="text-[11px] mt-2 text-foreground/70 truncate">
-                          {conn?.account_label ?? "Connected account"}
+                          {label ?? "Connected account"}
                         </p>
                       )}
                     </div>
@@ -231,7 +233,7 @@ function ConnectorsPage() {
                   <div className="mt-5 flex items-center gap-2">
                     {connected ? (
                       <>
-                        <Button size="sm" variant="outline" disabled={busy === p.id} onClick={() => remove(p.id, p.name)}>
+                        <Button size="sm" variant="outline" disabled={busy === p.id} onClick={() => (p.appId ? app.disconnect(p.appId) : remove(p.id, p.name))}>
                           <Link2Off className="h-3.5 w-3.5" /> Disconnect
                         </Button>
                         <Button size="sm" variant="ghost" onClick={() => navigate({ to: "/chat" })}>
@@ -239,7 +241,7 @@ function ConnectorsPage() {
                         </Button>
                       </>
                     ) : p.kind === "oauth" ? (
-                      <Button size="sm" disabled={busy === p.id} onClick={() => startOAuth(p.id)}>
+                      <Button size="sm" disabled={busy === p.id} onClick={() => (p.appId ? app.connect(p.appId) : startOAuth(p.id))}>
                         <Sparkles className="h-3.5 w-3.5" /> Connect {p.name}
                       </Button>
                     ) : (
