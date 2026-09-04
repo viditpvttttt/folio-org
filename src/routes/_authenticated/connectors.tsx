@@ -11,6 +11,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { listConnections, disconnectProvider, saveApiToken } from "@/lib/connections.functions";
 import { TOKEN_PROVIDERS } from "@/lib/token-providers";
+import { type AppConnectorId } from "@/lib/app-connectors";
+import { useAppConnectors } from "@/hooks/use-app-connectors";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -112,6 +114,7 @@ function ConnectorsPage() {
   const list = useServerFn(listConnections);
   const disconnect = useServerFn(disconnectProvider);
   const saveToken = useServerFn(saveApiToken);
+  const app = useAppConnectors();
 
   const q = useQuery({ queryKey: ["connections", user?.id], queryFn: () => list(), enabled: !!user });
 
@@ -196,8 +199,10 @@ function ConnectorsPage() {
 
         <div className="grid sm:grid-cols-2 gap-4">
           {PROVIDERS.map((p) => {
+            const appStatus = p.appId ? app.statusOf(p.appId) : undefined;
             const conn = findConn(p.id);
-            const connected = !!conn;
+            const connected = p.appId ? !!appStatus?.connected : !!conn;
+            const label = p.appId ? appStatus?.accountLabel : conn?.account_label;
             const Icon = p.icon;
             return (
               <TiltCard key={p.id} max={5}>
@@ -219,7 +224,7 @@ function ConnectorsPage() {
                       <p className="text-xs text-muted-foreground mt-0.5">{p.tagline}</p>
                       {connected && (
                         <p className="text-[11px] mt-2 text-foreground/70 truncate">
-                          {conn?.account_label ?? "Connected account"}
+                          {label ?? "Connected account"}
                         </p>
                       )}
                     </div>
@@ -228,7 +233,7 @@ function ConnectorsPage() {
                   <div className="mt-5 flex items-center gap-2">
                     {connected ? (
                       <>
-                        <Button size="sm" variant="outline" disabled={busy === p.id} onClick={() => remove(p.id, p.name)}>
+                        <Button size="sm" variant="outline" disabled={busy === p.id} onClick={() => (p.appId ? app.disconnect(p.appId) : remove(p.id, p.name))}>
                           <Link2Off className="h-3.5 w-3.5" /> Disconnect
                         </Button>
                         <Button size="sm" variant="ghost" onClick={() => navigate({ to: "/chat" })}>
@@ -236,7 +241,7 @@ function ConnectorsPage() {
                         </Button>
                       </>
                     ) : p.kind === "oauth" ? (
-                      <Button size="sm" disabled={busy === p.id} onClick={() => startOAuth(p.id)}>
+                      <Button size="sm" disabled={busy === p.id} onClick={() => (p.appId ? app.connect(p.appId) : startOAuth(p.id))}>
                         <Sparkles className="h-3.5 w-3.5" /> Connect {p.name}
                       </Button>
                     ) : (
