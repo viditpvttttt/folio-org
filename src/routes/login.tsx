@@ -18,10 +18,11 @@ function LoginPage() {
   const [busy, setBusy] = useState(false);
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const prefs = usePreferences();
 
   useEffect(() => {
     if (!loading && user) navigate({ to: prefs.landing === "chat" ? "/chat" : "/dashboard" });
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, prefs.landing]);
 
   async function handleEmail(e: React.FormEvent) {
     e.preventDefault();
