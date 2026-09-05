@@ -525,7 +525,17 @@ export function ChatRoom({ threadId }: { threadId: string }) {
         const token = data.session?.access_token ?? authToken;
         return token ? { Authorization: `Bearer ${token}` } : {};
       },
-      body: { threadId },
+      body: {
+        threadId,
+        prefs: {
+          tone: prefs.tone,
+          length: prefs.length,
+          nickname: prefs.nickname,
+          units: prefs.units,
+          timeFormat: prefs.timeFormat,
+          language: prefs.language,
+        },
+      },
     }),
     onError: (e) => toast.error(e.message || "Something went wrong"),
     onFinish: ({ message }) => {
