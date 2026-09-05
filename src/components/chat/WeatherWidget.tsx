@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { MapPin, Locate, Pencil, Loader2, Cloud, CloudRain, CloudSnow, Sun, CloudLightning, CloudFog, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { usePreferences } from "@/hooks/use-preferences";
 import { TiltCard } from "./TiltCard";
 import { cn } from "@/lib/utils";
 
@@ -53,9 +54,10 @@ async function reverseGeocode(lat: number, lon: number) {
     return j?.results?.[0];
   } catch { return null; }
 }
-async function fetchForecast(lat: number, lon: number, label: string, country = ""): Promise<Forecast> {
+async function fetchForecast(lat: number, lon: number, label: string, country = "", imperial = false): Promise<Forecast> {
   const r = await fetch(
     `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+    (imperial ? "&temperature_unit=fahrenheit&wind_speed_unit=mph" : "") +
     `&current=temperature_2m,apparent_temperature,weather_code,is_day` +
     `&daily=temperature_2m_max,temperature_2m_min,weather_code` +
     `&timezone=auto&forecast_days=5`,
@@ -76,6 +78,8 @@ async function fetchForecast(lat: number, lon: number, label: string, country = 
 
 export function WeatherWidget() {
   const { user } = useAuth();
+  const prefs = usePreferences();
+  const imperial = prefs.units === "imperial";
   const [profile, setProfile] = useState<Profile | null>(null);
   const [forecast, setForecast] = useState<Forecast | null>(null);
   const [loading, setLoading] = useState(false);
@@ -116,10 +120,10 @@ export function WeatherWidget() {
   useEffect(() => {
     if (!profile?.default_lat || !profile?.default_lon) return;
     setLoading(true);
-    fetchForecast(profile.default_lat, profile.default_lon, profile.default_location || "Saved")
+    fetchForecast(profile.default_lat, profile.default_lon, profile.default_location || "Saved", "", imperial)
       .then(setForecast)
       .finally(() => setLoading(false));
-  }, [profile?.default_lat, profile?.default_lon, profile?.default_location]);
+  }, [profile?.default_lat, profile?.default_lon, profile?.default_location, imperial]);
 
   const saveCity = async () => {
     if (!draft.trim() || !user) return;
