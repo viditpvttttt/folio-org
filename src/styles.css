@@ -486,3 +486,140 @@ html[data-depth="deep"] .spotlight-card { transform: perspective(760px) rotateX(
   .marquee3d__track { animation: none; }
   .spotlight-card, .card-swap__card { transition: none; }
 }
+
+/* ---------------------------------------------------------------------------
+   World layer — the fixed 3D space every section sits inside.
+--------------------------------------------------------------------------- */
+.world-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  perspective: 900px;
+  perspective-origin: calc(50% + var(--wx, 0) * 6%) calc(50% + var(--wy, 0) * 6%);
+  --world-lift: 1;
+}
+.world-stage {
+  position: absolute;
+  inset: -20%;
+  transform-style: preserve-3d;
+  transform:
+    rotateX(calc(var(--wy, 0) * -1.6deg))
+    rotateY(calc(var(--wx, 0) * 2.2deg))
+    translateZ(calc(var(--wz, 0) * 90px));
+  transition: transform 0.08s linear;
+}
+
+/* Receding grid planes */
+.world-floor,
+.world-ceiling {
+  position: absolute;
+  left: -35%;
+  width: 170%;
+  height: 120vh;
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--color-foreground) 12%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--color-foreground) 12%, transparent) 1px, transparent 1px);
+  background-size: 68px 68px;
+  mask-image: linear-gradient(to top, transparent, black 26%, transparent 78%);
+  opacity: calc(0.3 * var(--world-lift));
+}
+.world-floor {
+  bottom: -34vh;
+  transform: rotateX(74deg) translateZ(calc(var(--wz, 0) * -60px));
+  transform-origin: bottom center;
+}
+.world-ceiling {
+  top: -34vh;
+  transform: rotateX(-74deg) translateZ(calc(var(--wz, 0) * -60px));
+  transform-origin: top center;
+  opacity: calc(0.18 * var(--world-lift));
+}
+
+/* Light walls */
+.world-wall {
+  position: absolute;
+  top: -10%;
+  height: 120%;
+  width: 34vw;
+  filter: blur(46px);
+  opacity: calc(0.4 * var(--world-lift));
+}
+.world-wall--l {
+  left: -8vw;
+  transform: rotateY(34deg) translateZ(-120px);
+  background: linear-gradient(180deg, transparent, color-mix(in oklab, var(--color-primary, oklch(0.7 0.16 300)) 28%, transparent), transparent);
+}
+.world-wall--r {
+  right: -8vw;
+  transform: rotateY(-34deg) translateZ(-120px);
+  background: linear-gradient(180deg, transparent, color-mix(in oklab, oklch(0.72 0.15 220) 26%, transparent), transparent);
+}
+
+/* Glass slabs floating at real depths */
+.world-slabs {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+.world-slab {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 58vw;
+  height: 34vh;
+  margin: -17vh 0 0 -29vw;
+  border-radius: 28px;
+  border: 1px solid color-mix(in oklab, var(--color-foreground) 10%, transparent);
+  background: linear-gradient(135deg,
+    color-mix(in oklab, var(--color-foreground) 4%, transparent),
+    transparent 62%);
+  backdrop-filter: blur(1px);
+  opacity: calc((0.4 - var(--i) * 0.05) * var(--world-lift));
+  transform:
+    translate3d(calc((var(--i) - 2.5) * 9vw + var(--wx, 0) * calc(var(--i) * 8px)),
+                calc((var(--i) - 2.5) * 5vh + var(--wy, 0) * calc(var(--i) * 6px)),
+                calc(-140px - var(--i) * 130px))
+    rotateY(calc(var(--wx, 0) * 5deg))
+    rotateX(calc(var(--wy, 0) * -4deg));
+  animation: world-drift calc(18s + var(--i) * 4s) ease-in-out infinite alternate;
+}
+@keyframes world-drift {
+  from { margin-top: -18vh; }
+  to   { margin-top: -15vh; }
+}
+
+/* Horizon glow */
+.world-horizon {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 52%;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, oklch(0.78 0.17 300 / 0.55), oklch(0.8 0.15 220 / 0.5), transparent);
+  filter: blur(2px);
+  opacity: calc(0.5 * var(--world-lift));
+  transform: translateZ(-200px);
+}
+
+.world-haze {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 70% at 50% 40%, transparent, var(--color-background) 78%),
+    linear-gradient(to bottom, transparent 40%, var(--color-background));
+  opacity: 0.85;
+}
+
+/* Depth setting drives the whole world */
+html[data-depth="flat"] .world-layer { display: none; }
+html[data-depth="soft"] .world-layer { --world-lift: 0.75; }
+html[data-depth="deep"] .world-layer { --world-lift: 1.35; perspective: 720px; }
+html[data-depth="deep"] .world-haze { opacity: 0.72; }
+
+@media (prefers-reduced-motion: reduce) {
+  .world-slab { animation: none; }
+  .world-stage { transition: none; transform: none; }
+}
