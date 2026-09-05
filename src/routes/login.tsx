@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/use-auth";
+import { usePreferences } from "@/hooks/use-preferences";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
@@ -19,7 +20,7 @@ function LoginPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && user) navigate({ to: "/dashboard" });
+    if (!loading && user) navigate({ to: prefs.landing === "chat" ? "/chat" : "/dashboard" });
   }, [user, loading, navigate]);
 
   async function handleEmail(e: React.FormEvent) {

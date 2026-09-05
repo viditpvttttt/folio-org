@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2, Newspaper, RefreshCw, ExternalLink, Plus, X, Check, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { usePreferences } from "@/hooks/use-preferences";
 
 type NewsItem = { title: string; link: string; source: string; pubDate: string };
 type Res = { category: string; items: NewsItem[]; fetchedAt: string; degraded?: boolean; error?: string };
@@ -31,6 +32,7 @@ function timeAgo(iso: string) {
 }
 
 export function NewsWidget() {
+  const prefs = usePreferences();
   const [topics, setTopics] = useState<string[]>(DEFAULT_TOPICS);
   const [category, setCategory] = useState<string>(DEFAULT_TOPICS[0]);
   const [data, setData] = useState<Res | null>(null);
@@ -39,18 +41,20 @@ export function NewsWidget() {
   const [draft, setDraft] = useState("");
   const [tick, setTick] = useState(0);
 
-  // Load saved topics
+  // Load saved topics, then pin the preferred default topic first.
   useEffect(() => {
+    let list = DEFAULT_TOPICS;
     try {
       const saved = JSON.parse(localStorage.getItem(STORE_KEY) ?? "null");
-      if (Array.isArray(saved) && saved.length) {
-        setTopics(saved);
-        setCategory(saved[0]);
-      }
+      if (Array.isArray(saved) && saved.length) list = saved as string[];
     } catch {
       /* ignore */
     }
-  }, []);
+    const preferred = (prefs.newsTopic || "").trim().toLowerCase();
+    if (preferred) list = [preferred, ...list.filter((t) => t !== preferred)];
+    setTopics(list);
+    setCategory(list[0]!);
+  }, [prefs.newsTopic]);
 
   const persist = (next: string[]) => {
     setTopics(next);

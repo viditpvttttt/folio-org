@@ -139,7 +139,7 @@ function Landing() {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    if (!loading && user) navigate({ to: "/dashboard" });
+    if (!loading && user) navigate({ to: prefs.landing === "chat" ? "/chat" : "/dashboard" });
   }, [user, loading, navigate]);
 
   useEffect(() => {
