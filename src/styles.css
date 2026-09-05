@@ -67,13 +67,6 @@
   --border: oklch(0.88 0.012 80);
   --input: oklch(0.88 0.012 80);
   --ring: var(--ink-soft);
-
-  /* Substrate Spectral Palette */
-  --spectral-r: #e0574a;
-  --spectral-g: #5f8c6a;
-  --spectral-b: #7b6bd6;
-  --spectral-y: #e5a742;
-  --clay: #c47857;
 }
 
 .dark {
@@ -99,13 +92,6 @@
   --border: oklch(0.3 0.008 80);
   --input: oklch(0.3 0.008 80);
   --ring: oklch(0.7 0.008 80);
-
-  /* Substrate Spectral Palette Dark */
-  --spectral-r: #e8685d;
-  --spectral-g: #71a07d;
-  --spectral-b: #8e7fe0;
-  --spectral-y: #f0b759;
-  --clay: #d68b6b;
 }
 
 @layer base {
@@ -501,99 +487,147 @@ html[data-depth="deep"] .spotlight-card { transform: perspective(760px) rotateX(
   .spotlight-card, .card-swap__card { transition: none; }
 }
 
-/* ==========================================================================
-   Substrate & Skiper UI Interactive Styles
-   ========================================================================== */
-
-.rule-label {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--muted-foreground);
-}
-
-/* Aurora 3D perspective gradient tiles */
-.tile-aurora {
-  background:
-    radial-gradient(120% 120% at 10% 10%, var(--tile-a, #c88bd9) 0%, transparent 60%),
-    radial-gradient(100% 100% at 85% 15%, var(--tile-b, #7b6bd6) 0%, transparent 55%),
-    radial-gradient(110% 110% at 50% 90%, var(--tile-c, #e0574a) 0%, transparent 65%),
-    #17161e;
-  background-blend-mode: normal, screen, screen, normal;
-  color: #ffffff;
-}
-
-/* Sweeping light beam on buttons */
-.btn-shine {
-  position: relative;
+/* ---------------------------------------------------------------------------
+   World layer — the fixed 3D space every section sits inside.
+--------------------------------------------------------------------------- */
+.world-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
   overflow: hidden;
+  perspective: 900px;
+  perspective-origin: calc(50% + var(--wx, 0) * 6%) calc(50% + var(--wy, 0) * 6%);
+  --world-lift: 1;
 }
-.btn-shine::after {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -60%;
-  width: 40%;
-  height: 200%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.3),
-    transparent
-  );
-  transform: rotate(25deg);
-  animation: btn-shine-sweep 4.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-
-@keyframes btn-shine-sweep {
-  0%, 65% { left: -60%; }
-  100% { left: 160%; }
-}
-
-/* Infinite Marquee Tickers */
-.marquee-track {
-  display: flex;
-  width: max-content;
-  animation: marquee-scroll 34s linear infinite;
-}
-.marquee-track-reverse {
-  display: flex;
-  width: max-content;
-  animation: marquee-scroll 38s linear infinite reverse;
-}
-@keyframes marquee-scroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-
-/* Background cloudscapes */
-.hero-cloudscape {
+.world-stage {
   position: absolute;
   inset: -20%;
-  background: radial-gradient(
-    circle at 50% 30%,
-    color-mix(in oklab, var(--spectral-b) 16%, transparent),
-    transparent 65%
-  );
-  filter: blur(80px);
-  pointer-events: none;
-  z-index: -1;
+  transform-style: preserve-3d;
+  transform:
+    rotateX(calc(var(--wy, 0) * -1.6deg))
+    rotateY(calc(var(--wx, 0) * 2.2deg))
+    translateZ(calc(var(--wz, 0) * 90px));
+  transition: transform 0.08s linear;
 }
 
-.spectral-base {
+/* Receding grid planes */
+.world-floor,
+.world-ceiling {
   position: absolute;
-  inset-x: 0;
-  bottom: 0;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--spectral-b),
-    var(--spectral-r),
-    var(--spectral-g),
-    transparent
-  );
-  opacity: 0.4;
+  left: -35%;
+  width: 170%;
+  height: 120vh;
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--color-foreground) 12%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--color-foreground) 12%, transparent) 1px, transparent 1px);
+  background-size: 68px 68px;
+  mask-image: linear-gradient(to top, transparent, black 26%, transparent 78%);
+  opacity: calc(0.3 * var(--world-lift));
+}
+.world-floor {
+  bottom: -34vh;
+  transform: rotateX(74deg) translateZ(calc(var(--wz, 0) * -60px));
+  transform-origin: bottom center;
+}
+.world-ceiling {
+  top: -34vh;
+  transform: rotateX(-74deg) translateZ(calc(var(--wz, 0) * -60px));
+  transform-origin: top center;
+  opacity: calc(0.18 * var(--world-lift));
 }
 
+/* Light walls */
+.world-wall {
+  position: absolute;
+  top: -10%;
+  height: 120%;
+  width: 34vw;
+  filter: blur(46px);
+  opacity: calc(0.4 * var(--world-lift));
+}
+.world-wall--l {
+  left: -8vw;
+  transform: rotateY(34deg) translateZ(-120px);
+  background: linear-gradient(180deg, transparent, color-mix(in oklab, var(--color-primary, oklch(0.7 0.16 300)) 28%, transparent), transparent);
+}
+.world-wall--r {
+  right: -8vw;
+  transform: rotateY(-34deg) translateZ(-120px);
+  background: linear-gradient(180deg, transparent, color-mix(in oklab, oklch(0.72 0.15 220) 26%, transparent), transparent);
+}
+
+/* Glass slabs floating at real depths */
+.world-slabs {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+.world-slab {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 58vw;
+  height: 34vh;
+  margin: -17vh 0 0 -29vw;
+  border-radius: 28px;
+  border: 1px solid color-mix(in oklab, var(--color-foreground) 10%, transparent);
+  background: linear-gradient(135deg,
+    color-mix(in oklab, var(--color-foreground) 4%, transparent),
+    transparent 62%);
+  backdrop-filter: blur(1px);
+  opacity: calc((0.4 - var(--i) * 0.05) * var(--world-lift));
+  transform:
+    translate3d(calc((var(--i) - 2.5) * 9vw + var(--wx, 0) * calc(var(--i) * 8px)),
+                calc((var(--i) - 2.5) * 5vh + var(--wy, 0) * calc(var(--i) * 6px)),
+                calc(-140px - var(--i) * 130px))
+    rotateY(calc(var(--wx, 0) * 5deg))
+    rotateX(calc(var(--wy, 0) * -4deg));
+  animation: world-drift calc(18s + var(--i) * 4s) ease-in-out infinite alternate;
+}
+@keyframes world-drift {
+  from { margin-top: -18vh; }
+  to   { margin-top: -15vh; }
+}
+
+/* Horizon glow */
+.world-horizon {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 52%;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, oklch(0.78 0.17 300 / 0.55), oklch(0.8 0.15 220 / 0.5), transparent);
+  filter: blur(2px);
+  opacity: calc(0.5 * var(--world-lift));
+  transform: translateZ(-200px);
+}
+
+.world-haze {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 70% at 50% 40%, transparent, var(--color-background) 78%),
+    linear-gradient(to bottom, transparent 40%, var(--color-background));
+  opacity: 0.85;
+}
+
+/* Depth setting drives the whole world */
+html[data-depth="flat"] .world-layer { display: none; }
+html[data-depth="soft"] .world-layer { --world-lift: 0.75; }
+html[data-depth="deep"] .world-layer { --world-lift: 1.35; perspective: 720px; }
+html[data-depth="deep"] .world-haze { opacity: 0.72; }
+
+@media (prefers-reduced-motion: reduce) {
+  .world-slab { animation: none; }
+  .world-stage { transition: none; transform: none; }
+}
+
+/* Compact density tightens vertical rhythm across every section. */
+html[data-density="compact"] main section { padding-top: 0.72em; padding-bottom: 0.72em; }
+html[data-density="compact"] main .py-24 { padding-block: 3rem; }
+html[data-density="compact"] main .py-32 { padding-block: 4rem; }
+html[data-density="compact"] main .pt-16 { padding-top: 2.25rem; }
+html[data-density="compact"] main .pt-24 { padding-top: 3rem; }
+html[data-density="compact"] main .pb-20 { padding-bottom: 2.5rem; }

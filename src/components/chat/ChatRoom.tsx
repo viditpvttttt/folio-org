@@ -525,7 +525,17 @@ export function ChatRoom({ threadId }: { threadId: string }) {
         const token = data.session?.access_token ?? authToken;
         return token ? { Authorization: `Bearer ${token}` } : {};
       },
-      body: { threadId },
+      body: {
+        threadId,
+        prefs: {
+          tone: prefs.tone,
+          length: prefs.length,
+          nickname: prefs.nickname,
+          units: prefs.units,
+          timeFormat: prefs.timeFormat,
+          language: prefs.language,
+        },
+      },
     }),
     onError: (e) => toast.error(e.message || "Something went wrong"),
     onFinish: ({ message }) => {
@@ -818,7 +828,7 @@ export function ChatRoom({ threadId }: { threadId: string }) {
                           <span aria-hidden className="h-px w-10 bg-border/60" />
                           {prefs.showTimestamps && (
                             <span className="text-[10px] text-muted-foreground/70">
-                              {new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                              {new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: prefs.timeFormat === "12h" })}
                             </span>
                           )}
                         </div>

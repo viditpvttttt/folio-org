@@ -188,7 +188,7 @@ function DashboardPage() {
     { label: "Conversations", value: threadsQ.data?.length ?? 0 },
     { label: "Memories", value: memsQ.data?.length ?? 0 },
     { label: "Skills ready", value: SKILLS.length },
-    { label: "Local time", value: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) },
+    { label: "Local time", value: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: prefs.timeFormat === "12h" }) },
   ];
 
 
@@ -211,7 +211,7 @@ function DashboardPage() {
               <p className="text-[11px] uppercase tracking-[0.35em] text-muted-foreground">
                 {now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
                 {" · "}
-                {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: prefs.timeFormat === "12h" })}
               </p>
             </Reveal>
 

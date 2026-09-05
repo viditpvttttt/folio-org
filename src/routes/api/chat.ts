@@ -37,7 +37,44 @@ Visual reasoning: when the user attaches a UI mockup, wireframe, napkin sketch, 
 When the user attaches a photo or document, read it carefully and describe or answer their question about it.
 After a tool returns, give a short friendly summary in your own words — do NOT re-list every field; the UI renders rich cards. Speak warmly and concisely. Use light markdown when it helps. If ambiguous, ask one focused question.`;
 
-type Body = { messages?: UIMessage[]; threadId?: string };
+type ChatPrefs = {
+  tone?: string;
+  length?: string;
+  nickname?: string;
+  units?: "metric" | "imperial";
+  timeFormat?: "12h" | "24h";
+  language?: string;
+};
+type Body = { messages?: UIMessage[]; threadId?: string; prefs?: ChatPrefs };
+
+/** Turn the user's saved settings into a short system-prompt block. */
+function prefsBlock(p?: ChatPrefs): string {
+  if (!p) return "";
+  const lines: string[] = [];
+  if (p.nickname?.trim()) lines.push(`Address the user as "${p.nickname.trim()}".`);
+  if (p.tone) lines.push(`Tone: ${p.tone}.`);
+  if (p.length) {
+    const map: Record<string, string> = {
+      brief: "Keep answers short — a couple of sentences unless asked for more.",
+      balanced: "Keep answers a balanced length.",
+      thorough: "Answers may be thorough and detailed.",
+    };
+    lines.push(map[p.length] ?? "");
+  }
+  if (p.units) {
+    lines.push(
+      p.units === "imperial"
+        ? "Use imperial units (°F, miles, pounds) in answers and when calling weather tools."
+        : "Use metric units (°C, kilometres, kilograms) in answers and when calling weather tools.",
+    );
+  }
+  if (p.timeFormat) lines.push(`Write times in ${p.timeFormat === "24h" ? "24-hour" : "12-hour am/pm"} format.`);
+  if (p.language && p.language !== "auto") {
+    lines.push(`Always reply in ${p.language}, regardless of the language of the question.`);
+  }
+  const body = lines.filter(Boolean).join("\n- ");
+  return body ? `\n\nUser preferences (follow these):\n- ${body}` : "";
+}
 
 const WMO: Record<number, string> = {
   0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
@@ -524,7 +561,7 @@ export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const { messages, threadId } = (await request.json()) as Body;
+        const { messages, threadId, prefs } = (await request.json()) as Body;
         if (!Array.isArray(messages) || !threadId) {
           return new Response("messages and threadId required", { status: 400 });
         }
@@ -568,7 +605,7 @@ export const Route = createFileRoute("/api/chat")({
 
         const result = streamText({
           model,
-          system: SYSTEM_PROMPT + stackBlock + memoryBlock,
+          system: SYSTEM_PROMPT + prefsBlock(prefs) + stackBlock + memoryBlock,
           messages: await convertToModelMessages(messages),
           tools: {
             getWeather: weatherTool,

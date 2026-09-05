@@ -104,7 +104,7 @@ function RotatingPrompt() {
 
 const CAPABILITIES = [
   { icon: CloudSun, title: "Weather, properly", body: "Live conditions for anywhere, rendered as a card you actually want to look at — not a paragraph of numbers." },
-  { icon: Newspaper, title: "News you choose", body: "Pick your own topics — from "world" to "formula 1" — and Folio keeps a quiet, self-refreshing feed." },
+  { icon: Newspaper, title: "News you choose", body: "Pick your own topics — from “world” to “formula 1” — and Folio keeps a quiet, self-refreshing feed." },
   { icon: Brain, title: "Memory that sticks", body: "Tell it once. Folio remembers your city, your tone, your stack, and quietly uses it forever." },
   { icon: Code2, title: "Workbench", body: "A real editor, your files, and an AI pair-programmer that reads and writes them while you talk to it." },
   { icon: Briefcase, title: "Work mode", body: "Meeting prep, standups, one-pagers, slide outlines and email drafts, tuned for people with calendars." },
@@ -133,13 +133,13 @@ const FAQ = [
 
 function Landing() {
   // Keeps the global 3D depth setting applied on the landing page too.
-  usePreferences();
+  const prefs = usePreferences();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    if (!loading && user) navigate({ to: "/dashboard" });
+    if (!loading && user) navigate({ to: prefs.landing === "chat" ? "/chat" : "/dashboard" });
   }, [user, loading, navigate]);
 
   useEffect(() => {

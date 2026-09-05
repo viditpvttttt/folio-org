@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
 import appCss from "../styles.css?url";
+import { WorldLayer } from "@/components/fx/WorldLayer";
 
 function NotFoundComponent() {
   return (
@@ -100,6 +101,7 @@ function RootComponent() {
       <AuthProvider>
         <AccessibilityProvider>
           <AuthInvalidator />
+          <WorldLayer />
           <Outlet />
           <Toaster />
         </AccessibilityProvider>
