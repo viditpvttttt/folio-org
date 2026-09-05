@@ -133,7 +133,7 @@ const FAQ = [
 
 function Landing() {
   // Keeps the global 3D depth setting applied on the landing page too.
-  usePreferences();
+  const prefs = usePreferences();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
