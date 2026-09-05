@@ -118,6 +118,17 @@ function applyDepth(depth: Depth) {
   document.documentElement.dataset.depth = depth;
 }
 
+/** Spacing scale applied to every section. */
+function applyDensity(density: Density) {
+  if (typeof document === "undefined") return;
+  document.documentElement.dataset.density = density;
+}
+
+function applyAll(p: Preferences) {
+  applyDepth(p.depth);
+  applyDensity(p.density);
+}
+
 /** Local, per-browser assistant preferences. Synced across every hook instance. */
 export function usePreferences() {
   const [prefs, setPrefs] = useState<Preferences>(DEFAULT_PREFERENCES);
@@ -125,11 +136,11 @@ export function usePreferences() {
   useEffect(() => {
     const initial = read();
     setPrefs(initial);
-    applyDepth(initial.depth);
+    applyAll(initial);
     const onSync = (e: Event) => {
       const next = (e as CustomEvent<Preferences>).detail;
       setPrefs(next);
-      applyDepth(next.depth);
+      applyAll(next);
     };
     window.addEventListener(SYNC_EVENT, onSync as EventListener);
     return () => window.removeEventListener(SYNC_EVENT, onSync as EventListener);
@@ -143,7 +154,7 @@ export function usePreferences() {
       } catch {
         /* storage unavailable */
       }
-      applyDepth(next.depth);
+      applyAll(next);
       window.dispatchEvent(new CustomEvent(SYNC_EVENT, { detail: next }));
       return next;
     });
@@ -156,7 +167,7 @@ export function usePreferences() {
       /* storage unavailable */
     }
     setPrefs(DEFAULT_PREFERENCES);
-    applyDepth(DEFAULT_PREFERENCES.depth);
+    applyAll(DEFAULT_PREFERENCES);
     window.dispatchEvent(new CustomEvent(SYNC_EVENT, { detail: DEFAULT_PREFERENCES }));
   }, []);
 

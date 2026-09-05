@@ -828,7 +828,7 @@ export function ChatRoom({ threadId }: { threadId: string }) {
                           <span aria-hidden className="h-px w-10 bg-border/60" />
                           {prefs.showTimestamps && (
                             <span className="text-[10px] text-muted-foreground/70">
-                              {new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                              {new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: prefs.timeFormat === "12h" })}
                             </span>
                           )}
                         </div>

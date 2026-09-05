@@ -623,3 +623,11 @@ html[data-depth="deep"] .world-haze { opacity: 0.72; }
   .world-slab { animation: none; }
   .world-stage { transition: none; transform: none; }
 }
+
+/* Compact density tightens vertical rhythm across every section. */
+html[data-density="compact"] main section { padding-top: 0.72em; padding-bottom: 0.72em; }
+html[data-density="compact"] main .py-24 { padding-block: 3rem; }
+html[data-density="compact"] main .py-32 { padding-block: 4rem; }
+html[data-density="compact"] main .pt-16 { padding-top: 2.25rem; }
+html[data-density="compact"] main .pt-24 { padding-top: 3rem; }
+html[data-density="compact"] main .pb-20 { padding-bottom: 2.5rem; }
