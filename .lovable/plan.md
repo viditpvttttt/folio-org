@@ -1,61 +1,37 @@
-## Scope
+# Folio interaction and animation pass
 
-Two tracks, shipped together:
+## What will change
 
-**A. New skills for Folio (in chat)**
-1. Image generation — user says "draw / make an image of…" and Folio streams a picture into the chat bubble.
-2. Image editing — user attaches a photo + instruction, Folio returns an edited PNG.
-3. Code writing + explaining — proper syntax-highlighted code blocks with a Copy button and language badge.
-4. Code execution (sandbox) — small JS + Python snippets run server-side, stdout/stderr rendered under the assistant message.
+- Add a small shared motion kit inspired by Skiper UI and Unlumen UI, adapted to Folio’s Paper & Ink design rather than copied from their registries.
+- Give navigation labels a Skiper-style rolling text hover and a spring-moving active indicator.
+- Add Unlumen-style directional reveals and spring hover expansion to dashboard actions, settings choices, and connector cards.
+- Upgrade chat with a smoothly resizing sidebar, staggered conversation entries, animated suggestion cards, and a composer that subtly lifts and expands when focused or when attachments appear.
+- Add restrained scroll-linked depth to headings and section dividers so pages feel dimensional without introducing particles, spheres, or large decorative balls.
 
-**B. New "Workbench" section** (Codex / Claude Code / Cursor style)
-A dedicated page at `/workbench` where you can:
-- Open a file tree (in-memory project stored per user in DB — no local disk).
-- Edit files in a Monaco editor with syntax highlighting for TS/JS/Python/HTML/CSS/JSON/MD.
-- Chat with Folio in a right-hand panel that has *tools to read/write files in the current workbench project* and run snippets.
-- Save named projects, load them back later.
+## Shared components
 
-This is scoped as a personal scratchpad + AI pair-programmer — not a full container-based IDE. No git, no npm install, no long-running processes. Snippets run once and return output.
+- `TextRoll` — staggered character roll for navigation and selected links.
+- `MotionReveal` — reusable directional/staggered entrance using the existing Motion dependency.
+- `SpringHighlight` — shared animated selection background for tabs and segmented controls.
+- `HoverExpandCard` — content reveal for action and connector cards, with keyboard/focus support.
 
-**C. UI/UX polish (all four areas you picked)**
-1. Chat room polish — attachment thumbnails, streaming shimmer, better tool cards, inline image render, code blocks with copy, subtle bubble styling.
-2. Dashboard density — better grid, real stats (message count, memory count, connectors connected, files attached), the RGB blob already there, quick-start cards.
-3. Mobile layout — every top-level page passes a 375px sweep (sidebar becomes drawer, chat composer sticks, workbench collapses to tabs).
-4. Onboarding + empty states — first-run tour card on dashboard, empty chat has 4 suggested prompts, empty memories/connectors/workbench each get a real illustration + CTA.
+## Where they will be used
 
-## Build order
+1. **Global navigation:** rolling labels, spring active state, restrained logo response.
+2. **Dashboard:** staggered widget entrance, spring quick filters/depth controls, expanding quick-action cards.
+3. **Chat:** animated rail, message sequencing, responsive suggestions, focus-reactive typing bar.
+4. **Settings and connectors:** animated section entry, shared selection highlight, clearer hover/focus states.
+5. **Homepage:** reuse the shared primitives where they replace duplicate reveal logic; keep its existing visual identity intact.
 
-```text
-1. Image gen + edit tool  →  wired into existing chat tool loop
-2. Code block rendering + copy button + language badge  (react-markdown + shiki)
-3. Code exec sandbox tool  (JS via isolated-vm on the worker; Python via Pyodide in a hidden iframe on the client, called through a tool ack)
-4. Workbench route: DB schema, file tree, Monaco, save/load
-5. Workbench chat panel with file-scoped tools (read_file / write_file / list_files / run_snippet)
-6. Chat room visual polish pass
-7. Dashboard: real stats + quick-start cards + first-run
-8. Mobile sweep across / /dashboard /chat /workbench /connectors /memories
-9. Empty-state illustrations + CTAs
-```
+## Motion and accessibility
 
-## Data / infra
+- Preserve the current Flat / Soft 3D / Deep 3D setting.
+- Respect both the browser’s reduced-motion preference and Folio’s Reduce motion setting.
+- Use transform and opacity animations only for smooth performance; no canvas, WebGL, particles, or new visual blobs.
+- Keep touch interactions stable and ensure hover-only details are also available through focus or tap.
 
-- Add tables: `workbench_projects (id, user_id, name, created_at, updated_at)` and `workbench_files (id, project_id, path, content, updated_at)`. Owner-only RLS via `auth.uid()`, standard GRANTs.
-- No new secrets. Image gen uses existing `LOVABLE_API_KEY` (Lovable AI Gateway → `openai/gpt-image-2`, streamed).
-- JS sandbox: `isolated-vm` is Node-native and does **not** run on the Cloudflare Worker runtime. Use a small hand-rolled `vm`-less evaluator — `new Function()` inside a scoped `try/catch` with a 2s wall-clock timeout, no `fetch`/`process`/`globalThis` leaks, output size-capped. Python runs client-side via Pyodide loaded lazily when the user first invokes the tool, so no server-side Python runtime is needed.
-- Attachment persistence stays as-is (already using Cloud storage for chat attachments from the earlier turn).
+## Validation
 
-## Out of scope (say so up front)
-
-- Real container IDE, `npm install`, long-running dev servers, git — not this pass.
-- OAuth connectors (Vercel/Gmail/Notion/Cursor) — parked as you asked.
-- Multi-user collaboration on workbench projects — single-user only.
-
-## Tech notes
-
-- Image gen streams via `/api/generate-image` server route (SSE, `partial_images: 1`), rendered with a blur→sharp transition inside the assistant bubble. Editing uses the same route with an extra `image_url` in the multimodal body.
-- Code blocks: `react-markdown` + `rehype-shiki` (already in the theme's color palette; no new fonts). Copy button on hover.
-- Workbench editor: `@monaco-editor/react`, lazy-loaded so it doesn't bloat the main bundle.
-- Sandbox tool response shape: `{ stdout, stderr, durationMs, truncated }`. Rendered as a collapsible tool card under the assistant message.
-- All new chat tools registered in the existing `tools` object in `src/routes/api/chat.ts`; no changes to conversation storage.
-
-If this looks right I'll start on step 1 (image gen + edit) and work down the list.
+- Check homepage, dashboard, chat, settings, and connectors at desktop and mobile widths.
+- Verify keyboard focus, reduced motion, card expansion, navigation state, and composer behavior.
+- Confirm no console errors and that all existing actions still work.
