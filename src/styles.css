@@ -631,3 +631,32 @@ html[data-density="compact"] main .py-32 { padding-block: 4rem; }
 html[data-density="compact"] main .pt-16 { padding-top: 2.25rem; }
 html[data-density="compact"] main .pt-24 { padding-top: 3rem; }
 html[data-density="compact"] main .pb-20 { padding-bottom: 2.5rem; }
+
+/* ===== Blob Card (unlumen-inspired) ===== */
+.blob-card__glow {
+  animation: blob-card-spin 5s linear infinite;
+}
+@keyframes blob-card-spin {
+  to { transform: rotate(360deg); }
+}
+.blob-card__blob { transform-origin: center; transform-box: fill-box; }
+.blob-card__blob--1 { animation: blob-card-morph-1 8s ease-in-out infinite; }
+.blob-card__blob--2 { animation: blob-card-morph-2 10s ease-in-out infinite; }
+.blob-card__blob--3 { animation: blob-card-morph-3 12s ease-in-out infinite; }
+@keyframes blob-card-morph-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -20px) scale(1.1); }
+  66% { transform: translate(-20px, 15px) scale(0.9); }
+}
+@keyframes blob-card-morph-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-25px, 20px) scale(1.15); }
+  66% { transform: translate(20px, -15px) scale(0.85); }
+}
+@keyframes blob-card-morph-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(15px, 25px) scale(1.2); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .blob-card__glow, .blob-card__blob { animation: none; }
+}

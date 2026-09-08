@@ -12,6 +12,11 @@ import { ScrambleText } from "@/components/fx/ScrambleText";
 import { ScrollProgress } from "@/components/fx/ScrollProgress";
 import { MagneticButton } from "@/components/fx/MagneticButton";
 import { CursorGlow } from "@/components/chat/CursorGlow";
+import { AuroraBars } from "@/components/fx/AuroraBars";
+import { Dock, type DockItem } from "@/components/fx/Dock";
+import { BlobCard } from "@/components/fx/BlobCard";
+import { TextScroll3D } from "@/components/fx/TextScroll3D";
+import { CursorTrail } from "@/components/fx/CursorTrail";
 import { FolioMark } from "@/components/brand/FolioMark";
 import { useAuth } from "@/hooks/use-auth";
 import { usePreferences } from "@/hooks/use-preferences";
@@ -129,6 +134,15 @@ const FAQ = [
   { q: "Does it remember me?", a: "Yes, if you want it to. Facts, preferences and your project stack live in a memory you can read, edit and wipe from Settings." },
   { q: "Can I talk to it?", a: "Push to talk and Folio talks back. The orb reacts to your voice in real time — listening, thinking, speaking." },
   { q: "Is my data private?", a: "Your threads and memories are yours, scoped to your account with row-level security. Delete a memory and it's gone." },
+];
+
+const DOCK_ITEMS: DockItem[] = [
+  { icon: <CloudSun className="h-5 w-5" />, label: "Weather", href: "#what" },
+  { icon: <Newspaper className="h-5 w-5" />, label: "News", href: "#what" },
+  { icon: <Brain className="h-5 w-5" />, label: "Memory", href: "#what" },
+  { icon: <Code2 className="h-5 w-5" />, label: "Workbench", href: "#what" },
+  { icon: <Mic className="h-5 w-5" />, label: "Voice", href: "#voice" },
+  { icon: <Compass className="h-5 w-5" />, label: "Research", href: "#what" },
 ];
 
 function Landing() {
@@ -258,6 +272,23 @@ function Landing() {
         </div>
       </section>
 
+      {/* ---------- aurora bars (unlumen-inspired) ---------- */}
+      <section className="relative border-t border-border/60 overflow-hidden">
+        <div className="mx-auto max-w-6xl px-6 py-20 md:py-28">
+          <Reveal>
+            <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground text-center">Quiet motion</p>
+            <h2 className="font-serif text-3xl md:text-5xl mt-3 tracking-tight text-center">
+              Calm on the surface, <em className="italic">alive underneath.</em>
+            </h2>
+          </Reveal>
+          <Reveal delay={120}>
+            <div className="mt-14 h-32 md:h-40">
+              <AuroraBars barCount={32} speed={0.4} blur={2} />
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
       {/* ---------- capability bento ---------- */}
       <section id="what" className="border-t border-border/60">
         <div className="mx-auto max-w-6xl px-6 py-24 md:py-32">
@@ -268,15 +299,30 @@ function Landing() {
             </h2>
           </Reveal>
           <div className="mt-14 grid gap-5 md:grid-cols-3">
-            {CAPABILITIES.map(({ icon: Icon, title, body }, idx) => (
-              <Reveal key={title} delay={idx * 70}>
+            {CAPABILITIES.map(({ icon: Icon, title, body }, idx) => {
+              const useBlob = idx === 0 || idx === 3;
+              const card = useBlob ? (
+                <BlobCard
+                  className="h-full"
+                  colors={idx === 0 ? ["#ff4d8d", "#b66dff", "#4d9bff"] : ["#7dffb4", "#ffd24d", "#ff4d8d"]}
+                >
+                  <Icon className="h-5 w-5 mb-5" />
+                  <h3 className="font-serif text-2xl mb-2">{title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{body}</p>
+                </BlobCard>
+              ) : (
                 <SpotlightCard className="h-full">
                   <Icon className="h-5 w-5 mb-5" />
                   <h3 className="font-serif text-2xl mb-2">{title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{body}</p>
                 </SpotlightCard>
-              </Reveal>
-            ))}
+              );
+              return (
+                <Reveal key={title} delay={idx * 70}>
+                  {card}
+                </Reveal>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -301,6 +347,11 @@ function Landing() {
             <CardSwap3D items={DAY_CARDS} />
           </Reveal>
         </div>
+      </section>
+
+      {/* ---------- 3D scroll text (skiper-inspired) ---------- */}
+      <section className="relative border-t border-border/60 overflow-hidden bg-paper-dim/30">
+        <TextScroll3D text="BUILT FOR YOUR DAY" />
       </section>
 
       {/* ---------- skills marquee ---------- */}
@@ -329,6 +380,28 @@ function Landing() {
       </section>
 
 
+
+      {/* ---------- cursor trail (unlumen-inspired) ---------- */}
+      <section className="relative border-t border-border/60 overflow-hidden">
+        <div className="mx-auto max-w-6xl px-6 py-24 md:py-32">
+          <Reveal>
+            <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground text-center">Interactive</p>
+            <h2 className="font-serif text-4xl md:text-6xl mt-3 tracking-tight text-center">
+              Move your cursor.
+            </h2>
+            <p className="mx-auto mt-4 max-w-md text-muted-foreground leading-relaxed text-center">
+              Folio responds to you — not just clicks, but motion. Every surface is alive.
+            </p>
+          </Reveal>
+          <Reveal delay={120}>
+            <CursorTrail className="mt-12 h-64 rounded-2xl border border-border/40 bg-card/20 backdrop-blur-sm">
+              <div className="grid h-full place-items-center text-muted-foreground/40 text-sm">
+                Hover across this area
+              </div>
+            </CursorTrail>
+          </Reveal>
+        </div>
+      </section>
 
       {/* ---------- voice / orb ---------- */}
       <section id="voice" className="relative border-t border-border/60 overflow-hidden">
@@ -467,6 +540,17 @@ function Landing() {
           <span>Made with care</span>
         </div>
       </footer>
+
+      {/* ---------- floating dock (unlumen-inspired) ---------- */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+        <Dock
+          items={DOCK_ITEMS}
+          iconSize={36}
+          magnification={1.8}
+          distance={80}
+          className="rounded-2xl border border-border/40 bg-card/40 backdrop-blur-xl px-3 py-2 shadow-lg"
+        />
+      </div>
     </div>
   );
 }
