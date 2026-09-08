@@ -1,0 +1,41 @@
+{
+  "previewPort": 3000,
+  "healthPath": "/",
+  "startCommand": "docker compose -f docker-compose.base44.yml up -d",
+  "secrets": [
+    {
+      "name": "LOVABLE_API_KEY",
+      "description": "API key for Lovable's AI gateway (ai.gateway.lovable.dev) — powers chat, image generation, and voice features. Obtain from the Lovable dashboard / project settings.",
+      "requiredAtBoot": false,
+      "generatedForDevelopment": true
+    },
+    {
+      "name": "SUPABASE_SERVICE_ROLE_KEY",
+      "description": "Supabase service role key — bypasses RLS for server-side admin operations. Obtain from Supabase dashboard → Settings → API → service_role key.",
+      "requiredAtBoot": false,
+      "generatedForDevelopment": true
+    },
+    {
+      "name": "OAUTH_STATE_SECRET",
+      "description": "Random secret used to HMAC-sign OAuth state tokens. Any long random string works.",
+      "requiredAtBoot": false,
+      "generatedForDevelopment": true
+    },
+    {
+      "name": "APP_USER_CONNECTION_KEY_SECRET",
+      "description": "Base64-encoded 32-byte key for AES-256-GCM encryption of user connection keys. Generate with: openssl rand -base64 32.",
+      "requiredAtBoot": false,
+      "generatedForDevelopment": true
+    },
+    {
+      "name": "GOOGLE_OAUTH_CLIENT_ID",
+      "description": "Google OAuth client ID for connector integrations. Obtain from Google Cloud Console → Credentials.",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "GOOGLE_OAUTH_CLIENT_SECRET",
+      "description": "Google OAuth client secret for connector integrations. Obtain from Google Cloud Console → Credentials.",
+      "requiredAtBoot": false
+    }
+  ]
+}
