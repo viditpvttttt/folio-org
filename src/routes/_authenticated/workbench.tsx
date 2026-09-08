@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
 import { toast } from "sonner";
 import {
   FileText, FilePlus, Trash2, Save, Loader2, MessageSquare, ArrowLeft,
-  Terminal, Wand2, ImageIcon, FolderOpen, Plus, Send, Sparkles,
+  Terminal, Wand2, ImageIcon, FolderOpen, Plus, Send, Sparkles, Bug,
 } from "lucide-react";
 import { AppBackdrop } from "@/components/shell/AppShell";
 import { FolioMark } from "@/components/brand/FolioMark";
@@ -22,6 +22,37 @@ import {
 import { cn } from "@/lib/utils";
 
 const MonacoEditor = lazy(() => import("@monaco-editor/react").then((m) => ({ default: m.default })));
+
+/* AI actions offered on the current editor selection. */
+const AI_ACTIONS = [
+  {
+    id: "explain",
+    label: "Explain",
+    icon: Sparkles,
+    prompt: "Explain what this selection does and why, concisely:",
+  },
+  {
+    id: "refactor",
+    label: "Refactor",
+    icon: Wand2,
+    prompt:
+      "Refactor this selection for clarity and correctness. Read the file first, then write the improved version with writeFile:",
+  },
+  {
+    id: "fix",
+    label: "Fix bugs",
+    icon: Bug,
+    prompt:
+      "Find and fix any bugs in this selection. Read the file first, then apply the fix with writeFile:",
+  },
+  {
+    id: "document",
+    label: "Document",
+    icon: FileText,
+    prompt:
+      "Add clear comments/JSDoc to this selection. Read the file first, then write it back with writeFile:",
+  },
+] as const;
 
 export const Route = createFileRoute("/_authenticated/workbench")({
   component: WorkbenchPage,
@@ -81,6 +112,8 @@ function WorkbenchPage() {
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showChat, setShowChat] = useState(true);
+  const [selection, setSelection] = useState<string | null>(null);
+  const [chatRequest, setChatRequest] = useState<string | null>(null);
 
   const openFile = filesQ.data?.find((f) => f.path === openPath) ?? null;
 
@@ -151,6 +184,14 @@ function WorkbenchPage() {
     qc.invalidateQueries({ queryKey: ["wb-projects"] });
     setProjectId(p.id);
     setOpenPath(null);
+  };
+
+  // Send the current selection to the AI pair programmer with an instruction.
+  const runAiAction = (instruction: string) => {
+    if (!selection || !openPath) return;
+    setShowChat(true);
+    const lang = langFor(openPath);
+    setChatRequest(`${instruction}\n\nFile: \`${openPath}\`\n\n\`\`\`${lang}\n${selection}\n\`\`\``);
   };
 
   const activeProject = projectsQ.data?.find((p) => p.id === projectId) ?? null;
@@ -296,6 +337,26 @@ function WorkbenchPage() {
               <span className="text-muted-foreground">Select a file</span>
             )}
           </div>
+          {/* AI actions bar — appears when code is selected */}
+          {selection && openPath && (
+            <div className="flex items-center gap-2 border-b border-border/40 bg-foreground/[0.03] px-4 py-1.5 text-[11px]">
+              <span className="text-muted-foreground">
+                {selection.split("\n").length} lines selected
+              </span>
+              <div className="ml-auto flex gap-1.5">
+                {AI_ACTIONS.map(({ id, label, icon: Icon, prompt }) => (
+                  <button
+                    key={id}
+                    onClick={() => runAiAction(prompt)}
+                    className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-background/60 px-2.5 py-1 transition hover:bg-foreground hover:text-background"
+                    title={`${label} selection with the AI pair programmer`}
+                  >
+                    <Icon className="h-3 w-3" /> {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="flex-1 min-h-0 bg-neutral-950/40">
             {openPath && (
               <Suspense fallback={<div className="p-8 text-xs text-muted-foreground"><Loader2 className="inline h-3 w-3 animate-spin mr-2" />Loading editor…</div>}>
@@ -304,6 +365,14 @@ function WorkbenchPage() {
                   path={openPath}
                   language={langFor(openPath)}
                   value={buffer}
+                  onMount={(editor) => {
+                    editor.onDidChangeCursorSelection(() => {
+                      const sel = editor.getSelection();
+                      const model = editor.getModel();
+                      const text = sel && model ? model.getValueInRange(sel) : "";
+                      setSelection(text.trim() ? text : null);
+                    });
+                  }}
                   onChange={(v) => { setBuffer(v ?? ""); setDirty(true); }}
                   theme="vs-dark"
                   options={{
@@ -325,6 +394,8 @@ function WorkbenchPage() {
         {showChat && projectId && (
           <WorkbenchChatPanel
             projectId={projectId}
+            pending={chatRequest}
+            onPendingConsumed={() => setChatRequest(null)}
             onFilesChanged={() => qc.invalidateQueries({ queryKey: ["wb-files", projectId] })}
           />
         )}
@@ -333,7 +404,17 @@ function WorkbenchPage() {
   );
 }
 
-function WorkbenchChatPanel({ projectId, onFilesChanged }: { projectId: string; onFilesChanged: () => void }) {
+function WorkbenchChatPanel({
+  projectId,
+  pending,
+  onPendingConsumed,
+  onFilesChanged,
+}: {
+  projectId: string;
+  pending?: string | null;
+  onPendingConsumed: () => void;
+  onFilesChanged: () => void;
+}) {
   const [authToken, setAuthToken] = useState<string | null>(null);
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setAuthToken(data.session?.access_token ?? null));
@@ -359,6 +440,13 @@ function WorkbenchChatPanel({ projectId, onFilesChanged }: { projectId: string; 
 
   const [input, setInput] = useState("");
   const isLoading = status === "submitted" || status === "streaming";
+
+  // Consume an AI action requested from the editor (explain / refactor / fix / document).
+  useEffect(() => {
+    if (!pending || isLoading) return;
+    sendMessage({ text: pending });
+    onPendingConsumed();
+  }, [pending, isLoading]); // eslint-disable-line react-hooks/exhaustive-deps
   const submit = () => {
     const t = input.trim();
     if (!t || isLoading) return;
@@ -519,6 +607,5 @@ function WBToolPart({ part }: { part: { type: string; state?: string; output?: u
   return null;
 }
 
-// Keep Plus / Wand2 in the deps graph so Vite doesn't tree-shake them off dev.
+// Keep Plus in the deps graph so Vite doesn't tree-shake it off dev.
 void Plus;
-void Wand2;

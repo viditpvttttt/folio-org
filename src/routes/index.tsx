@@ -11,6 +11,8 @@ import { Marquee3D } from "@/components/fx/Marquee3D";
 import { ScrambleText } from "@/components/fx/ScrambleText";
 import { ScrollProgress } from "@/components/fx/ScrollProgress";
 import { MagneticButton } from "@/components/fx/MagneticButton";
+import { TiltCard } from "@/components/fx/TiltCard";
+import { CountUp } from "@/components/fx/CountUp";
 import { CursorGlow } from "@/components/chat/CursorGlow";
 import { FolioMark } from "@/components/brand/FolioMark";
 import { useAuth } from "@/hooks/use-auth";
@@ -258,6 +260,27 @@ function Landing() {
         </div>
       </section>
 
+      {/* ---------- numbers ---------- */}
+      <section className="border-t border-border/60">
+        <div className="mx-auto grid max-w-6xl grid-cols-2 gap-10 px-6 py-16 md:grid-cols-4 md:py-24">
+          {[
+            { n: 17, suffix: "", label: "Skills, ready to use" },
+            { n: 0, suffix: "", label: "Setup steps" },
+            { n: 100, suffix: "%", label: "Your data, your account" },
+            { n: 24, suffix: "/7", label: "Voice, whenever you want" },
+          ].map((s, i) => (
+            <Reveal key={s.label} delay={i * 70} className="text-center">
+              <div className="font-serif text-5xl md:text-6xl tracking-tight tabular-nums">
+                <CountUp to={s.n} suffix={s.suffix} />
+              </div>
+              <div className="mt-2 text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
+                {s.label}
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
       {/* ---------- capability bento ---------- */}
       <section id="what" className="border-t border-border/60">
         <div className="mx-auto max-w-6xl px-6 py-24 md:py-32">
@@ -378,18 +401,20 @@ function Landing() {
       <section className="border-t border-border/60 bg-paper-dim/30">
         <div className="mx-auto max-w-6xl px-6 py-24 md:py-32 grid gap-14 md:grid-cols-2 items-center">
           <Reveal className="order-2 md:order-1">
-            <div className="rounded-2xl border border-border/60 bg-[#0b0b12] p-5 font-mono text-[12px] leading-relaxed text-emerald-200/90 shadow-xl overflow-hidden">
-              <div className="flex gap-1.5 mb-4">
-                <span className="h-2.5 w-2.5 rounded-full bg-red-400/70" />
-                <span className="h-2.5 w-2.5 rounded-full bg-amber-400/70" />
-                <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/70" />
-              </div>
-              <pre className="whitespace-pre-wrap">{`> read src/pricing.tsx
+            <TiltCard lift={14}>
+              <div className="rounded-2xl border border-border/60 bg-[#0b0b12] p-5 font-mono text-[12px] leading-relaxed text-emerald-200/90 shadow-xl overflow-hidden">
+                <div className="flex gap-1.5 mb-4">
+                  <span className="h-2.5 w-2.5 rounded-full bg-red-400/70" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-amber-400/70" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/70" />
+                </div>
+                <pre className="whitespace-pre-wrap">{`> read src/pricing.tsx
 > "add a yearly toggle, keep the spacing"
 
 ✓ wrote src/pricing.tsx (+34 −6)
 ✓ ran tests — 12 passing`}</pre>
-            </div>
+              </div>
+            </TiltCard>
           </Reveal>
           <Reveal delay={120} className="order-1 md:order-2">
             <div>

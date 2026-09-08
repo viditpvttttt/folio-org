@@ -14,6 +14,9 @@ import { AppShell, GlassCard } from "@/components/shell/AppShell";
 import { MagneticButton } from "@/components/fx/MagneticButton";
 import { Marquee3D } from "@/components/fx/Marquee3D";
 import { SpotlightCard } from "@/components/fx/SpotlightCard";
+import { TiltCard } from "@/components/fx/TiltCard";
+import { CountUp } from "@/components/fx/CountUp";
+import { PulseDot } from "@/components/fx/PulseDot";
 import { FolioMark } from "@/components/brand/FolioMark";
 import { Reveal } from "@/components/fx/Reveal";
 import { WeatherWidget } from "@/components/chat/WeatherWidget";
@@ -306,7 +309,9 @@ function DashboardPage() {
               <div className="mt-10 grid max-w-3xl grid-cols-2 gap-3 sm:grid-cols-4">
                 {stats.map((s) => (
                   <div key={s.label} className="card-3d rounded-2xl border border-border/60 bg-card/50 px-4 py-3 backdrop-blur-xl">
-                    <div className="font-serif text-2xl tabular-nums">{s.value}</div>
+                    <div className="font-serif text-2xl tabular-nums">
+                      {typeof s.value === "number" ? <CountUp to={s.value} duration={1200} /> : s.value}
+                    </div>
                     <div className="mt-0.5 text-[10px] uppercase tracking-[0.22em] text-muted-foreground">{s.label}</div>
                   </div>
                 ))}
@@ -410,7 +415,9 @@ function DashboardPage() {
         <section className="border-t border-border/60">
           <div className="mx-auto max-w-6xl px-6 py-20 md:py-24">
             <Reveal>
-              <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Right now</p>
+              <p className="flex items-center gap-2 text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
+                <PulseDot /> Right now
+              </p>
               <h2 className="mt-3 font-serif text-4xl tracking-tight md:text-5xl">Your day, at a glance.</h2>
             </Reveal>
 
@@ -589,7 +596,9 @@ function DashboardPage() {
             </Reveal>
             <Reveal delay={120}>
               <div className="group mx-auto">
-                <FolioMark className="h-40 w-40 md:h-56 md:w-56" />
+                <TiltCard lift={12}>
+                  <FolioMark className="h-40 w-40 md:h-56 md:w-56" />
+                </TiltCard>
               </div>
             </Reveal>
           </div>

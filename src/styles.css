@@ -482,9 +482,18 @@ html[data-depth="flat"] .card-swap__card { transform: none !important; }
 html[data-depth="flat"] .marquee3d__stage { transform: none; }
 html[data-depth="deep"] .spotlight-card { transform: perspective(760px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(6px); }
 
+/* ===== Tilt card — light 3D lift for arbitrary content ===== */
+.tilt-card {
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(var(--tz, 0px));
+  transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+html[data-depth="flat"] .tilt-card { transform: none !important; }
+
 @media (prefers-reduced-motion: reduce) {
   .marquee3d__track { animation: none; }
   .spotlight-card, .card-swap__card { transition: none; }
+  .tilt-card { transition: none; transform: none; }
 }
 
 /* ---------------------------------------------------------------------------
