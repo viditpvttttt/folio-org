@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
 import { toast } from "sonner";
 import {
   FileText, FilePlus, Trash2, Save, Loader2, MessageSquare, ArrowLeft,
-  Terminal, Wand2, ImageIcon, FolderOpen, Plus, Send, Sparkles, Bug,
+  Terminal, ImageIcon, FolderOpen, Plus, Send, Check, Sparkles,
 } from "lucide-react";
 import { AppBackdrop } from "@/components/shell/AppShell";
 import { FolioMark } from "@/components/brand/FolioMark";
@@ -17,42 +17,13 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import { supabase } from "@/integrations/supabase/client";
 import {
   listProjects, createProject, deleteProject, renameProject,
-  listFiles, saveFile, deleteFile,
+  listFiles, saveFile, deleteFile, deleteFiles,
 } from "@/lib/workbench.functions";
+import { AiActionsBar, EDITOR_ACTIONS, type AiActionId } from "@/components/workbench/AiActionsBar";
+import { FilesBulkBar, FILE_ACTIONS, type BulkFileActionId } from "@/components/workbench/FilesBulkBar";
 import { cn } from "@/lib/utils";
 
 const MonacoEditor = lazy(() => import("@monaco-editor/react").then((m) => ({ default: m.default })));
-
-/* AI actions offered on the current editor selection. */
-const AI_ACTIONS = [
-  {
-    id: "explain",
-    label: "Explain",
-    icon: Sparkles,
-    prompt: "Explain what this selection does and why, concisely:",
-  },
-  {
-    id: "refactor",
-    label: "Refactor",
-    icon: Wand2,
-    prompt:
-      "Refactor this selection for clarity and correctness. Read the file first, then write the improved version with writeFile:",
-  },
-  {
-    id: "fix",
-    label: "Fix bugs",
-    icon: Bug,
-    prompt:
-      "Find and fix any bugs in this selection. Read the file first, then apply the fix with writeFile:",
-  },
-  {
-    id: "document",
-    label: "Document",
-    icon: FileText,
-    prompt:
-      "Add clear comments/JSDoc to this selection. Read the file first, then write it back with writeFile:",
-  },
-] as const;
 
 export const Route = createFileRoute("/_authenticated/workbench")({
   component: WorkbenchPage,
@@ -84,6 +55,7 @@ function WorkbenchPage() {
   const files = useServerFn(listFiles);
   const save = useServerFn(saveFile);
   const dropFile = useServerFn(deleteFile);
+  const dropFiles = useServerFn(deleteFiles);
 
   const projectsQ = useQuery({ queryKey: ["wb-projects"], queryFn: () => list() });
   const [projectId, setProjectId] = useState<string | null>(null);
@@ -114,6 +86,8 @@ function WorkbenchPage() {
   const [showChat, setShowChat] = useState(true);
   const [selection, setSelection] = useState<string | null>(null);
   const [chatRequest, setChatRequest] = useState<string | null>(null);
+  const [aiSelected, setAiSelected] = useState<AiActionId[]>([]);
+  const [checkedIds, setCheckedIds] = useState<string[]>([]);
 
   const openFile = filesQ.data?.find((f) => f.path === openPath) ?? null;
 
@@ -186,12 +160,48 @@ function WorkbenchPage() {
     setOpenPath(null);
   };
 
-  // Send the current selection to the AI pair programmer with an instruction.
-  const runAiAction = (instruction: string) => {
-    if (!selection || !openPath) return;
+  // Batch the selected AI actions into one combined request on the editor selection.
+  const toggleAiAction = (id: AiActionId) =>
+    setAiSelected((prev) => (prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id]));
+
+  const runAiActions = () => {
+    if (!selection || !openPath || aiSelected.length === 0) return;
     setShowChat(true);
     const lang = langFor(openPath);
-    setChatRequest(`${instruction}\n\nFile: \`${openPath}\`\n\n\`\`\`${lang}\n${selection}\n\`\`\``);
+    const steps = aiSelected
+      .map((id) => EDITOR_ACTIONS.find((a) => a.id === id)?.prompt ?? "")
+      .filter(Boolean)
+      .map((p, i) => `${i + 1}. ${p}`)
+      .join("\n");
+    setChatRequest(
+      `Perform the following on this selection:\n${steps}\n\nFile: \`${openPath}\`\n\n\`\`\`${lang}\n${selection}\n\`\`\``,
+    );
+  };
+
+  // Bulk-delete every checked file in one server call.
+  const bulkDeleteFiles = async () => {
+    if (checkedIds.length === 0 || !projectId) return;
+    if (!window.confirm(`Delete ${checkedIds.length} file${checkedIds.length === 1 ? "" : "s"}?`)) return;
+    try {
+      await dropFiles({ data: { ids: checkedIds } });
+      if (openFile && checkedIds.includes(openFile.id)) setOpenPath(null);
+      setCheckedIds([]);
+      qc.invalidateQueries({ queryKey: ["wb-files", projectId] });
+      toast.success(`Deleted ${checkedIds.length} file${checkedIds.length === 1 ? "" : "s"}`);
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  };
+
+  // Apply one AI action across every checked file in a single chat request.
+  const runFileAction = (id: BulkFileActionId) => {
+    if (!projectId || checkedIds.length === 0) return;
+    const paths = (filesQ.data ?? []).filter((f) => checkedIds.includes(f.id)).map((f) => f.path);
+    if (paths.length === 0) return;
+    const action = FILE_ACTIONS.find((a) => a.id === id);
+    if (!action) return;
+    setShowChat(true);
+    setChatRequest(`${action.prompt}\n\nFiles:\n${paths.map((p) => `- \`${p}\``).join("\n")}`);
   };
 
   const activeProject = projectsQ.data?.find((p) => p.id === projectId) ?? null;
@@ -238,7 +248,7 @@ function WorkbenchPage() {
         </button>
         <select
           value={projectId ?? ""}
-          onChange={(e) => { setProjectId(e.target.value); setOpenPath(null); }}
+          onChange={(e) => { setProjectId(e.target.value); setOpenPath(null); setCheckedIds([]); }}
           className="ml-2 h-8 rounded-md border border-border/60 bg-background/60 px-2 text-xs max-w-[160px]"
         >
           {projectsQ.data?.map((p) => (
@@ -296,18 +306,45 @@ function WorkbenchPage() {
             </button>
           </div>
           <div className="flex-1 overflow-y-auto px-1 pb-2">
+            {checkedIds.length > 0 && (
+              <FilesBulkBar
+                count={checkedIds.length}
+                onAiAction={runFileAction}
+                onDelete={bulkDeleteFiles}
+                onClear={() => setCheckedIds([])}
+              />
+            )}
             {(filesQ.data ?? []).map((f) => (
-              <button
-                key={f.id}
-                onClick={() => setOpenPath(f.path)}
-                className={cn(
-                  "w-full text-left flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition",
-                  openPath === f.path ? "bg-foreground/10" : "hover:bg-foreground/5 text-foreground/80",
-                )}
-              >
-                <FileText className="h-3 w-3 shrink-0 opacity-60" />
-                <span className="truncate">{f.path}</span>
-              </button>
+              <div key={f.id} className="group/file relative">
+                <button
+                  onClick={() => setOpenPath(f.path)}
+                  className={cn(
+                    "w-full text-left flex items-center gap-2 px-2 py-1.5 pr-7 rounded-md text-xs transition",
+                    openPath === f.path ? "bg-foreground/10" : "hover:bg-foreground/5 text-foreground/80",
+                  )}
+                >
+                  <FileText className="h-3 w-3 shrink-0 opacity-60" />
+                  <span className="truncate">{f.path}</span>
+                </button>
+                <button
+                  onClick={() =>
+                    setCheckedIds((prev) =>
+                      prev.includes(f.id) ? prev.filter((x) => x !== f.id) : [...prev, f.id],
+                    )
+                  }
+                  aria-pressed={checkedIds.includes(f.id)}
+                  aria-label={`Select ${f.path} for bulk actions`}
+                  title="Select for bulk actions"
+                  className={cn(
+                    "absolute right-1.5 top-1/2 -translate-y-1/2 grid h-4 w-4 place-items-center rounded border transition",
+                    checkedIds.includes(f.id)
+                      ? "border-foreground bg-foreground text-background"
+                      : "border-foreground/30 bg-background/60 opacity-0 group-hover/file:opacity-100 hover:border-foreground/60",
+                  )}
+                >
+                  {checkedIds.includes(f.id) && <Check className="h-3 w-3" />}
+                </button>
+              </div>
             ))}
             {filesQ.data && filesQ.data.length === 0 && (
               <div className="px-3 py-6 text-center text-xs text-muted-foreground">
@@ -339,23 +376,12 @@ function WorkbenchPage() {
           </div>
           {/* AI actions bar — appears when code is selected */}
           {selection && openPath && (
-            <div className="flex items-center gap-2 border-b border-border/40 bg-foreground/[0.03] px-4 py-1.5 text-[11px]">
-              <span className="text-muted-foreground">
-                {selection.split("\n").length} lines selected
-              </span>
-              <div className="ml-auto flex gap-1.5">
-                {AI_ACTIONS.map(({ id, label, icon: Icon, prompt }) => (
-                  <button
-                    key={id}
-                    onClick={() => runAiAction(prompt)}
-                    className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-background/60 px-2.5 py-1 transition hover:bg-foreground hover:text-background"
-                    title={`${label} selection with the AI pair programmer`}
-                  >
-                    <Icon className="h-3 w-3" /> {label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <AiActionsBar
+              lineCount={selection.split("\n").length}
+              selected={aiSelected}
+              onToggle={toggleAiAction}
+              onRun={runAiActions}
+            />
           )}
           <div className="flex-1 min-h-0 bg-neutral-950/40">
             {openPath && (

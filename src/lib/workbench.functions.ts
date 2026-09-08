@@ -137,3 +137,14 @@ export const deleteFile = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const deleteFiles = createServerFn({ method: "POST" })
+  .inputValidator((i: { ids: string[] }) =>
+    z.object({ ids: z.array(z.string().uuid()).min(1).max(100) }).parse(i),
+  )
+  .handler(async ({ data }) => {
+    const { client } = await requireUser();
+    const { error } = await client.from("workbench_files").delete().in("id", data.ids);
+    if (error) throw new Error(error.message);
+    return { ok: true, deleted: data.ids.length };
+  });
