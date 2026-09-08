@@ -1,0 +1,27 @@
+{
+  "previewPort": 3000,
+  "healthPath": "/",
+  "startCommand": "docker compose -f docker-compose.base44.yml up -d",
+  "secrets": [
+    {
+      "name": "LOVABLE_API_KEY",
+      "description": "Lovable workspace API key — needed for AI chat, voice (speak/transcribe), explain, and work features. Get it from the Lovable dashboard (Project Settings → API).",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "SUPABASE_SERVICE_ROLE_KEY",
+      "description": "Supabase service role key for server-side admin operations (bypasses RLS). Get it from the Supabase dashboard (Project Settings → API → service_role).",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "OAUTH_STATE_SECRET",
+      "description": "HMAC secret for signing OAuth state tokens. Any random 32+ char string works.",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "APP_USER_CONNECTION_KEY_SECRET",
+      "description": "Base64-encoded 32-byte AES-256 key for encrypting app-user connection keys. Generate with: openssl rand -base64 32.",
+      "requiredAtBoot": false
+    }
+  ]
+}
