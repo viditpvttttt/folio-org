@@ -17,6 +17,12 @@ import { Dock, type DockItem } from "@/components/fx/Dock";
 import { BlobCard } from "@/components/fx/BlobCard";
 import { TextScroll3D } from "@/components/fx/TextScroll3D";
 import { CursorTrail } from "@/components/fx/CursorTrail";
+import {
+  Float, PulseGlow, SplitText, StaggerChildren, StaggerItem, FlipCard,
+  WiggleHover, BlurIn, BounceIn, ScaleHover, SlideIn, AnimatedCounter,
+  TiltHover, GlowHover, RippleClick, GradientBorder, AnimatedUnderline,
+  ShimmerHover, GradientText, MarqueeRow,
+} from "@/components/fx/anim";
 import { FolioMark } from "@/components/brand/FolioMark";
 import { useAuth } from "@/hooks/use-auth";
 import { usePreferences } from "@/hooks/use-preferences";
@@ -136,6 +142,25 @@ const FAQ = [
   { q: "Is my data private?", a: "Your threads and memories are yours, scoped to your account with row-level security. Delete a memory and it's gone." },
 ];
 
+const STATS = [
+  { value: 10, suffix: "K+", label: "Active users" },
+  { value: 2, suffix: "M+", label: "Conversations" },
+  { value: 99, suffix: ".9%", label: "Uptime" },
+  { value: 150, suffix: "+", label: "Skills" },
+];
+
+const TESTIMONIALS = [
+  { quote: "Folio replaced five tabs and three subscriptions. It's the first AI tool that actually feels calm.", author: "Maya Chen", role: "Product designer" },
+  { quote: "The voice mode is unreal. I plan my entire morning by talking to it while making coffee.", author: "James Okafor", role: "Startup founder" },
+  { quote: "It remembers my stack, my tone, my timezone. Every other assistant feels amnesiac by comparison.", author: "Sofía García", role: "Engineering lead" },
+];
+
+const PRICING = [
+  { name: "Free", price: "$0", period: "forever", features: ["50 messages/day", "Voice mode", "Weather & news", "3 memories"], cta: "Start free" },
+  { name: "Pro", price: "$12", period: "/month", features: ["Unlimited messages", "Deep research", "Workbench access", "Unlimited memories", "Image generation"], cta: "Go Pro", highlight: true },
+  { name: "Team", price: "$29", period: "/seat", features: ["Everything in Pro", "Shared workspaces", "Team memory", "Priority support", "Admin controls"], cta: "Start team trial" },
+];
+
 const DOCK_ITEMS: DockItem[] = [
   { icon: <CloudSun className="h-5 w-5" />, label: "Weather", href: "#what" },
   { icon: <Newspaper className="h-5 w-5" />, label: "News", href: "#what" },
@@ -177,10 +202,10 @@ function Landing() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Link to="/" className="font-serif text-2xl tracking-tight">Folio</Link>
           <nav className="hidden md:flex items-center gap-7 text-sm text-muted-foreground">
-            <a href="#what" className="hover:text-foreground transition">What it does</a>
-            <a href="#skills" className="hover:text-foreground transition">Skills</a>
-            <a href="#voice" className="hover:text-foreground transition">Voice</a>
-            <a href="#faq" className="hover:text-foreground transition">FAQ</a>
+            <a href="#what" className="hover:text-foreground transition"><AnimatedUnderline>What it does</AnimatedUnderline></a>
+            <a href="#skills" className="hover:text-foreground transition"><AnimatedUnderline>Skills</AnimatedUnderline></a>
+            <a href="#voice" className="hover:text-foreground transition"><AnimatedUnderline>Voice</AnimatedUnderline></a>
+            <a href="#faq" className="hover:text-foreground transition"><AnimatedUnderline>FAQ</AnimatedUnderline></a>
           </nav>
           <MagneticButton strength={0.3}>
             <Link
@@ -217,7 +242,7 @@ function Landing() {
               />
               <h1 className="relative font-serif text-[clamp(3rem,9vw,7.5rem)] leading-[0.92] tracking-tight">
                 One assistant for<br />
-                <em className="italic">your whole day.</em>
+                <em className="italic"><GradientText>your whole day.</GradientText></em>
               </h1>
             </div>
           </Reveal>
@@ -264,9 +289,7 @@ function Landing() {
         <div className="mx-auto max-w-4xl px-6 py-28 md:py-40">
           <Reveal>
             <p className="font-serif text-3xl md:text-5xl leading-[1.25] tracking-tight">
-              Most assistants give you <span className="text-muted-foreground">text</span>.
-              Folio gives you <em className="italic">something to use</em> — a card, a component,
-              a diagram, a draft, a decision.
+              <SplitText text="Most assistants give you text. Folio gives you something to use — a card, a component, a diagram, a draft, a decision." />
             </p>
           </Reveal>
         </div>
@@ -286,6 +309,26 @@ function Landing() {
               <AuroraBars barCount={32} speed={0.4} blur={2} />
             </div>
           </Reveal>
+        </div>
+      </section>
+
+      {/* ---------- stats (animated counters) ---------- */}
+      <section className="border-t border-border/60 bg-paper-dim/30">
+        <div className="mx-auto max-w-5xl px-6 py-20 md:py-24">
+          <StaggerChildren className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center" stagger={0.12}>
+            {STATS.map((s) => (
+              <StaggerItem key={s.label}>
+                <BounceIn>
+                  <div className="font-serif text-5xl md:text-6xl tracking-tight">
+                    <GradientText>
+                      <AnimatedCounter to={s.value} suffix={s.suffix} />
+                    </GradientText>
+                  </div>
+                  <p className="mt-2 text-sm text-muted-foreground">{s.label}</p>
+                </BounceIn>
+              </StaggerItem>
+            ))}
+          </StaggerChildren>
         </div>
       </section>
 
@@ -344,7 +387,9 @@ function Landing() {
             </div>
           </Reveal>
           <Reveal delay={120}>
-            <CardSwap3D items={DAY_CARDS} />
+            <GlowHover color="rgba(182, 109, 255, 0.18)">
+              <CardSwap3D items={DAY_CARDS} />
+            </GlowHover>
           </Reveal>
         </div>
       </section>
@@ -435,22 +480,58 @@ function Landing() {
             </div>
           </Reveal>
           <Reveal delay={140}>
-            <div className="relative aspect-square max-w-md mx-auto w-full rounded-3xl border border-border/60 bg-card/20 backdrop-blur-xl overflow-hidden">
-              <div aria-hidden className="pointer-events-none absolute inset-0 grid place-items-center">
-                <div className="h-56 w-56 rgb-blob opacity-25 blur-3xl rounded-[2rem]" />
-              </div>
-              <div className="absolute inset-0 grid place-items-center">
-                <FolioMark className="h-56 w-56" />
-              </div>
-            </div>
+            <Float duration={7}>
+              <PulseGlow color="rgba(182, 109, 255, 0.25)">
+                <div className="relative aspect-square max-w-md mx-auto w-full rounded-3xl border border-border/60 bg-card/20 backdrop-blur-xl overflow-hidden">
+                  <div aria-hidden className="pointer-events-none absolute inset-0 grid place-items-center">
+                    <div className="h-56 w-56 rgb-blob opacity-25 blur-3xl rounded-[2rem]" />
+                  </div>
+                  <div className="absolute inset-0 grid place-items-center">
+                    <FolioMark className="h-56 w-56" />
+                  </div>
+                </div>
+              </PulseGlow>
+            </Float>
           </Reveal>
+        </div>
+      </section>
+
+      {/* ---------- testimonials (staggered) ---------- */}
+      <section className="border-t border-border/60 bg-paper-dim/30">
+        <div className="mx-auto max-w-6xl px-6 py-24 md:py-32">
+          <SlideIn direction="up">
+            <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Loved by busy people</p>
+            <h2 className="font-serif text-4xl md:text-6xl mt-3 tracking-tight">
+              <GradientText>Quietly indispensable.</GradientText>
+            </h2>
+          </SlideIn>
+          <StaggerChildren className="mt-14 grid gap-5 md:grid-cols-3" stagger={0.15}>
+            {TESTIMONIALS.map((t) => (
+              <StaggerItem key={t.author}>
+                <TiltHover max={6} className="h-full">
+                  <ShimmerHover className="h-full rounded-2xl border border-border/60 bg-card/45 backdrop-blur p-7">
+                    <p className="text-base leading-relaxed">"{t.quote}"</p>
+                    <div className="mt-6 flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-foreground/15 to-foreground/5 grid place-items-center text-sm font-serif">
+                        {t.author.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">{t.author}</p>
+                        <p className="text-xs text-muted-foreground">{t.role}</p>
+                      </div>
+                    </div>
+                  </ShimmerHover>
+                </TiltHover>
+              </StaggerItem>
+            ))}
+          </StaggerChildren>
         </div>
       </section>
 
       {/* ---------- workbench strip ---------- */}
       <section className="border-t border-border/60 bg-paper-dim/30">
         <div className="mx-auto max-w-6xl px-6 py-24 md:py-32 grid gap-14 md:grid-cols-2 items-center">
-          <Reveal className="order-2 md:order-1">
+          <BlurIn className="order-2 md:order-1">
             <div className="rounded-2xl border border-border/60 bg-[#0b0b12] p-5 font-mono text-[12px] leading-relaxed text-emerald-200/90 shadow-xl overflow-hidden">
               <div className="flex gap-1.5 mb-4">
                 <span className="h-2.5 w-2.5 rounded-full bg-red-400/70" />
@@ -463,7 +544,7 @@ function Landing() {
 ✓ wrote src/pricing.tsx (+34 −6)
 ✓ ran tests — 12 passing`}</pre>
             </div>
-          </Reveal>
+          </BlurIn>
           <Reveal delay={120} className="order-1 md:order-2">
             <div>
               <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Workbench</p>
@@ -482,9 +563,9 @@ function Landing() {
       {/* ---------- faq ---------- */}
       <section id="faq" className="border-t border-border/60">
         <div className="mx-auto max-w-4xl px-6 py-24 md:py-32">
-          <Reveal>
+          <BounceIn>
             <h2 className="font-serif text-4xl md:text-6xl tracking-tight">Questions.</h2>
-          </Reveal>
+          </BounceIn>
           <div className="mt-12 divide-y divide-border/60 border-y border-border/60">
             {FAQ.map(({ q, a }, i) => (
               <Reveal key={q} delay={i * 60}>
@@ -496,6 +577,77 @@ function Landing() {
                   <p className="mt-4 max-w-2xl text-muted-foreground leading-relaxed">{a}</p>
                 </details>
               </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- pricing (flip cards) ---------- */}
+      <section className="border-t border-border/60">
+        <div className="mx-auto max-w-5xl px-6 py-24 md:py-32">
+          <BounceIn className="text-center">
+            <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Pricing</p>
+            <h2 className="font-serif text-4xl md:text-6xl mt-3 tracking-tight">
+              Start free. <em className="italic">Upgrade when it's worth it.</em>
+            </h2>
+          </BounceIn>
+          <div className="mt-14 grid gap-5 md:grid-cols-3 items-stretch">
+            {PRICING.map((tier, idx) => (
+              <BounceIn key={tier.name} delay={idx * 0.1} className="h-full">
+                {tier.highlight ? (
+                  <GradientBorder className="h-full" colors={["#ff4d8d", "#b66dff", "#4d9bff", "#7dffb4"]}>
+                    <PulseGlow className="h-full rounded-2xl">
+                      <div className="p-7">
+                        <span className="inline-block rounded-full bg-foreground text-background px-3 py-0.5 text-xs font-medium">Most popular</span>
+                        <h3 className="font-serif text-3xl mt-4">{tier.name}</h3>
+                        <p className="mt-2 text-4xl font-serif">{tier.price}<span className="text-base text-muted-foreground">{tier.period}</span></p>
+                        <ul className="mt-6 space-y-2.5 text-sm">
+                          {tier.features.map((f) => (
+                            <li key={f} className="flex items-center gap-2">
+                              <span className="h-1.5 w-1.5 rounded-full bg-foreground/60" /> {f}
+                            </li>
+                          ))}
+                        </ul>
+                        <ScaleHover scale={1.03}>
+                          <Link to="/login" className="mt-8 block rounded-full bg-primary px-6 py-3 text-center text-sm text-primary-foreground transition hover:opacity-90">
+                            {tier.cta}
+                          </Link>
+                        </ScaleHover>
+                      </div>
+                    </PulseGlow>
+                  </GradientBorder>
+                ) : (
+                  <FlipCard
+                    className="h-full min-h-[340px]"
+                    front={
+                      <div className="h-full rounded-2xl border border-border/60 bg-card/45 backdrop-blur p-7">
+                        <h3 className="font-serif text-3xl">{tier.name}</h3>
+                        <p className="mt-2 text-4xl font-serif">{tier.price}<span className="text-base text-muted-foreground">{tier.period}</span></p>
+                        <ul className="mt-6 space-y-2.5 text-sm">
+                          {tier.features.map((f) => (
+                            <li key={f} className="flex items-center gap-2">
+                              <span className="h-1.5 w-1.5 rounded-full bg-foreground/40" /> {f}
+                            </li>
+                          ))}
+                        </ul>
+                        <p className="mt-8 text-xs text-muted-foreground text-center">Hover to flip →</p>
+                      </div>
+                    }
+                    back={
+                      <div className="h-full rounded-2xl border border-border/60 bg-foreground text-background p-7 grid place-items-center text-center">
+                        <div>
+                          <ScaleHover scale={1.05}>
+                            <Link to="/login" className="inline-block rounded-full bg-background text-foreground px-6 py-3 text-sm transition hover:opacity-90">
+                              {tier.cta}
+                            </Link>
+                          </ScaleHover>
+                          <p className="mt-4 text-xs opacity-70">No card required</p>
+                        </div>
+                      </div>
+                    }
+                  />
+                )}
+              </BounceIn>
             ))}
           </div>
         </div>
@@ -513,12 +665,16 @@ function Landing() {
           <Reveal delay={100}>
             <div className="mt-12 flex flex-wrap justify-center gap-4">
               <MagneticButton strength={0.28}>
-                <Link
-                  to="/login"
-                  className="group inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-primary-foreground transition hover:opacity-90"
-                >
-                  Start chatting <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
-                </Link>
+                <RippleClick className="rounded-full">
+                  <ScaleHover scale={1.05}>
+                    <Link
+                      to="/login"
+                      className="group inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-primary-foreground transition hover:opacity-90"
+                    >
+                      Start chatting <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+                    </Link>
+                  </ScaleHover>
+                </RippleClick>
               </MagneticButton>
 
               <a
@@ -534,9 +690,11 @@ function Landing() {
 
       <footer className="border-t border-border/60">
         <div className="mx-auto max-w-6xl px-6 py-10 flex flex-wrap items-center justify-between gap-4 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-2">
-            <Wand2 className="h-3.5 w-3.5" /> Folio · everyday assistant
-          </span>
+          <WiggleHover>
+            <span className="inline-flex items-center gap-2">
+              <Wand2 className="h-3.5 w-3.5" /> Folio · everyday assistant
+            </span>
+          </WiggleHover>
           <span>Made with care</span>
         </div>
       </footer>
