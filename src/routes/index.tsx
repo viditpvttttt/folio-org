@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight, Sparkles, Wand2, MessageCircle, Mic, Newspaper, CloudSun,
-  Brain, Code2, Briefcase, Compass, Shield, Zap,
+  Brain, Code2, Briefcase, Compass, Shield, Zap, Search, PenLine, Layers,
 } from "lucide-react";
 import { DepthSlabs } from "@/components/fx/DepthSlabs";
 import { SpotlightCard } from "@/components/fx/SpotlightCard";
@@ -23,6 +23,7 @@ import {
   TiltHover, GlowHover, RippleClick, AnimatedUnderline, ShimmerHover,
 } from "@/components/fx/anim";
 import { ScrollReveal, ParallaxLayer, MaskedTextReveal, ScrollTilt, ScrollScale } from "@/components/fx/scroll-anim";
+import { ShowcaseCard } from "@/components/fx/ShowcaseCard";
 import { FolioMark } from "@/components/brand/FolioMark";
 import { useAuth } from "@/hooks/use-auth";
 import { usePreferences } from "@/hooks/use-preferences";
@@ -153,6 +154,15 @@ const TESTIMONIALS = [
   { quote: "Folio replaced five tabs and three subscriptions. It's the first AI tool that actually feels calm.", author: "Maya Chen", role: "Product designer" },
   { quote: "The voice mode is unreal. I plan my entire morning by talking to it while making coffee.", author: "James Okafor", role: "Startup founder" },
   { quote: "It remembers my stack, my tone, my timezone. Every other assistant feels amnesiac by comparison.", author: "Sofía García", role: "Engineering lead" },
+];
+
+const SHOWCASE = [
+  { title: "Weather Atlas", desc: "Live conditions, 7-day forecast, and animated cards for any city on Earth.", accent: "#4d9bff", icon: CloudSun, tags: ["Live data", "Animated cards"] },
+  { title: "Research Brief", desc: "Folio browses 20+ sources and synthesises a sourced one-pager in 30 seconds.", accent: "#b66dff", icon: Search, tags: ["Web browsing", "Citations"] },
+  { title: "Code Workbench", desc: "Read, write, and run your project files with an AI pair-programmer beside you.", accent: "#7dffb4", icon: Code2, tags: ["Editor", "AI pair-programmer"] },
+  { title: "Voice Journal", desc: "Talk naturally — Folio transcribes, summarises, and files your thoughts automatically.", accent: "#ff4d8d", icon: Mic, tags: ["Voice", "Transcription"] },
+  { title: "Draft Studio", desc: "Emails, one-pagers, and slide outlines tuned to your tone and audience.", accent: "#ffd24d", icon: PenLine, tags: ["Drafting", "Tone-aware"] },
+  { title: "Memory Vault", desc: "Everything Folio knows about you — editable, exportable, yours alone.", accent: "#b66dff", icon: Brain, tags: ["Privacy", "Row-level security"] },
 ];
 
 const DOCK_ITEMS: DockItem[] = [
@@ -417,7 +427,45 @@ function Landing() {
         </div>
       </section>
 
-
+      {/* ---------- showcase (21st.dev-inspired interactive cards) ---------- */}
+      <section id="showcase" className="relative border-t border-border/60 overflow-hidden">
+        <ParallaxLayer speed={0.1} className="pointer-events-none absolute left-[-5%] top-1/3 h-[400px] w-[500px] rounded-full rgb-blob opacity-20 blur-3xl" />
+        <div className="relative mx-auto max-w-6xl px-6 py-24 md:py-32">
+          <ScrollReveal direction="up">
+            <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Showcase</p>
+            <h2 className="font-serif text-4xl md:text-6xl mt-3 tracking-tight">
+              Things Folio builds, <em className="italic">live.</em>
+            </h2>
+            <p className="mt-4 max-w-lg text-muted-foreground leading-relaxed">
+              Every output is a real, interactive surface — not a wall of text. Hover any card to
+              see it react to your movement.
+            </p>
+          </ScrollReveal>
+          <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {SHOWCASE.map((item, idx) => {
+              const dirs = ["up", "left", "right", "up", "left", "right"] as const;
+              return (
+                <ScrollReveal key={item.title} direction={dirs[idx]}>
+                  <ShowcaseCard
+                    title={item.title}
+                    desc={item.desc}
+                    tags={item.tags}
+                    accent={item.accent}
+                    icon={item.icon}
+                    index={idx + 1}
+                  />
+                </ScrollReveal>
+              );
+            })}
+          </div>
+          <ScrollReveal direction="up">
+            <div className="mt-12 flex flex-wrap items-center justify-center gap-3 text-sm text-muted-foreground">
+              <Layers className="h-4 w-4" />
+              <span>Every card above is a real component Folio renders in conversation — not a screenshot.</span>
+            </div>
+          </ScrollReveal>
+        </div>
+      </section>
 
       {/* ---------- cursor trail (unlumen-inspired) ---------- */}
       <section className="relative border-t border-border/60 overflow-hidden">
