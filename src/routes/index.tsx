@@ -18,11 +18,11 @@ import { BlobCard } from "@/components/fx/BlobCard";
 import { TextScroll3D } from "@/components/fx/TextScroll3D";
 import { CursorTrail } from "@/components/fx/CursorTrail";
 import {
-  Float, PulseGlow, SplitText, StaggerChildren, StaggerItem, FlipCard,
+  Float, PulseGlow, StaggerChildren, StaggerItem,
   WiggleHover, BlurIn, BounceIn, ScaleHover, SlideIn, AnimatedCounter,
-  TiltHover, GlowHover, RippleClick, GradientBorder, AnimatedUnderline,
-  ShimmerHover, GradientText, MarqueeRow,
+  TiltHover, GlowHover, RippleClick, AnimatedUnderline, ShimmerHover,
 } from "@/components/fx/anim";
+import { ScrollReveal, ParallaxLayer, MaskedTextReveal, ScrollTilt, ScrollScale } from "@/components/fx/scroll-anim";
 import { FolioMark } from "@/components/brand/FolioMark";
 import { useAuth } from "@/hooks/use-auth";
 import { usePreferences } from "@/hooks/use-preferences";
@@ -155,12 +155,6 @@ const TESTIMONIALS = [
   { quote: "It remembers my stack, my tone, my timezone. Every other assistant feels amnesiac by comparison.", author: "Sofía García", role: "Engineering lead" },
 ];
 
-const PRICING = [
-  { name: "Free", price: "$0", period: "forever", features: ["50 messages/day", "Voice mode", "Weather & news", "3 memories"], cta: "Start free" },
-  { name: "Pro", price: "$12", period: "/month", features: ["Unlimited messages", "Deep research", "Workbench access", "Unlimited memories", "Image generation"], cta: "Go Pro", highlight: true },
-  { name: "Team", price: "$29", period: "/seat", features: ["Everything in Pro", "Shared workspaces", "Team memory", "Priority support", "Admin controls"], cta: "Start team trial" },
-];
-
 const DOCK_ITEMS: DockItem[] = [
   { icon: <CloudSun className="h-5 w-5" />, label: "Weather", href: "#what" },
   { icon: <Newspaper className="h-5 w-5" />, label: "News", href: "#what" },
@@ -223,7 +217,7 @@ function Landing() {
       <section className="relative min-h-[92vh] flex items-center">
         <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
           <DepthSlabs layers={6} intensity={1} />
-          <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[620px] w-[900px] rounded-full opacity-60 blur-3xl rgb-blob" />
+          <ParallaxLayer speed={0.08} className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[620px] w-[900px] rounded-full opacity-60 blur-3xl rgb-blob" />
           <div className="pointer-events-none absolute inset-0 bg-background/45 backdrop-blur-[2px]" />
         </div>
 
@@ -242,7 +236,7 @@ function Landing() {
               />
               <h1 className="relative font-serif text-[clamp(3rem,9vw,7.5rem)] leading-[0.92] tracking-tight">
                 One assistant for<br />
-                <em className="italic"><GradientText>your whole day.</GradientText></em>
+                <em className="italic">your whole day.</em>
               </h1>
             </div>
           </Reveal>
@@ -287,28 +281,28 @@ function Landing() {
       {/* ---------- statement ---------- */}
       <section className="border-t border-border/60 bg-paper-dim/30">
         <div className="mx-auto max-w-4xl px-6 py-28 md:py-40">
-          <Reveal>
+          <ScrollReveal direction="up">
             <p className="font-serif text-3xl md:text-5xl leading-[1.25] tracking-tight">
-              <SplitText text="Most assistants give you text. Folio gives you something to use — a card, a component, a diagram, a draft, a decision." />
+              <MaskedTextReveal text="Most assistants give you text. Folio gives you something to use — a card, a component, a diagram, a draft, a decision." />
             </p>
-          </Reveal>
+          </ScrollReveal>
         </div>
       </section>
 
       {/* ---------- aurora bars (unlumen-inspired) ---------- */}
       <section className="relative border-t border-border/60 overflow-hidden">
         <div className="mx-auto max-w-6xl px-6 py-20 md:py-28">
-          <Reveal>
+          <ScrollReveal direction="up">
             <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground text-center">Quiet motion</p>
             <h2 className="font-serif text-3xl md:text-5xl mt-3 tracking-tight text-center">
               Calm on the surface, <em className="italic">alive underneath.</em>
             </h2>
-          </Reveal>
-          <Reveal delay={120}>
+          </ScrollReveal>
+          <ScrollReveal direction="scale">
             <div className="mt-14 h-32 md:h-40">
               <AuroraBars barCount={32} speed={0.4} blur={2} />
             </div>
-          </Reveal>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -320,9 +314,7 @@ function Landing() {
               <StaggerItem key={s.label}>
                 <BounceIn>
                   <div className="font-serif text-5xl md:text-6xl tracking-tight">
-                    <GradientText>
                       <AnimatedCounter to={s.value} suffix={s.suffix} />
-                    </GradientText>
                   </div>
                   <p className="mt-2 text-sm text-muted-foreground">{s.label}</p>
                 </BounceIn>
@@ -335,15 +327,16 @@ function Landing() {
       {/* ---------- capability bento ---------- */}
       <section id="what" className="border-t border-border/60">
         <div className="mx-auto max-w-6xl px-6 py-24 md:py-32">
-          <Reveal>
+          <ScrollReveal direction="up">
             <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">What it does</p>
             <h2 className="font-serif text-4xl md:text-6xl mt-3 tracking-tight">
               Six things, done unusually well.
             </h2>
-          </Reveal>
+          </ScrollReveal>
           <div className="mt-14 grid gap-5 md:grid-cols-3">
             {CAPABILITIES.map(({ icon: Icon, title, body }, idx) => {
               const useBlob = idx === 0 || idx === 3;
+              const dirs = ["up", "left", "right", "up", "left", "right"] as const;
               const card = useBlob ? (
                 <BlobCard
                   className="h-full"
@@ -361,9 +354,9 @@ function Landing() {
                 </SpotlightCard>
               );
               return (
-                <Reveal key={title} delay={idx * 70}>
+                <ScrollReveal key={title} direction={dirs[idx]}>
                   {card}
-                </Reveal>
+                </ScrollReveal>
               );
             })}
           </div>
@@ -372,9 +365,9 @@ function Landing() {
 
       {/* ---------- card swap: a day with Folio ---------- */}
       <section className="relative border-t border-border/60 overflow-hidden">
-        <div className="pointer-events-none absolute right-[-10%] top-1/4 h-[420px] w-[520px] rounded-full rgb-blob opacity-25 blur-3xl" />
+        <ParallaxLayer speed={0.15} className="pointer-events-none absolute right-[-10%] top-1/4 h-[420px] w-[520px] rounded-full rgb-blob opacity-25 blur-3xl" />
         <div className="relative mx-auto max-w-6xl px-6 py-24 md:py-32 grid gap-16 md:grid-cols-2 items-center">
-          <Reveal>
+          <ScrollReveal direction="left">
             <div>
               <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">A day with Folio</p>
               <h2 className="font-serif text-4xl md:text-6xl mt-3 tracking-tight leading-[1.02]">
@@ -385,12 +378,12 @@ function Landing() {
                 through — it's the same rhythm Folio follows for you.
               </p>
             </div>
-          </Reveal>
-          <Reveal delay={120}>
+          </ScrollReveal>
+          <ScrollReveal direction="right">
             <GlowHover color="rgba(182, 109, 255, 0.18)">
               <CardSwap3D items={DAY_CARDS} />
             </GlowHover>
-          </Reveal>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -402,7 +395,7 @@ function Landing() {
       {/* ---------- skills marquee ---------- */}
       <section id="skills" className="border-t border-border/60 bg-paper-dim/30 overflow-hidden">
         <div className="mx-auto max-w-6xl px-6 py-24 md:py-32">
-          <Reveal>
+          <ScrollReveal direction="up">
             <div className="flex flex-wrap items-end justify-between gap-6">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Skills</p>
@@ -414,13 +407,13 @@ function Landing() {
                 Folio picks the right tool on its own — you never choose a mode, a tab, or a plugin.
               </p>
             </div>
-          </Reveal>
-          <Reveal delay={120}>
+          </ScrollReveal>
+          <ScrollReveal direction="scale">
             <div className="mt-12 space-y-3">
               <Marquee3D items={SKILLS} speed={38} />
               <Marquee3D items={[...SKILLS].reverse()} speed={46} reverse />
             </div>
-          </Reveal>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -429,7 +422,7 @@ function Landing() {
       {/* ---------- cursor trail (unlumen-inspired) ---------- */}
       <section className="relative border-t border-border/60 overflow-hidden">
         <div className="mx-auto max-w-6xl px-6 py-24 md:py-32">
-          <Reveal>
+          <ScrollReveal direction="up">
             <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground text-center">Interactive</p>
             <h2 className="font-serif text-4xl md:text-6xl mt-3 tracking-tight text-center">
               Move your cursor.
@@ -437,22 +430,22 @@ function Landing() {
             <p className="mx-auto mt-4 max-w-md text-muted-foreground leading-relaxed text-center">
               Folio responds to you — not just clicks, but motion. Every surface is alive.
             </p>
-          </Reveal>
-          <Reveal delay={120}>
+          </ScrollReveal>
+          <ScrollReveal direction="scale">
             <CursorTrail className="mt-12 h-64 rounded-2xl border border-border/40 bg-card/20 backdrop-blur-sm">
               <div className="grid h-full place-items-center text-muted-foreground/40 text-sm">
                 Hover across this area
               </div>
             </CursorTrail>
-          </Reveal>
+          </ScrollReveal>
         </div>
       </section>
 
       {/* ---------- voice / orb ---------- */}
       <section id="voice" className="relative border-t border-border/60 overflow-hidden">
-        <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[520px] w-[720px] rounded-full rgb-blob opacity-35 blur-3xl" />
+        <ParallaxLayer speed={0.12} className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[520px] w-[720px] rounded-full rgb-blob opacity-35 blur-3xl" />
         <div className="relative mx-auto max-w-6xl px-6 py-28 md:py-40 grid gap-14 md:grid-cols-2 items-center">
-          <Reveal>
+          <ScrollReveal direction="left">
             <div>
               <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Voice</p>
               <h2 className="font-serif text-4xl md:text-6xl mt-3 tracking-tight leading-[1.02]">
@@ -478,8 +471,8 @@ function Landing() {
                 ))}
               </div>
             </div>
-          </Reveal>
-          <Reveal delay={140}>
+          </ScrollReveal>
+          <ScrollReveal direction="right">
             <Float duration={7}>
               <PulseGlow color="rgba(182, 109, 255, 0.25)">
                 <div className="relative aspect-square max-w-md mx-auto w-full rounded-3xl border border-border/60 bg-card/20 backdrop-blur-xl overflow-hidden">
@@ -492,7 +485,7 @@ function Landing() {
                 </div>
               </PulseGlow>
             </Float>
-          </Reveal>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -502,7 +495,7 @@ function Landing() {
           <SlideIn direction="up">
             <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Loved by busy people</p>
             <h2 className="font-serif text-4xl md:text-6xl mt-3 tracking-tight">
-              <GradientText>Quietly indispensable.</GradientText>
+              Quietly indispensable.
             </h2>
           </SlideIn>
           <StaggerChildren className="mt-14 grid gap-5 md:grid-cols-3" stagger={0.15}>
@@ -531,7 +524,7 @@ function Landing() {
       {/* ---------- workbench strip ---------- */}
       <section className="border-t border-border/60 bg-paper-dim/30">
         <div className="mx-auto max-w-6xl px-6 py-24 md:py-32 grid gap-14 md:grid-cols-2 items-center">
-          <BlurIn className="order-2 md:order-1">
+          <ScrollTilt max={6} className="order-2 md:order-1">
             <div className="rounded-2xl border border-border/60 bg-[#0b0b12] p-5 font-mono text-[12px] leading-relaxed text-emerald-200/90 shadow-xl overflow-hidden">
               <div className="flex gap-1.5 mb-4">
                 <span className="h-2.5 w-2.5 rounded-full bg-red-400/70" />
@@ -544,8 +537,8 @@ function Landing() {
 ✓ wrote src/pricing.tsx (+34 −6)
 ✓ ran tests — 12 passing`}</pre>
             </div>
-          </BlurIn>
-          <Reveal delay={120} className="order-1 md:order-2">
+          </ScrollTilt>
+          <ScrollReveal direction="right" className="order-1 md:order-2">
             <div>
               <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Workbench</p>
               <h2 className="font-serif text-4xl md:text-6xl mt-3 tracking-tight leading-[1.02]">
@@ -556,19 +549,19 @@ function Landing() {
                 that can read, write and run them — no copy-pasting between tabs.
               </p>
             </div>
-          </Reveal>
+          </ScrollReveal>
         </div>
       </section>
 
       {/* ---------- faq ---------- */}
       <section id="faq" className="border-t border-border/60">
         <div className="mx-auto max-w-4xl px-6 py-24 md:py-32">
-          <BounceIn>
+          <ScrollScale from={0.9} to={1}>
             <h2 className="font-serif text-4xl md:text-6xl tracking-tight">Questions.</h2>
-          </BounceIn>
+          </ScrollScale>
           <div className="mt-12 divide-y divide-border/60 border-y border-border/60">
             {FAQ.map(({ q, a }, i) => (
-              <Reveal key={q} delay={i * 60}>
+              <ScrollReveal key={q} direction="up">
                 <details className="group py-6">
                   <summary className="cursor-pointer list-none flex items-center gap-4">
                     <span className="font-serif text-xl md:text-2xl flex-1">{q}</span>
@@ -576,78 +569,7 @@ function Landing() {
                   </summary>
                   <p className="mt-4 max-w-2xl text-muted-foreground leading-relaxed">{a}</p>
                 </details>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ---------- pricing (flip cards) ---------- */}
-      <section className="border-t border-border/60">
-        <div className="mx-auto max-w-5xl px-6 py-24 md:py-32">
-          <BounceIn className="text-center">
-            <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Pricing</p>
-            <h2 className="font-serif text-4xl md:text-6xl mt-3 tracking-tight">
-              Start free. <em className="italic">Upgrade when it's worth it.</em>
-            </h2>
-          </BounceIn>
-          <div className="mt-14 grid gap-5 md:grid-cols-3 items-stretch">
-            {PRICING.map((tier, idx) => (
-              <BounceIn key={tier.name} delay={idx * 0.1} className="h-full">
-                {tier.highlight ? (
-                  <GradientBorder className="h-full" colors={["#ff4d8d", "#b66dff", "#4d9bff", "#7dffb4"]}>
-                    <PulseGlow className="h-full rounded-2xl">
-                      <div className="p-7">
-                        <span className="inline-block rounded-full bg-foreground text-background px-3 py-0.5 text-xs font-medium">Most popular</span>
-                        <h3 className="font-serif text-3xl mt-4">{tier.name}</h3>
-                        <p className="mt-2 text-4xl font-serif">{tier.price}<span className="text-base text-muted-foreground">{tier.period}</span></p>
-                        <ul className="mt-6 space-y-2.5 text-sm">
-                          {tier.features.map((f) => (
-                            <li key={f} className="flex items-center gap-2">
-                              <span className="h-1.5 w-1.5 rounded-full bg-foreground/60" /> {f}
-                            </li>
-                          ))}
-                        </ul>
-                        <ScaleHover scale={1.03}>
-                          <Link to="/login" className="mt-8 block rounded-full bg-primary px-6 py-3 text-center text-sm text-primary-foreground transition hover:opacity-90">
-                            {tier.cta}
-                          </Link>
-                        </ScaleHover>
-                      </div>
-                    </PulseGlow>
-                  </GradientBorder>
-                ) : (
-                  <FlipCard
-                    className="h-full min-h-[340px]"
-                    front={
-                      <div className="h-full rounded-2xl border border-border/60 bg-card/45 backdrop-blur p-7">
-                        <h3 className="font-serif text-3xl">{tier.name}</h3>
-                        <p className="mt-2 text-4xl font-serif">{tier.price}<span className="text-base text-muted-foreground">{tier.period}</span></p>
-                        <ul className="mt-6 space-y-2.5 text-sm">
-                          {tier.features.map((f) => (
-                            <li key={f} className="flex items-center gap-2">
-                              <span className="h-1.5 w-1.5 rounded-full bg-foreground/40" /> {f}
-                            </li>
-                          ))}
-                        </ul>
-                        <p className="mt-8 text-xs text-muted-foreground text-center">Hover to flip →</p>
-                      </div>
-                    }
-                    back={
-                      <div className="h-full rounded-2xl border border-border/60 bg-foreground text-background p-7 grid place-items-center text-center">
-                        <div>
-                          <ScaleHover scale={1.05}>
-                            <Link to="/login" className="inline-block rounded-full bg-background text-foreground px-6 py-3 text-sm transition hover:opacity-90">
-                              {tier.cta}
-                            </Link>
-                          </ScaleHover>
-                          <p className="mt-4 text-xs opacity-70">No card required</p>
-                        </div>
-                      </div>
-                    }
-                  />
-                )}
-              </BounceIn>
+              </ScrollReveal>
             ))}
           </div>
         </div>
@@ -655,14 +577,14 @@ function Landing() {
 
       {/* ---------- CTA ---------- */}
       <section className="relative border-t border-border/60 overflow-hidden">
-        <div className="pointer-events-none absolute bottom-[-220px] left-1/2 -translate-x-1/2 h-[600px] w-[1000px] rounded-full rgb-blob opacity-50 blur-3xl" />
+        <ParallaxLayer speed={0.1} className="pointer-events-none absolute bottom-[-220px] left-1/2 -translate-x-1/2 h-[600px] w-[1000px] rounded-full rgb-blob opacity-50 blur-3xl" />
         <div className="relative mx-auto max-w-4xl px-6 py-32 md:py-44 text-center">
-          <Reveal>
+          <ScrollReveal direction="up">
             <h2 className="font-serif text-[clamp(2.75rem,7vw,6rem)] leading-[0.95] tracking-tight">
               Stop juggling<br /><em className="italic">ten tabs.</em>
             </h2>
-          </Reveal>
-          <Reveal delay={100}>
+          </ScrollReveal>
+          <ScrollReveal direction="scale">
             <div className="mt-12 flex flex-wrap justify-center gap-4">
               <MagneticButton strength={0.28}>
                 <RippleClick className="rounded-full">
@@ -684,7 +606,7 @@ function Landing() {
                 <MessageCircle className="h-4 w-4" /> See what it does
               </a>
             </div>
-          </Reveal>
+          </ScrollReveal>
         </div>
       </section>
 
