@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import {
-  ArrowRight, Sparkles, Wand2, MessageCircle, Mic, Newspaper, CloudSun,
+  ArrowRight, Sparkles, MessageCircle, Mic, Newspaper, CloudSun,
   Brain, Code2, Briefcase, Compass, Shield, Zap, Search, PenLine, Layers,
 } from "lucide-react";
 import { DepthSlabs } from "@/components/fx/DepthSlabs";
@@ -19,11 +19,14 @@ import { TextScroll3D } from "@/components/fx/TextScroll3D";
 import { CursorTrail } from "@/components/fx/CursorTrail";
 import {
   Float, PulseGlow, StaggerChildren, StaggerItem,
-  WiggleHover, BlurIn, BounceIn, ScaleHover, SlideIn, AnimatedCounter,
+  BlurIn, BounceIn, ScaleHover, SlideIn, AnimatedCounter,
   TiltHover, GlowHover, RippleClick, AnimatedUnderline, ShimmerHover,
 } from "@/components/fx/anim";
 import { ScrollReveal, ParallaxLayer, MaskedTextReveal, ScrollTilt, ScrollScale } from "@/components/fx/scroll-anim";
 import { ShowcaseCard } from "@/components/fx/ShowcaseCard";
+import { BentoGrid, type BentoItem } from "@/components/fx/BentoGrid";
+import { LogoCloud } from "@/components/fx/LogoCloud";
+import { PremiumFooter } from "@/components/fx/PremiumFooter";
 import { FolioMark } from "@/components/brand/FolioMark";
 import { useAuth } from "@/hooks/use-auth";
 import { usePreferences } from "@/hooks/use-preferences";
@@ -165,6 +168,32 @@ const SHOWCASE = [
   { title: "Memory Vault", desc: "Everything Folio knows about you — editable, exportable, yours alone.", accent: "#b66dff", icon: Brain, tags: ["Privacy", "Row-level security"] },
 ];
 
+const LOGO_NAMES = [
+  "Vercel", "Linear", "Notion", "Figma", "Stripe", "GitHub", "Framer", "Supabase",
+];
+
+const BENTO_ITEMS: BentoItem[] = [
+  {
+    size: "large",
+    icon: Layers,
+    title: "One calm place",
+    desc: "Weather, news, research, code, drafts, and memory — all in a single, quiet workspace that remembers you.",
+    accent: "#b66dff",
+    visual: (
+      <div className="grid grid-cols-3 gap-2">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="h-14 rounded-xl bg-foreground/5 border border-border/30 transition-colors group-hover:border-border/50" />
+        ))}
+      </div>
+    ),
+  },
+  { size: "tall", icon: Brain, title: "Memory that remembers", desc: "Tell it once. Folio remembers your city, your tone, your stack — and quietly uses it forever.", accent: "#4d9bff" },
+  { size: "wide", icon: Mic, title: "Voice that listens", desc: "Push to talk and the orb comes alive — reacting to your voice in real time.", accent: "#ff4d8d" },
+  { size: "small", icon: CloudSun, title: "Weather", desc: "Live conditions, beautifully rendered.", accent: "#4d9bff" },
+  { size: "small", icon: Newspaper, title: "News", desc: "Your topics, self-refreshing.", accent: "#ffd24d" },
+  { size: "wide", icon: Compass, title: "Research with sources", desc: "Folio browses, reads, and synthesises — with citations, not guesses.", accent: "#7dffb4" },
+];
+
 const DOCK_ITEMS: DockItem[] = [
   { icon: <CloudSun className="h-5 w-5" />, label: "Weather", href: "#what" },
   { icon: <Newspaper className="h-5 w-5" />, label: "News", href: "#what" },
@@ -208,6 +237,7 @@ function Landing() {
           <nav className="hidden md:flex items-center gap-7 text-sm text-muted-foreground">
             <a href="#what" className="hover:text-foreground transition"><AnimatedUnderline>What it does</AnimatedUnderline></a>
             <a href="#skills" className="hover:text-foreground transition"><AnimatedUnderline>Skills</AnimatedUnderline></a>
+            <a href="#showcase" className="hover:text-foreground transition"><AnimatedUnderline>Showcase</AnimatedUnderline></a>
             <a href="#voice" className="hover:text-foreground transition"><AnimatedUnderline>Voice</AnimatedUnderline></a>
             <a href="#faq" className="hover:text-foreground transition"><AnimatedUnderline>FAQ</AnimatedUnderline></a>
           </nav>
@@ -285,6 +315,20 @@ function Landing() {
               </div>
             </div>
           </Reveal>
+        </div>
+      </section>
+
+      {/* ---------- trusted by (logo cloud) ---------- */}
+      <section className="border-t border-border/60 py-12 md:py-16">
+        <div className="mx-auto max-w-6xl px-6">
+          <ScrollReveal direction="up">
+            <p className="text-center text-[11px] uppercase tracking-[0.3em] text-muted-foreground/50 mb-8">
+              Trusted by teams at
+            </p>
+          </ScrollReveal>
+          <ScrollReveal direction="up">
+            <LogoCloud names={LOGO_NAMES} speed={40} />
+          </ScrollReveal>
         </div>
       </section>
 
@@ -463,6 +507,25 @@ function Landing() {
               <Layers className="h-4 w-4" />
               <span>Every card above is a real component Folio renders in conversation — not a screenshot.</span>
             </div>
+          </ScrollReveal>
+        </div>
+      </section>
+
+      {/* ---------- bento grid (premium experience) ---------- */}
+      <section className="relative border-t border-border/60 overflow-hidden">
+        <ParallaxLayer speed={0.08} className="pointer-events-none absolute right-[-5%] bottom-1/4 h-[400px] w-[500px] rounded-full rgb-blob opacity-15 blur-3xl" />
+        <div className="relative mx-auto max-w-6xl px-6 py-24 md:py-32">
+          <ScrollReveal direction="up">
+            <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">The experience</p>
+            <h2 className="font-serif text-4xl md:text-6xl mt-3 tracking-tight">
+              Everything, <em className="italic">in its place.</em>
+            </h2>
+            <p className="mt-4 max-w-lg text-muted-foreground leading-relaxed">
+              One surface for your whole day — each piece crafted to feel calm, alive, and unmistakably yours.
+            </p>
+          </ScrollReveal>
+          <ScrollReveal direction="up">
+            <BentoGrid items={BENTO_ITEMS} className="mt-14" />
           </ScrollReveal>
         </div>
       </section>
@@ -658,16 +721,7 @@ function Landing() {
         </div>
       </section>
 
-      <footer className="border-t border-border/60">
-        <div className="mx-auto max-w-6xl px-6 py-10 flex flex-wrap items-center justify-between gap-4 text-xs text-muted-foreground">
-          <WiggleHover>
-            <span className="inline-flex items-center gap-2">
-              <Wand2 className="h-3.5 w-3.5" /> Folio · everyday assistant
-            </span>
-          </WiggleHover>
-          <span>Made with care</span>
-        </div>
-      </footer>
+      <PremiumFooter />
 
       {/* ---------- floating dock (unlumen-inspired) ---------- */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
