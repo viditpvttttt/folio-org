@@ -2,7 +2,6 @@ import { FolioMark } from "@/components/brand/FolioMark";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/use-auth";
 import { usePreferences } from "@/hooks/use-preferences";
 import { toast } from "sonner";
@@ -48,12 +47,18 @@ function LoginPage() {
 
   async function handleGoogle() {
     setBusy(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      // Must be a public, same-origin URL — never a protected route.
-      redirect_uri: window.location.origin,
+    // Native Supabase OAuth — Supabase hosts the Google flow and redirects
+    // back to this page with the session tokens, which the client picks up
+    // automatically (detectSessionInUrl).
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/login` },
     });
-    if (result.error) { toast.error("Google sign-in failed"); setBusy(false); return; }
-    if (result.redirected) return;
+    if (error) {
+      toast.error(error.message || "Google sign-in failed");
+      setBusy(false);
+    }
+    // Success: the browser redirects to Google — nothing else to do here.
   }
 
   return (

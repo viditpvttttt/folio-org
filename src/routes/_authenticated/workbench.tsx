@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   listProjects, createProject, deleteProject, renameProject,
   listFiles, saveFile, deleteFile, deleteFiles,
+  listTemplates, saveTemplate, deleteTemplate,
 } from "@/lib/workbench.functions";
 import { AiActionsBar, EDITOR_ACTIONS, type AiActionId } from "@/components/workbench/AiActionsBar";
 import { FilesBulkBar, FILE_ACTIONS, type BulkFileActionId } from "@/components/workbench/FilesBulkBar";
@@ -56,6 +57,9 @@ function WorkbenchPage() {
   const save = useServerFn(saveFile);
   const dropFile = useServerFn(deleteFile);
   const dropFiles = useServerFn(deleteFiles);
+  const templatesFn = useServerFn(listTemplates);
+  const addTemplate = useServerFn(saveTemplate);
+  const dropTemplateFn = useServerFn(deleteTemplate);
 
   const projectsQ = useQuery({ queryKey: ["wb-projects"], queryFn: () => list() });
   const [projectId, setProjectId] = useState<string | null>(null);
@@ -79,6 +83,11 @@ function WorkbenchPage() {
     enabled: !!projectId,
   });
 
+  const templatesQ = useQuery({
+    queryKey: ["wb-templates"],
+    queryFn: () => templatesFn(),
+  });
+
   const [openPath, setOpenPath] = useState<string | null>(null);
   const [buffer, setBuffer] = useState<string>("");
   const [dirty, setDirty] = useState(false);
@@ -88,6 +97,7 @@ function WorkbenchPage() {
   const [chatRequest, setChatRequest] = useState<string | null>(null);
   const [aiSelected, setAiSelected] = useState<AiActionId[]>([]);
   const [checkedIds, setCheckedIds] = useState<string[]>([]);
+  const [templateSaving, setTemplateSaving] = useState(false);
 
   const openFile = filesQ.data?.find((f) => f.path === openPath) ?? null;
 
@@ -160,15 +170,15 @@ function WorkbenchPage() {
     setOpenPath(null);
   };
 
-  // Batch the selected AI actions into one combined request on the editor selection.
+  // Batch the given AI actions into one combined request on the editor selection.
   const toggleAiAction = (id: AiActionId) =>
     setAiSelected((prev) => (prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id]));
 
-  const runAiActions = () => {
-    if (!selection || !openPath || aiSelected.length === 0) return;
+  const runBatch = (ids: AiActionId[]) => {
+    if (!selection || !openPath || ids.length === 0) return;
     setShowChat(true);
     const lang = langFor(openPath);
-    const steps = aiSelected
+    const steps = ids
       .map((id) => EDITOR_ACTIONS.find((a) => a.id === id)?.prompt ?? "")
       .filter(Boolean)
       .map((p, i) => `${i + 1}. ${p}`)
@@ -176,6 +186,36 @@ function WorkbenchPage() {
     setChatRequest(
       `Perform the following on this selection:\n${steps}\n\nFile: \`${openPath}\`\n\n\`\`\`${lang}\n${selection}\n\`\`\``,
     );
+  };
+
+  const runAiActions = () => runBatch(aiSelected);
+
+  // One click on a saved template replays its action set on the selection.
+  const applyTemplate = (raw: string[]) =>
+    runBatch(raw.filter((id): id is AiActionId => EDITOR_ACTIONS.some((a) => a.id === id)));
+
+  const saveTemplateAs = async (name: string) => {
+    if (aiSelected.length === 0) return;
+    setTemplateSaving(true);
+    try {
+      await addTemplate({ data: { name, actions: aiSelected } });
+      qc.invalidateQueries({ queryKey: ["wb-templates"] });
+      toast.success(`Saved "${name}" — apply it in one click`);
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setTemplateSaving(false);
+    }
+  };
+
+  const dropTemplate = async (id: string) => {
+    try {
+      await dropTemplateFn({ data: { id } });
+      qc.invalidateQueries({ queryKey: ["wb-templates"] });
+      toast.success("Template deleted");
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
   };
 
   // Bulk-delete every checked file in one server call.
@@ -379,8 +419,13 @@ function WorkbenchPage() {
             <AiActionsBar
               lineCount={selection.split("\n").length}
               selected={aiSelected}
+              templates={templatesQ.data ?? []}
+              saving={templateSaving}
               onToggle={toggleAiAction}
               onRun={runAiActions}
+              onSaveTemplate={saveTemplateAs}
+              onDeleteTemplate={dropTemplate}
+              onApplyTemplate={applyTemplate}
             />
           )}
           <div className="flex-1 min-h-0 bg-neutral-950/40">

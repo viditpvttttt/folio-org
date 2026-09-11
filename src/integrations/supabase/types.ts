@@ -261,6 +261,30 @@ export type Database = {
         }
         Relationships: []
       }
+      workbench_templates: {
+        Row: {
+          actions: string[]
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          actions?: string[]
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          actions?: string[]
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

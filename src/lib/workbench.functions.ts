@@ -148,3 +148,43 @@ export const deleteFiles = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true, deleted: data.ids.length };
   });
+
+export const listTemplates = createServerFn({ method: "GET" }).handler(async () => {
+  const { client } = await requireUser();
+  const { data, error } = await client
+    .from("workbench_templates")
+    .select("id,name,actions,created_at")
+    .order("created_at", { ascending: false });
+  // A missing table (migration not applied yet) simply means no templates.
+  if (error) return [];
+  return data;
+});
+
+export const saveTemplate = createServerFn({ method: "POST" })
+  .inputValidator((i: { name: string; actions: string[] }) =>
+    z
+      .object({
+        name: z.string().min(1).max(60),
+        actions: z.array(z.enum(["explain", "refactor", "fix", "document"])).min(1),
+      })
+      .parse(i),
+  )
+  .handler(async ({ data }) => {
+    const { client, userId } = await requireUser();
+    const { data: t, error } = await client
+      .from("workbench_templates")
+      .insert({ user_id: userId, name: data.name, actions: data.actions })
+      .select("id,name,actions,created_at")
+      .single();
+    if (error || !t) throw new Error(error?.message ?? "Failed to save template");
+    return t;
+  });
+
+export const deleteTemplate = createServerFn({ method: "POST" })
+  .inputValidator((i: { id: string }) => z.object({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ data }) => {
+    const { client } = await requireUser();
+    const { error } = await client.from("workbench_templates").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
